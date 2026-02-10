@@ -1,0 +1,92 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+BINARY_NAME="plwr"
+DEFAULT_INSTALL_DIR="${HOME}/.local/bin"
+
+usage() {
+    cat <<EOF
+Install plwr - Clean CLI for Playwright browser automation
+
+USAGE:
+    ./script/install [OPTIONS]
+
+OPTIONS:
+    -d, --dir <DIR>     Installation directory [default: ~/.local/bin]
+    -s, --system        Install to /usr/local/bin (requires sudo)
+    -h, --help          Show this help message
+
+EXAMPLES:
+    ./script/install                # Install to ~/.local/bin
+    ./script/install -d ~/bin       # Install to ~/bin
+    ./script/install --system       # Install to /usr/local/bin
+EOF
+}
+
+main() {
+    local install_dir="$DEFAULT_INSTALL_DIR"
+    local use_sudo=false
+
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -d|--dir)
+                install_dir="$2"
+                shift 2
+                ;;
+            -s|--system)
+                install_dir="/usr/local/bin"
+                use_sudo=true
+                shift
+                ;;
+            -h|--help)
+                usage
+                exit 0
+                ;;
+            *)
+                echo "Unknown option: $1" >&2
+                usage
+                exit 1
+                ;;
+        esac
+    done
+
+    if ! command -v cargo &> /dev/null; then
+        echo "Error: cargo not found. Please install Rust: https://rustup.rs" >&2
+        exit 1
+    fi
+
+    echo "Building plwr (release mode)..."
+    cargo build --release --bin plwr
+
+    mkdir -p "$install_dir"
+
+    local src="target/release/${BINARY_NAME}"
+    local dst="${install_dir}/${BINARY_NAME}"
+
+    echo "Installing to ${dst}..."
+    if [[ "$use_sudo" == true ]]; then
+        sudo cp "$src" "$dst"
+        sudo chmod +x "$dst"
+        if [[ "$(uname)" == "Darwin" ]]; then
+            sudo codesign -s - "$dst" 2>/dev/null || true
+        fi
+    else
+        cp "$src" "$dst"
+        chmod +x "$dst"
+        if [[ "$(uname)" == "Darwin" ]]; then
+            codesign -s - "$dst" 2>/dev/null || true
+        fi
+    fi
+
+    echo ""
+    echo "✓ plwr installed successfully to ${dst}"
+
+    if ! echo "$PATH" | tr ':' '\n' | grep -qx "$install_dir"; then
+        echo ""
+        echo "Note: ${install_dir} is not in your PATH."
+        echo "Add it with:"
+        echo "    export PATH=\"${install_dir}:\$PATH\""
+    fi
+}
+
+main "$@"

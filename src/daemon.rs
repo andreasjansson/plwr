@@ -1,0 +1,378 @@
+use crate::protocol::{Command, Request, Response};
+use anyhow::Result;
+use playwright_rs::{
+    BrowserContextOptions, ClickOptions, FillOptions, LaunchOptions, Locator, Page, Playwright,
+    RecordVideo,
+};
+use std::path::Path;
+use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
+use tokio::net::UnixListener;
+
+const READY_SIGNAL: &str = "### ready";
+const ERROR_PREFIX: &str = "### error ";
+
+struct State {
+    playwright: Playwright,
+    _browser: playwright_rs::Browser,
+    page: Page,
+    // A locator on <html> — used to run JS via the frame's channel,
+    // working around a playwright-rs bug where main_frame() loses
+    // its object reference after several operations.
+    root: Locator,
+    video_page: Option<Page>,
+    video_dir: Option<String>,
+}
+
+impl State {
+    fn active_page(&self) -> &Page {
+        self.video_page.as_ref().unwrap_or(&self.page)
+    }
+}
+
+pub async fn run(socket_path: &Path, headed: bool) -> Result<()> {
+    if socket_path.exists() {
+        std::fs::remove_file(socket_path)?;
+    }
+
+    let playwright = match Playwright::launch().await {
+        Ok(p) => p,
+        Err(e) => {
+            println!("{}{}", ERROR_PREFIX, e);
+            return Err(e.into());
+        }
+    };
+    let browser = match playwright.chromium().launch_with_options(LaunchOptions {
+        headless: Some(!headed),
+        ..Default::default()
+    }).await {
+        Ok(b) => b,
+        Err(e) => {
+            println!("{}{}", ERROR_PREFIX, e);
+            return Err(e.into());
+        }
+    };
+    let page = match browser.new_page().await {
+        Ok(p) => p,
+        Err(e) => {
+            println!("{}{}", ERROR_PREFIX, e);
+            return Err(e.into());
+        }
+    };
+    let root = page.locator("html").await;
+
+    let listener = match UnixListener::bind(socket_path) {
+        Ok(l) => l,
+        Err(e) => {
+            println!("{}{}", ERROR_PREFIX, e);
+            return Err(e.into());
+        }
+    };
+
+    println!("{}", READY_SIGNAL);
+
+    let mut state = State {
+        playwright,
+        _browser: browser,
+        page,
+        root,
+        video_page: None,
+        video_dir: None,
+    };
+
+    loop {
+        let (stream, _) = listener.accept().await?;
+
+        let resp = async {
+            let (reader, mut writer) = stream.into_split();
+            let mut reader = BufReader::new(reader);
+            let mut line = String::new();
+            reader.read_line(&mut line).await?;
+
+            let req: Request = serde_json::from_str(&line)?;
+            let is_stop = matches!(req.command, Command::Stop);
+            let resp = handle_command(&mut state, req.command, headed)
+                .await
+                .unwrap_or_else(|e| Response::err(e.to_string()));
+
+            let mut buf = serde_json::to_vec(&resp)?;
+            buf.push(b'\n');
+            writer.write_all(&buf).await?;
+
+            Ok::<bool, anyhow::Error>(is_stop)
+        }.await;
+
+        match resp {
+            Ok(true) => break,
+            Ok(false) => {}
+            Err(e) => eprintln!("connection error: {}", e),
+        }
+    }
+
+    if socket_path.exists() {
+        std::fs::remove_file(socket_path)?;
+    }
+
+    Ok(())
+}
+
+async fn handle_command(state: &mut State, command: Command, headed: bool) -> Result<Response> {
+    let page = state.active_page();
+
+    match command {
+        Command::Stop => {
+            Ok(Response::ok_empty())
+        }
+
+        Command::Open { url } => {
+            page.goto(&url, None).await?;
+            Ok(Response::ok_empty())
+        }
+
+        Command::Reload => {
+            page.reload(None).await?;
+            Ok(Response::ok_empty())
+        }
+
+        Command::Url => {
+            Ok(Response::ok_value(serde_json::Value::String(page.url())))
+        }
+
+        Command::Wait { selector, timeout } => {
+            let loc = page.locator(&selector).await;
+            loc.click(Some(ClickOptions {
+                timeout: Some(timeout as f64),
+                trial: Some(true),
+                ..Default::default()
+            })).await?;
+            Ok(Response::ok_empty())
+        }
+
+        Command::WaitNot { selector, timeout } => {
+            let loc = page.locator(&selector).await;
+            let start = std::time::Instant::now();
+            loop {
+                let n = loc.count().await?;
+                if n == 0 {
+                    return Ok(Response::ok_empty());
+                }
+                if start.elapsed().as_millis() as u64 > timeout {
+                    anyhow::bail!("Timeout waiting for '{}' to disappear", selector);
+                }
+                tokio::time::sleep(std::time::Duration::from_millis(100)).await;
+            }
+        }
+
+        Command::Click { selector, timeout } => {
+            let loc = page.locator(&selector).await;
+            loc.click(Some(ClickOptions {
+                timeout: Some(timeout as f64),
+                ..Default::default()
+            })).await?;
+            Ok(Response::ok_empty())
+        }
+
+        Command::Fill { selector, text, timeout } => {
+            let loc = page.locator(&selector).await;
+            loc.fill(&text, Some(FillOptions {
+                timeout: Some(timeout as f64),
+                ..Default::default()
+            })).await?;
+            Ok(Response::ok_empty())
+        }
+
+        Command::Press { key } => {
+            page.keyboard().press(&key, None).await?;
+            Ok(Response::ok_empty())
+        }
+
+        Command::Exists { selector } => {
+            let loc = page.locator(&selector).await;
+            let n = loc.count().await?;
+            Ok(Response::ok_value(serde_json::Value::Bool(n > 0)))
+        }
+
+        Command::Text { selector, timeout } => {
+            let loc = page.locator(&selector).await;
+            loc.click(Some(ClickOptions {
+                timeout: Some(timeout as f64),
+                trial: Some(true),
+                ..Default::default()
+            })).await?;
+            let text = loc.text_content().await?.unwrap_or_default();
+            Ok(Response::ok_value(serde_json::Value::String(text)))
+        }
+
+        Command::Attr { selector, name, timeout } => {
+            let loc = page.locator(&selector).await;
+            loc.click(Some(ClickOptions {
+                timeout: Some(timeout as f64),
+                trial: Some(true),
+                ..Default::default()
+            })).await?;
+            match loc.get_attribute(&name).await? {
+                Some(val) => Ok(Response::ok_value(serde_json::Value::String(val))),
+                None => Ok(Response::ok_value(serde_json::Value::Null)),
+            }
+        }
+
+        Command::Count { selector } => {
+            let loc = page.locator(&selector).await;
+            let n = loc.count().await?;
+            Ok(Response::ok_value(serde_json::json!(n)))
+        }
+
+        Command::Eval { js } => {
+            let wrapper = format!(
+                "() => {{ const __r = ({}); return typeof __r === 'object' ? JSON.stringify(__r) : __r; }}",
+                js
+            );
+            let val = state.root.evaluate_value(&wrapper).await?;
+            match serde_json::from_str::<serde_json::Value>(&val) {
+                Ok(serde_json::Value::String(s)) => {
+                    match serde_json::from_str::<serde_json::Value>(&s) {
+                        Ok(v @ serde_json::Value::Object(_)) | Ok(v @ serde_json::Value::Array(_)) => Ok(Response::ok_value(v)),
+                        _ => Ok(Response::ok_value(serde_json::Value::String(s))),
+                    }
+                }
+                Ok(v) => Ok(Response::ok_value(v)),
+                Err(_) => Ok(Response::ok_value(serde_json::Value::String(val))),
+            }
+        }
+
+        Command::Screenshot { selector, path, .. } => {
+            let bytes = match &selector {
+                Some(sel) => {
+                    let loc = page.locator(sel).await;
+                    loc.screenshot(None).await?
+                }
+                None => page.screenshot(None).await?,
+            };
+            std::fs::write(&path, &bytes)?;
+            Ok(Response::ok_value(serde_json::json!({
+                "path": path,
+                "bytes": bytes.len(),
+            })))
+        }
+
+        Command::Tree { selector, .. } => {
+            let walk_fn = r#"
+                function walk(el) {
+                    const node = { tag: el.tagName ? el.tagName.toLowerCase() : '#text' };
+                    if (el.id) node.id = el.id;
+                    if (el.className && typeof el.className === 'string' && el.className.trim())
+                        node.class = el.className.trim().split(/\s+/);
+                    if (el.attributes) {
+                        const attrs = {};
+                        for (const a of el.attributes) {
+                            if (a.name !== 'id' && a.name !== 'class' && !a.name.startsWith('data-plwr'))
+                                attrs[a.name] = a.value;
+                        }
+                        if (Object.keys(attrs).length > 0) node.attrs = attrs;
+                    }
+                    const text = Array.from(el.childNodes)
+                        .filter(n => n.nodeType === 3)
+                        .map(n => n.textContent.trim())
+                        .filter(t => t)
+                        .join(' ');
+                    if (text) node.text = text;
+                    const children = Array.from(el.children).map(walk);
+                    if (children.length > 0) node.children = children;
+                    return node;
+                }
+            "#;
+            let set_js = match &selector {
+                Some(sel) => format!(
+                    "() => {{ {} const el = document.querySelector({}); if (!el) throw new Error('Element not found: ' + {}); return JSON.stringify(walk(el)); }}",
+                    walk_fn, js_str(sel), js_str(sel),
+                ),
+                None => format!(
+                    "() => {{ {} return JSON.stringify(walk(document.documentElement)); }}",
+                    walk_fn,
+                ),
+            };
+            let val = state.root.evaluate_value(&set_js).await?;
+            let json_str: String = serde_json::from_str(&val).unwrap_or(val);
+            let tree: serde_json::Value = serde_json::from_str(&json_str)?;
+            Ok(Response::ok_value(tree))
+        }
+
+        Command::VideoStart { dir } => {
+            std::fs::create_dir_all(&dir)?;
+            let tmp_dir = tempfile::tempdir()?;
+            let user_data = tmp_dir.path().to_string_lossy().to_string();
+
+            let ctx = state.playwright.chromium()
+                .launch_persistent_context_with_options(
+                    user_data,
+                    BrowserContextOptions {
+                        headless: Some(!headed),
+                        record_video: Some(RecordVideo {
+                            dir: dir.clone(),
+                            size: None,
+                        }),
+                        ..Default::default()
+                    },
+                ).await?;
+            let vpage = ctx.new_page().await?;
+
+            let url = state.page.url();
+            if url != "about:blank" {
+                let _ = vpage.goto(&url, None).await;
+            }
+
+            state.video_dir = Some(dir);
+            state.video_page = Some(vpage);
+            Ok(Response::ok_empty())
+        }
+
+        Command::VideoStop { output } => {
+            if let (Some(vpage), Some(dir)) = (state.video_page.take(), state.video_dir.take()) {
+                let ctx = vpage.context()?;
+                ctx.close().await?;
+
+                let webm = std::fs::read_dir(&dir)?
+                    .filter_map(|e| e.ok())
+                    .find(|e| e.path().extension().is_some_and(|ext| ext == "webm"))
+                    .map(|e| e.path());
+
+                match webm {
+                    Some(webm_path) => {
+                        if output.ends_with(".webm") {
+                            std::fs::rename(&webm_path, &output)?;
+                            Ok(Response::ok_value(serde_json::json!({"path": output, "format": "webm"})))
+                        } else {
+                            let status = std::process::Command::new("ffmpeg")
+                                .args(["-y", "-i"])
+                                .arg(&webm_path)
+                                .arg(&output)
+                                .stdout(std::process::Stdio::null())
+                                .stderr(std::process::Stdio::null())
+                                .status()?;
+                            if status.success() {
+                                std::fs::remove_file(&webm_path).ok();
+                                let ext = Path::new(&output).extension()
+                                    .and_then(|e| e.to_str())
+                                    .unwrap_or("mp4");
+                                Ok(Response::ok_value(serde_json::json!({"path": output, "format": ext})))
+                            } else {
+                                Ok(Response::err(format!("ffmpeg exited with {}", status)))
+                            }
+                        }
+                    }
+                    None => Ok(Response::err("No video file found".to_string())),
+                }
+            } else {
+                Ok(Response::err("No video recording in progress".to_string()))
+            }
+        }
+    }
+}
+
+fn js_str(s: &str) -> String {
+    let escaped = s
+        .replace('\\', "\\\\")
+        .replace('\'', "\\'")
+        .replace('\n', "\\n")
+        .replace('\r', "\\r");
+    format!("'{}'", escaped)
+}

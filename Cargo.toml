@@ -1,0 +1,22 @@
+[package]
+name = "plwr"
+description = "Clean CLI for Playwright browser automation with CSS selectors"
+version = "0.1.0"
+edition = "2021"
+authors = ["Andreas Jansson"]
+license = "MIT"
+
+[dependencies]
+clap = { version = "4", features = ["derive", "env"] }
+playwright-rs = { path = "/Users/ajansson/src/github.com/padamson/playwright-rust/crates/playwright" }
+tokio = { version = "1", features = ["full"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+anyhow = "1"
+tempfile = "3.25.0"
+
+[profile.release]
+lto = true
+strip = true
+codegen-units = 1
+panic = "abort"

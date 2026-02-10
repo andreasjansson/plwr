@@ -1,0 +1,26 @@
+===
+open a URL
+%require
+===
+plwr -S plwr-test open "https://example.com"
+---
+
+===
+get current URL
+===
+plwr -S plwr-test url
+---
+https://example.com/
+
+===
+reload the page
+===
+plwr -S plwr-test reload
+---
+
+===
+URL is unchanged after reload
+===
+plwr -S plwr-test url
+---
+https://example.com/

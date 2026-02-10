@@ -1,0 +1,84 @@
+===
+navigate to example.com
+%require
+===
+plwr -S plwr-test open "https://example.com"
+---
+
+===
+wait for h1
+===
+plwr -S plwr-test wait h1
+---
+
+===
+wait-not for nonexistent element
+===
+plwr -S plwr-test wait-not .does-not-exist -T 1000
+---
+
+===
+exists returns 0 for existing element
+===
+plwr -S plwr-test exists h1
+---
+
+===
+exists returns 1 for missing element
+===
+! plwr -S plwr-test exists .does-not-exist
+---
+
+===
+get text content of h1
+===
+plwr -S plwr-test text h1
+---
+Example Domain
+
+===
+get attribute value
+===
+plwr -S plwr-test attr a href
+---
+https://iana.org/domains/example
+
+===
+count matching elements
+===
+plwr -S plwr-test count p
+---
+{{ count }}
+---
+where
+* count > 0
+
+===
+eval arbitrary javascript
+===
+plwr -S plwr-test eval "document.title"
+---
+Example Domain
+
+===
+eval returns structured JSON
+===
+plwr -S plwr-test eval "({a: 1, b: [2, 3]})"
+---
+{
+  "a": 1,
+  "b": [
+    2,
+    3
+  ]
+}
+
+===
+tree dumps element as JSON
+===
+plwr -S plwr-test tree h1
+---
+{
+  "tag": "h1",
+  "text": "Example Domain"
+}

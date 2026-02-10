@@ -1,0 +1,5 @@
+===
+stop browser
+===
+plwr -S plwr-test stop
+---

@@ -1,0 +1,38 @@
+===
+open inline form via data URL
+%require
+===
+plwr -S plwr-test open "data:text/html,<h1>Test</h1><input id='name' type='text'><button id='btn' onclick=\"document.getElementById('result').textContent='Hello, '+document.getElementById('name').value\">Go</button><div id='result'></div>"
+---
+
+===
+wait for form to load
+%require
+===
+plwr -S plwr-test wait '#name'
+---
+
+===
+fill text into input
+===
+plwr -S plwr-test fill '#name' 'Alice'
+---
+
+===
+click the submit button
+===
+plwr -S plwr-test click '#btn'
+---
+
+===
+result shows greeting
+===
+plwr -S plwr-test text '#result'
+---
+Hello, Alice
+
+===
+press a key
+===
+plwr -S plwr-test press Tab
+---
