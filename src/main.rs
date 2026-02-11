@@ -1,6 +1,7 @@
 mod client;
 mod daemon;
 mod protocol;
+mod pw_ext;
 
 use crate::protocol::Command;
 use clap::{Parser, Subcommand};
