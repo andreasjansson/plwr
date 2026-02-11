@@ -32,10 +32,13 @@ struct Cli {
 
 const EXAMPLES: &str = "\x1b[1;4mExamples:\x1b[0m
 
-  Navigate and extract text:
+  Start the browser and navigate:
+    plwr start                           # start headless browser
+    plwr start --headed                  # start with visible window
     plwr open https://example.com
     plwr text h1                         # \"Example Domain\"
     plwr attr a href                     # \"https://www.iana.org/...\"
+    plwr stop
 
   Fill a form and submit:
     plwr fill '#email' 'alice@test.com'
@@ -85,8 +88,9 @@ const EXAMPLES: &str = "\x1b[1;4mExamples:\x1b[0m
     plwr press Meta+c                    # copy (macOS)
 
   Sessions — each session is an independent browser with its own
-  cookies, headers, and page state. The browser starts automatically
-  on first use and persists until stopped:
+  cookies, headers, and page state:
+    plwr -S admin start
+    plwr -S user start --headed
     plwr -S admin open https://app.com/admin
     plwr -S user open https://app.com/login
     plwr -S user fill '#email' 'user@test.com'
