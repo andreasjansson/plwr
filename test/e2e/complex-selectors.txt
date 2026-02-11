@@ -1,0 +1,115 @@
+===
+open a page with varied elements
+%require
+===
+plwr -S plwr-test open "data:text/html,<ul id='list'><li class='item done'>Buy milk</li><li class='item'>Walk dog</li><li class='item done'>Clean house</li></ul><div class='card'><h2>Section A</h2><p>Hello world</p></div><div class='card'><h2>Section B</h2><p>Goodbye</p></div><a href='/about'>About</a><a href='/contact'>Contact</a><input type='text' placeholder='Name'><input type='email' placeholder='Email'>"
+---
+
+===
+has-text selector
+===
+plwr -S plwr-test text 'li:has-text("Walk dog")'
+---
+Walk dog
+
+===
+nth-match selector
+===
+plwr -S plwr-test text 'li.item >> nth=0'
+---
+Buy milk
+
+===
+second nth-match
+===
+plwr -S plwr-test text 'li.item >> nth=1'
+---
+Walk dog
+
+===
+compound class selector
+===
+plwr -S plwr-test count 'li.item.done'
+---
+2
+
+===
+descendant combinator
+===
+plwr -S plwr-test text '.card:has-text("Section A") p'
+---
+Hello world
+
+===
+attribute selector
+===
+plwr -S plwr-test count 'input[type="text"]'
+---
+1
+
+===
+attribute substring selector
+===
+plwr -S plwr-test count 'a[href*="about"]'
+---
+1
+
+===
+placeholder selector
+===
+plwr -S plwr-test count 'input[placeholder="Email"]'
+---
+1
+
+===
+not pseudo-class
+===
+plwr -S plwr-test count 'li.item:not(.done)'
+---
+1
+
+===
+has pseudo-class
+===
+plwr -S plwr-test count '.card:has(h2:has-text("Section B"))'
+---
+1
+
+===
+first-child
+===
+plwr -S plwr-test text '#list li:first-child'
+---
+Buy milk
+
+===
+last-child
+===
+plwr -S plwr-test text '#list li:last-child'
+---
+Clean house
+
+===
+visible selector
+===
+plwr -S plwr-test count 'li:visible'
+---
+3
+
+===
+text selector shorthand
+===
+plwr -S plwr-test exists 'text=Walk dog'
+---
+
+===
+exists with complex selector
+===
+plwr -S plwr-test exists '.card:has-text("Goodbye")'
+---
+
+===
+exists fails with complex selector
+===
+! plwr -S plwr-test exists '.card:has-text("Nonexistent")'
+---
