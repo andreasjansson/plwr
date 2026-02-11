@@ -87,10 +87,15 @@ header requires name and value
 ===
 ! plwr -S plwr-test header X-Foo
 ---
-{{ error }}
+Usage: plwr header <name> <value> or plwr header --clear
+Missing value for header 'X-Foo'
+
+===
+header with no arguments fails
+===
+! plwr -S plwr-test header
 ---
-where
-* error contains "Missing value"
+Usage: plwr header <name> <value> or plwr header --clear
 
 ===
 stop when no daemon is a no-op
