@@ -376,18 +376,22 @@ fn clean_error(e: anyhow::Error) -> String {
     //   Protocol error: Error: Element not found: .foo \n Error: ... \n    at ...stack...
     //   Protocol error (Page.navigate): Cannot navigate to invalid URL
     // Extract the first line after the prefix and append any trailing [selector: ...].
-    let rest = msg.strip_prefix("Protocol error: ")
-        .or_else(|| msg.strip_prefix("Protocol error ").and_then(|s| s.find(": ").map(|i| &s[i + 2..])));
-    if let Some(rest) = rest {
+    if let Some(rest) = msg.strip_prefix("Protocol error: ") {
         let first_line = rest.lines().next().unwrap_or(rest).trim();
 
         let selector_suffix = rest.lines().last()
             .and_then(|l| l.rfind("[selector: ").map(|i| &l[i..]))
             .unwrap_or("");
 
-        let clean = first_line
-            .strip_prefix("Error: ").unwrap_or(first_line)
-            .trim_end();
+        // Strip nested prefixes like "Error: " or "(Page.navigate): "
+        let clean = first_line;
+        let clean = clean.strip_prefix("Error: ").unwrap_or(clean);
+        let clean = if clean.starts_with('(') {
+            clean.find(": ").map(|i| &clean[i + 2..]).unwrap_or(clean)
+        } else {
+            clean
+        };
+        let clean = clean.trim_end();
 
         if selector_suffix.is_empty() {
             return clean.to_string();
