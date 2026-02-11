@@ -22,16 +22,11 @@ pub async fn send(socket_path: &Path, command: Command) -> Result<Response> {
     send_on_stream(stream, command).await
 }
 
-pub async fn start_and_send(socket_path: &Path, command: Command, headed: bool) -> Result<Response> {
-    let stream = match UnixStream::connect(socket_path).await {
-        Ok(s) => s,
-        Err(_) => {
-            start_daemon(socket_path, headed)?;
-            UnixStream::connect(socket_path).await
-                .map_err(|e| anyhow::anyhow!("Daemon started but cannot connect: {}", e))?
-        }
-    };
-    send_on_stream(stream, command).await
+pub fn ensure_started(socket_path: &Path, headed: bool) -> Result<()> {
+    if socket_path.exists() {
+        return Ok(());
+    }
+    start_daemon(socket_path, headed)
 }
 
 async fn send_on_stream(stream: UnixStream, command: Command) -> Result<Response> {
