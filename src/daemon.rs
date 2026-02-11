@@ -18,10 +18,6 @@ struct State {
     playwright: Playwright,
     _browser: playwright_rs::Browser,
     page: Page,
-    // A locator on <html> — used to run JS via the frame's channel,
-    // working around a playwright-rs bug where main_frame() loses
-    // its object reference after several operations.
-    root: Locator,
     headers: HashMap<String, String>,
     video_page: Option<Page>,
     video_dir: Option<String>,
