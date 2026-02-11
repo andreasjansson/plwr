@@ -265,9 +265,14 @@ async fn handle_command(state: &mut State, command: Command, headed: bool) -> Re
             }
         }
 
-        Command::Exists { selector } => {
+        Command::Exists { selector, timeout } => {
             let loc = page.locator(&selector).await;
-            let n = loc.count().await?;
+            let n = tokio::time::timeout(
+                std::time::Duration::from_millis(timeout),
+                loc.count(),
+            ).await
+                .map_err(|_| anyhow::anyhow!("Timeout {}ms exceeded. [selector: {}]", timeout, selector))?
+                ?;
             Ok(Response::ok_value(serde_json::Value::Bool(n > 0)))
         }
 
