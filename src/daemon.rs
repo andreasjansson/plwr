@@ -119,6 +119,23 @@ pub async fn run(socket_path: &Path, headed: bool) -> Result<()> {
 }
 
 async fn handle_command(state: &mut State, command: Command, headed: bool) -> Result<Response> {
+    // Handle commands that mutate state before borrowing the page
+    match command {
+        Command::Header { name, value } => {
+            state.headers.insert(name, value);
+            let ctx = state.active_page().context()?;
+            ctx.set_extra_http_headers(state.headers.clone()).await?;
+            return Ok(Response::ok_empty());
+        }
+        Command::HeaderClear => {
+            state.headers.clear();
+            let ctx = state.active_page().context()?;
+            ctx.set_extra_http_headers(HashMap::new()).await?;
+            return Ok(Response::ok_empty());
+        }
+        _ => {}
+    }
+
     let page = state.active_page();
 
     match command {
