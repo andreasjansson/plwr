@@ -92,7 +92,7 @@ pub async fn run(socket_path: &Path, headed: bool) -> Result<()> {
             let is_stop = matches!(req.command, Command::Stop);
             let resp = handle_command(&mut state, req.command, headed)
                 .await
-                .unwrap_or_else(|e| Response::err(e.to_string()));
+                .unwrap_or_else(|e| Response::err(clean_error(e)));
 
             let mut buf = serde_json::to_vec(&resp)?;
             buf.push(b'\n');
