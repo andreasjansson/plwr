@@ -354,8 +354,7 @@ async fn handle_command(state: &mut State, command: Command, headed: bool) -> Re
                 return JSON.stringify(walk(el));
             }"#;
             let sel = selector.as_deref().unwrap_or("html");
-            let loc = page.locator(sel).await;
-            let val = loc.evaluate(walk_js).await?;
+            let val = pw_ext::locator_eval_on_selector(page, sel, walk_js).await?;
             let json_str: String = serde_json::from_str(&val).unwrap_or(val);
             let tree: serde_json::Value = serde_json::from_str(&json_str)?;
             Ok(Response::ok_value(tree))
