@@ -142,23 +142,12 @@ async fn handle_command(state: &mut State, command: Command, headed: bool) -> Re
             } else {
                 url
             };
-            let cookie = playwright_rs::Cookie {
-                name,
-                value,
-                domain: String::new(),
-                path: String::new(),
-                expires: -1.0,
-                http_only: false,
-                secure: false,
-                same_site: None,
-                url: Some(url),
-            };
-            ctx.add_cookies(&[cookie]).await?;
+            pw_ext::add_cookie(&ctx, name, value, url).await?;
             return Ok(Response::ok_empty());
         }
         Command::CookieList => {
             let ctx = state.active_page().context()?;
-            let cookies = ctx.cookies().await?;
+            let cookies = pw_ext::get_cookies(&ctx).await?;
             let json: Vec<serde_json::Value> = cookies.iter().map(|c| {
                 serde_json::json!({
                     "name": c.name,
@@ -175,7 +164,7 @@ async fn handle_command(state: &mut State, command: Command, headed: bool) -> Re
         }
         Command::CookieClear => {
             let ctx = state.active_page().context()?;
-            ctx.clear_cookies().await?;
+            pw_ext::clear_cookies(&ctx).await?;
             return Ok(Response::ok_empty());
         }
         Command::Viewport { width, height } => {
