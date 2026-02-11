@@ -10,10 +10,7 @@ take full page screenshot
 ===
 plwr -S plwr-test screenshot --path /tmp/plwr-test-full.png
 ---
-{
-  "bytes": {{ bytes:number }},
-  "path": "/tmp/plwr-test-full.png"
-}
+Saved {{ bytes:number }} bytes to /tmp/plwr-test-full.png
 ---
 where
 * bytes > 1000
@@ -29,10 +26,7 @@ take element screenshot
 ===
 plwr -S plwr-test screenshot --selector h1 --path /tmp/plwr-test-h1.png
 ---
-{
-  "bytes": {{ bytes:number }},
-  "path": "/tmp/plwr-test-h1.png"
-}
+Saved {{ bytes:number }} bytes to /tmp/plwr-test-h1.png
 ---
 where
 * bytes > 100
