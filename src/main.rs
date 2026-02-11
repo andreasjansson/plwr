@@ -287,6 +287,25 @@ async fn main() -> ExitCode {
             }
         }
 
+        Cmd::Start { headed } => {
+            let headed = headed || std::env::var("PLAYWRIGHT_HEADED").is_ok_and(|v| !v.is_empty());
+            match client::start_and_send(&sock, Command::Open { url: "about:blank".into() }, headed).await {
+                Ok(resp) => {
+                    if resp.ok {
+                        println!("Started session '{}'", cli.session);
+                        ExitCode::SUCCESS
+                    } else {
+                        eprintln!("{}", resp.error.unwrap_or_else(|| "Unknown error".into()));
+                        ExitCode::FAILURE
+                    }
+                }
+                Err(e) => {
+                    eprintln!("{}", e);
+                    ExitCode::FAILURE
+                }
+            }
+        }
+
         Cmd::Stop => {
             match client::send_if_running(&sock, Command::Stop).await {
                 Ok(Some(_)) => {
@@ -306,7 +325,7 @@ async fn main() -> ExitCode {
 
         cmd => {
             let command = match cmd {
-                Cmd::Daemon | Cmd::Stop => unreachable!(),
+                Cmd::Daemon | Cmd::Stop | Cmd::Start { .. } => unreachable!(),
                 Cmd::Open { url } => Command::Open { url },
                 Cmd::Reload => Command::Reload,
                 Cmd::Url => Command::Url,
