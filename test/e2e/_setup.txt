@@ -1,0 +1,6 @@
+===
+start web server
+%require
+===
+bash -c 'npx -y serve -p 8599 "$CCTR_FIXTURE_DIR" &>/tmp/plwr-serve.log & echo $! > /tmp/plwr-serve.pid; for i in $(seq 1 30); do curl -s http://localhost:8599 >/dev/null && exit 0; sleep 0.1; done; exit 1'
+---
