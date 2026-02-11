@@ -8,6 +8,27 @@ use tokio::net::UnixStream;
 
 const STARTUP_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(30);
 
+pub async fn send_if_running(socket_path: &Path, command: Command) -> Result<Option<Response>> {
+    let stream = match UnixStream::connect(socket_path).await {
+        Ok(s) => s,
+        Err(_) => return Ok(None),
+    };
+
+    let (reader, mut writer) = stream.into_split();
+
+    let req = Request { command };
+    let mut buf = serde_json::to_vec(&req)?;
+    buf.push(b'\n');
+    writer.write_all(&buf).await?;
+
+    let mut reader = BufReader::new(reader);
+    let mut line = String::new();
+    reader.read_line(&mut line).await?;
+
+    let resp: Response = serde_json::from_str(&line)?;
+    Ok(Some(resp))
+}
+
 pub async fn send(socket_path: &Path, command: Command) -> Result<Response> {
     // Try connecting; if it fails, auto-start the daemon and retry.
     let stream = match UnixStream::connect(socket_path).await {
