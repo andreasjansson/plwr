@@ -153,6 +153,12 @@ const EXAMPLES: &str = "\x1b[1;4mExamples:\x1b[0m
 
 #[derive(Subcommand)]
 enum Cmd {
+    /// Start the browser session
+    Start {
+        /// Show the browser window
+        #[arg(long)]
+        headed: bool,
+    },
     /// Stop the browser
     Stop,
 
