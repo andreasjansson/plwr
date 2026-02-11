@@ -292,13 +292,13 @@ async fn handle_command(state: &mut State, command: Command, headed: bool) -> Re
             }
         }
 
-        Command::Count { selector, timeout } => {
+        Command::Count { selector } => {
             let loc = page.locator(&selector).await;
             let n = tokio::time::timeout(
-                std::time::Duration::from_millis(timeout),
+                CHANNEL_TIMEOUT,
                 loc.count(),
             ).await
-                .map_err(|_| anyhow::anyhow!("Timeout {}ms exceeded. [selector: {}]", timeout, selector))?
+                .map_err(|_| anyhow::anyhow!("Timeout waiting for Playwright response. [selector: {}]", selector))?
                 ?;
             Ok(Response::ok_value(serde_json::json!(n)))
         }
