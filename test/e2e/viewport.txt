@@ -1,0 +1,32 @@
+===
+navigate to test page
+%require
+===
+plwr -S plwr-test open "http://localhost:8599/index.html"
+---
+
+===
+set viewport to 800x600
+===
+plwr -S plwr-test viewport 800 600
+---
+
+===
+viewport dimensions are reflected in JS
+===
+plwr -S plwr-test eval "window.innerWidth + 'x' + window.innerHeight"
+---
+800x600
+
+===
+change viewport to mobile size
+===
+plwr -S plwr-test viewport 375 667
+---
+
+===
+mobile viewport dimensions
+===
+plwr -S plwr-test eval "window.innerWidth + 'x' + window.innerHeight"
+---
+375x667
