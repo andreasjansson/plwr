@@ -72,9 +72,7 @@ pub async fn run(socket_path: &Path, headed: bool) -> Result<()> {
         }
     };
 
-    dlog("ready, signaling parent");
     println!("{}", READY_SIGNAL);
-    dlog("entering event loop");
 
     let mut state = State {
         playwright,
@@ -87,23 +85,15 @@ pub async fn run(socket_path: &Path, headed: bool) -> Result<()> {
     };
 
     loop {
-        dlog("waiting for connection");
-        let accept_result = listener.accept().await;
-        match &accept_result {
-            Ok(_) => dlog("accepted connection"),
-            Err(e) => dlog(&format!("accept error: {}", e)),
-        }
-        let (stream, _) = accept_result?;
+        let (stream, _) = listener.accept().await?;
 
         let resp = async {
             let (reader, mut writer) = stream.into_split();
             let mut reader = BufReader::new(reader);
             let mut line = String::new();
-            let n = reader.read_line(&mut line).await?;
-            dlog(&format!("read {} bytes: {:?}", n, line.trim()));
+            reader.read_line(&mut line).await?;
 
             let req: Request = serde_json::from_str(&line)?;
-            dlog(&format!("parsed command: {:?}", req.command));
             let is_stop = matches!(req.command, Command::Stop);
             let resp = if !state.page_opened && req.command.requires_page() {
                 Response::err("No page open. Use 'plwr open <url>' first.".to_string())
@@ -116,23 +106,20 @@ pub async fn run(socket_path: &Path, headed: bool) -> Result<()> {
             let mut buf = serde_json::to_vec(&resp)?;
             buf.push(b'\n');
             writer.write_all(&buf).await?;
-            dlog(&format!("sent response, is_stop={}", is_stop));
 
             Ok::<bool, anyhow::Error>(is_stop)
         }.await;
 
         match resp {
-            Ok(true) => { dlog("stop requested, breaking"); break; }
-            Ok(false) => { dlog("continuing loop"); }
-            Err(e) => { dlog(&format!("connection error: {}", e)); eprintln!("connection error: {}", e); }
+            Ok(true) => break,
+            Ok(false) => {}
+            Err(e) => eprintln!("connection error: {}", e),
         }
     }
 
-    dlog("exiting event loop, cleaning up socket");
     if socket_path.exists() {
         std::fs::remove_file(socket_path)?;
     }
-    dlog("done, returning from run()");
 
     Ok(())
 }
