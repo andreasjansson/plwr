@@ -45,7 +45,7 @@ tree fails on missing selector
 ===
 ! plwr -S plwr-test tree .does-not-exist
 ---
-Failed to find element matching selector ".does-not-exist" [selector: .does-not-exist]
+No element found for selector: .does-not-exist
 
 ===
 open fails with invalid URL
