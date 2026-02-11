@@ -41,6 +41,11 @@ which override the environment variables.
 
 ### Navigation
 
+`open` navigates the current page within the existing browser context. Headers,
+cookies, and other state are preserved across navigations. There is no separate
+`goto` command — `open` always reuses the same context. If you need a fresh
+context, use `plwr stop` followed by `plwr open`.
+
 ```bash
 plwr open "https://example.com"
 plwr reload
@@ -70,6 +75,18 @@ plwr text h1                     # print textContent
 plwr attr a href                 # print attribute value
 plwr count '.list-item'          # print number of matches
 plwr exists '.sidebar'           # exit 0 if found, 1 if not
+```
+
+### Headers
+
+Set extra HTTP headers sent with every request. Headers persist across
+navigations within the same session.
+
+```bash
+plwr header CF-Access-Client-Id "$CLIENT_ID"
+plwr header CF-Access-Client-Secret "$CLIENT_SECRET"
+plwr open "$WORKER_URL"          # headers sent automatically
+plwr header --clear              # remove all extra headers
 ```
 
 ### JavaScript
