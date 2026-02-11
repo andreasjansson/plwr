@@ -62,11 +62,14 @@ eval fails with invalid JS
 SyntaxError: Unexpected token '??'
 
 ===
-press fails with invalid key
+press fails with invalid key and shows valid keys
 ===
 ! plwr -S plwr-test press NotAKey
 ---
 Unknown key: "NotAKey"
+
+Valid keys: Backspace, Tab, Enter, Escape, Space, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, Home, End, PageUp, PageDown, Delete, Insert, F1-F12, a-z, 0-9, Control, Shift, Alt, Meta
+Chords: Control+c, Shift+Enter, Alt+Tab, Meta+a
 
 ===
 screenshot fails with invalid path
@@ -98,7 +101,23 @@ header with no arguments fails
 Usage: plwr header <name> <value> or plwr header --clear
 
 ===
-stop when no daemon is a no-op
+cookie requires name and value
+===
+! plwr -S plwr-test cookie session
+---
+Usage: plwr cookie <name> <value> [--url <url>], plwr cookie --list, or plwr cookie --clear
+Missing value for cookie 'session'
+
+===
+cookie with no arguments fails
+===
+! plwr -S plwr-test cookie
+---
+Usage: plwr cookie <name> <value> [--url <url>], plwr cookie --list, or plwr cookie --clear
+
+===
+stop reports no session running
 ===
 plwr -S plwr-test-nonexistent stop
 ---
+No session 'plwr-test-nonexistent' running
