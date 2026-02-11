@@ -62,7 +62,7 @@ fn start_daemon(socket_path: &Path, headed: bool) -> Result<()> {
     let mut cmd = StdCommand::new(&exe);
     cmd.args(["--session", session, "daemon"])
         .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
+        .stderr(Stdio::null())
         .stdin(Stdio::null());
 
     if headed {
