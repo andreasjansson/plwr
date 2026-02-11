@@ -475,6 +475,7 @@ fn clean_error(e: anyhow::Error) -> String {
         msg
     };
     let msg = msg.strip_prefix("Error: ").unwrap_or(msg);
+    let msg = msg.strip_prefix("strict mode violation: ").unwrap_or(msg);
 
     let first_line = msg.lines().next().unwrap_or(msg).trim_end();
 
@@ -484,8 +485,7 @@ fn clean_error(e: anyhow::Error) -> String {
         format!("{} {}", first_line, selector_suffix)
     };
 
-    if cleaned.contains("strict mode violation") {
-        // Extract the selector from [selector: ...]
+    if cleaned.contains("resolved to") && cleaned.contains("elements") {
         let sel = selector_suffix
             .strip_prefix("[selector: ")
             .and_then(|s| s.strip_suffix(']'))
