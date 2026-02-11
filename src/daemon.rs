@@ -39,6 +39,11 @@ impl State {
 }
 
 pub async fn run(socket_path: &Path, headed: bool) -> Result<()> {
+    // Ignore SIGPIPE — stdout is a pipe from the parent process that
+    // closes after reading the ready signal. Any later stdout write
+    // (e.g. from Playwright internals) must not kill us.
+    unsafe { libc::signal(libc::SIGPIPE, libc::SIG_IGN); }
+
     if socket_path.exists() {
         std::fs::remove_file(socket_path)?;
     }
