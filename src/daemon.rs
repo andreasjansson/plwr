@@ -11,6 +11,7 @@ use tokio::net::UnixListener;
 
 const READY_SIGNAL: &str = "### ready";
 const ERROR_PREFIX: &str = "### error ";
+const CHANNEL_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(30);
 
 struct State {
     playwright: Playwright,
