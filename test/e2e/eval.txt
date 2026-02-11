@@ -57,6 +57,12 @@ plwr -S plwr-test eval "document.querySelectorAll('p').length > 0"
 ---
 
 ===
+eval returns boolean false (exit 1, no output)
+===
+! plwr -S plwr-test eval "document.querySelectorAll('.nope').length > 0"
+---
+
+===
 eval returns null
 ===
 plwr -S plwr-test eval "null"
