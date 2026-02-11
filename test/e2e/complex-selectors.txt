@@ -287,3 +287,52 @@ has-text with >> chain finds nested content
 plwr -S plwr-test text 'tr:has-text("Carol") >> td.status'
 ---
 Active
+
+===
+css= prefix: last-of-type
+===
+plwr -S plwr-test text 'css=.mixed-children span:last-of-type'
+---
+Third span
+
+===
+css= prefix: first-of-type
+===
+plwr -S plwr-test text 'css=.mixed-children p:first-of-type'
+---
+A paragraph
+
+===
+css= prefix: nth-of-type
+===
+plwr -S plwr-test text 'css=.mixed-children span:nth-of-type(2)'
+---
+Second span
+
+===
+css= prefix: nth-last-child
+===
+plwr -S plwr-test text 'css=#list li:nth-last-child(1)'
+---
+Clean house
+
+===
+css= prefix: :is() pseudo-class
+===
+plwr -S plwr-test count 'css=:is(.card, .mixed-children)'
+---
+3
+
+===
+css= prefix: quoted attribute values
+===
+plwr -S plwr-test text 'css=[data-testid="login-form"] [data-action="submit"]'
+---
+Submit
+
+===
+css= prefix: nth-child(odd)
+===
+plwr -S plwr-test count 'css=#list li:nth-child(odd)'
+---
+2
