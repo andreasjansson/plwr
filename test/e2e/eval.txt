@@ -1,0 +1,64 @@
+===
+navigate to test page
+%require
+===
+plwr -S plwr-test open "http://localhost:8599/index.html"
+---
+
+===
+eval returns a string
+===
+plwr -S plwr-test eval "document.title"
+---
+plwr test
+
+===
+eval returns a number
+===
+plwr -S plwr-test eval "1 + 2"
+---
+3
+
+===
+eval returns structured JSON object
+===
+plwr -S plwr-test eval "({a: 1, b: [2, 3]})"
+---
+{
+  "a": 1,
+  "b": [
+    2,
+    3
+  ]
+}
+
+===
+eval returns a JSON array
+===
+plwr -S plwr-test eval "[1, 'two', null]"
+---
+[
+  1,
+  "two",
+  null
+]
+
+===
+eval can access DOM
+===
+plwr -S plwr-test eval "document.querySelector('h1').textContent"
+---
+Test Page
+
+===
+eval returns boolean
+===
+plwr -S plwr-test eval "document.querySelectorAll('p').length > 0"
+---
+true
+
+===
+eval returns null
+===
+plwr -S plwr-test eval "null"
+---
