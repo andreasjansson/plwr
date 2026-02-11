@@ -1,8 +1,8 @@
 ===
-navigate to example.com
+navigate to test page
 %require
 ===
-plwr -S plwr-test open "https://example.com"
+plwr -S plwr-test open "http://localhost:8599/index.html"
 ---
 
 ===
