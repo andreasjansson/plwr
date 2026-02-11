@@ -131,10 +131,11 @@ pub async fn run(socket_path: &Path, headed: bool) -> Result<()> {
         }
     }
 
-    dlog("exiting event loop, cleaning up");
+    dlog("exiting event loop, cleaning up socket");
     if socket_path.exists() {
         std::fs::remove_file(socket_path)?;
     }
+    dlog("done, returning from run()");
 
     Ok(())
 }
