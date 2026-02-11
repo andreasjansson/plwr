@@ -56,6 +56,31 @@ enum Cmd {
     /// Print the number of elements matching a CSS selector
     Count { selector: String },
 
+    /// Set a cookie (use --list to show all, --clear to remove all)
+    Cookie {
+        /// Cookie name (omit for --list or --clear)
+        name: Option<String>,
+        /// Cookie value
+        value: Option<String>,
+        /// URL the cookie applies to (defaults to current page URL)
+        #[arg(long)]
+        url: Option<String>,
+        /// List all cookies as JSON
+        #[arg(long)]
+        list: bool,
+        /// Clear all cookies
+        #[arg(long)]
+        clear: bool,
+    },
+
+    /// Set the browser viewport size
+    Viewport {
+        /// Width in pixels
+        width: u32,
+        /// Height in pixels
+        height: u32,
+    },
+
     /// Set an extra HTTP header sent with every request (use --clear to remove all)
     Header {
         /// Header name (omit to clear all headers)
