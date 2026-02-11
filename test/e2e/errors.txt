@@ -83,6 +83,16 @@ video-stop fails when not recording
 No video recording in progress
 
 ===
+header requires name and value
+===
+! plwr -S plwr-test header X-Foo
+---
+{{ error }}
+---
+where
+* error contains "Missing value"
+
+===
 stop when no daemon is a no-op
 ===
 plwr -S plwr-test-nonexistent stop
