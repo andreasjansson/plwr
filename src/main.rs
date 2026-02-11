@@ -289,15 +289,10 @@ async fn main() -> ExitCode {
 
         Cmd::Start { headed } => {
             let headed = headed || std::env::var("PLAYWRIGHT_HEADED").is_ok_and(|v| !v.is_empty());
-            match client::start_and_send(&sock, Command::Open { url: "about:blank".into() }, headed).await {
-                Ok(resp) => {
-                    if resp.ok {
-                        println!("Started session '{}'", cli.session);
-                        ExitCode::SUCCESS
-                    } else {
-                        eprintln!("{}", resp.error.unwrap_or_else(|| "Unknown error".into()));
-                        ExitCode::FAILURE
-                    }
+            match client::ensure_started(&sock, headed) {
+                Ok(()) => {
+                    println!("Started session '{}'", cli.session);
+                    ExitCode::SUCCESS
                 }
                 Err(e) => {
                     eprintln!("{}", e);
