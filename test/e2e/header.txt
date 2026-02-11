@@ -18,16 +18,22 @@ plwr -S plwr-test header X-Custom-Two second
 ---
 
 ===
-custom headers are sent with requests
+navigate to echo server to verify headers
 ===
-plwr -S plwr-test eval "(() => { const x = new XMLHttpRequest(); x.open('GET', 'http://localhost:8598/', false); x.send(); return JSON.parse(x.responseText)['x-custom-one']; })()"
+plwr -S plwr-test open "http://localhost:8598/"
+---
+
+===
+custom header is sent
+===
+plwr -S plwr-test eval "JSON.parse(document.body.innerText)['x-custom-one']"
 ---
 first
 
 ===
-multiple custom headers are sent
+second custom header is also sent
 ===
-plwr -S plwr-test eval "(() => { const x = new XMLHttpRequest(); x.open('GET', 'http://localhost:8598/', false); x.send(); return JSON.parse(x.responseText)['x-custom-two']; })()"
+plwr -S plwr-test eval "JSON.parse(document.body.innerText)['x-custom-two']"
 ---
 second
 
@@ -38,11 +44,24 @@ plwr -S plwr-test header X-Custom-One updated
 ---
 
 ===
+reload to re-fetch with new headers
+===
+plwr -S plwr-test reload
+---
+
+===
 overwritten header has new value
 ===
-plwr -S plwr-test eval "(() => { const x = new XMLHttpRequest(); x.open('GET', 'http://localhost:8598/', false); x.send(); return JSON.parse(x.responseText)['x-custom-one']; })()"
+plwr -S plwr-test eval "JSON.parse(document.body.innerText)['x-custom-one']"
 ---
 updated
+
+===
+second header is still present
+===
+plwr -S plwr-test eval "JSON.parse(document.body.innerText)['x-custom-two']"
+---
+second
 
 ===
 clear all headers
@@ -51,14 +70,26 @@ plwr -S plwr-test header --clear
 ---
 
 ===
+reload to re-fetch without headers
+===
+plwr -S plwr-test reload
+---
+
+===
 cleared headers are no longer sent
 ===
-plwr -S plwr-test eval "(() => { const x = new XMLHttpRequest(); x.open('GET', 'http://localhost:8598/', false); x.send(); return String(JSON.parse(x.responseText)['x-custom-one']); })()"
+plwr -S plwr-test eval "String(JSON.parse(document.body.innerText)['x-custom-one'])"
 ---
 undefined
 
 ===
-page still works after clearing headers
+navigate back to static server still works
+===
+plwr -S plwr-test open "http://localhost:8599/index.html"
+---
+
+===
+page content is intact after clearing headers
 ===
 plwr -S plwr-test text h1
 ---
