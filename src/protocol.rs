@@ -34,6 +34,19 @@ pub enum Command {
     Stop,
 }
 
+impl Command {
+    pub fn requires_page(&self) -> bool {
+        !matches!(
+            self,
+            Command::Open { .. }
+                | Command::Stop
+                | Command::Header { .. }
+                | Command::HeaderClear
+                | Command::Viewport { .. }
+        )
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Response {
     pub ok: bool,
