@@ -77,6 +77,7 @@ pub async fn run(socket_path: &Path, headed: bool) -> Result<()> {
         _browser: browser,
         page,
         root,
+        headers: HashMap::new(),
         video_page: None,
         video_dir: None,
     };
