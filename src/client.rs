@@ -22,14 +22,11 @@ pub async fn send(socket_path: &Path, command: Command) -> Result<Response> {
     send_on_stream(stream, command).await
 }
 
-pub fn ensure_started(socket_path: &Path, headed: bool) -> Result<()> {
+pub async fn ensure_started(socket_path: &Path, headed: bool) -> Result<()> {
     if socket_path.exists() {
-        // Try connecting to verify the daemon is actually alive
-        let rt = tokio::runtime::Handle::current();
-        if rt.block_on(async { UnixStream::connect(socket_path).await }).is_ok() {
+        if UnixStream::connect(socket_path).await.is_ok() {
             return Ok(());
         }
-        // Stale socket — remove and re-start
     }
     start_daemon(socket_path, headed)
 }
