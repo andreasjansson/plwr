@@ -374,8 +374,11 @@ fn clean_error(e: anyhow::Error) -> String {
     // Playwright errors look like:
     //   Protocol error: Timeout 200ms exceeded. \n TimeoutError: ... \n    at ...stack... [selector: .foo]
     //   Protocol error: Error: Element not found: .foo \n Error: ... \n    at ...stack...
-    // Extract the first line after "Protocol error: " and append any trailing [selector: ...].
-    if let Some(rest) = msg.strip_prefix("Protocol error: ") {
+    //   Protocol error (Page.navigate): Cannot navigate to invalid URL
+    // Extract the first line after the prefix and append any trailing [selector: ...].
+    let rest = msg.strip_prefix("Protocol error: ")
+        .or_else(|| msg.strip_prefix("Protocol error ").and_then(|s| s.find(": ").map(|i| &s[i + 2..])));
+    if let Some(rest) = rest {
         let first_line = rest.lines().next().unwrap_or(rest).trim();
 
         let selector_suffix = rest.lines().last()
