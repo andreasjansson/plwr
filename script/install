@@ -63,6 +63,18 @@ main() {
     local src="target/release/${BINARY_NAME}"
     local dst="${install_dir}/${BINARY_NAME}"
 
+    # Stop all running daemons so they don't keep running stale code
+    local socket_dir
+    socket_dir="$(python3 -c 'import tempfile; print(tempfile.gettempdir())')/plwr"
+    if [[ -d "$socket_dir" ]]; then
+        for sock in "$socket_dir"/*.sock; do
+            [[ -e "$sock" ]] || continue
+            local session
+            session="$(basename "$sock" .sock)"
+            "$dst" -S "$session" stop 2>/dev/null || true
+        done
+    fi
+
     echo "Installing to ${dst}..."
     if [[ "$use_sudo" == true ]]; then
         sudo cp "$src" "$dst"
