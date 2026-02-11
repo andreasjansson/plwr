@@ -18,6 +18,7 @@ struct State {
     playwright: Playwright,
     _browser: playwright_rs::Browser,
     page: Page,
+    page_opened: bool,
     headers: HashMap<String, String>,
     video_page: Option<Page>,
     video_dir: Option<String>,
