@@ -121,3 +121,121 @@ stop reports no session running
 plwr -S plwr-test-nonexistent stop
 ---
 No session 'plwr-test-nonexistent' running
+
+===
+commands fail without start
+===
+! plwr -S plwr-test-nonexistent open "https://example.com"
+---
+No session running. Use 'plwr start' first.
+
+===
+url fails without start
+===
+! plwr -S plwr-test-nonexistent url
+---
+No session running. Use 'plwr start' first.
+
+===
+text fails without start
+===
+! plwr -S plwr-test-nonexistent text h1
+---
+No session running. Use 'plwr start' first.
+
+===
+click fails without start
+===
+! plwr -S plwr-test-nonexistent click h1
+---
+No session running. Use 'plwr start' first.
+
+===
+url fails before open
+===
+! plwr -S plwr-test-nopage url
+---
+No session running. Use 'plwr start' first.
+
+===
+start a session for no-page tests
+%require
+===
+plwr -S plwr-test-nopage start
+---
+Started session 'plwr-test-nopage'
+
+===
+url fails after start but before open
+===
+! plwr -S plwr-test-nopage url
+---
+No page open. Use 'plwr open <url>' first.
+
+===
+text fails after start but before open
+===
+! plwr -S plwr-test-nopage text h1
+---
+No page open. Use 'plwr open <url>' first.
+
+===
+click fails after start but before open
+===
+! plwr -S plwr-test-nopage click h1
+---
+No page open. Use 'plwr open <url>' first.
+
+===
+press fails after start but before open
+===
+! plwr -S plwr-test-nopage press Enter
+---
+No page open. Use 'plwr open <url>' first.
+
+===
+eval fails after start but before open
+===
+! plwr -S plwr-test-nopage eval "1+1"
+---
+No page open. Use 'plwr open <url>' first.
+
+===
+reload fails after start but before open
+===
+! plwr -S plwr-test-nopage reload
+---
+No page open. Use 'plwr open <url>' first.
+
+===
+count fails after start but before open
+===
+! plwr -S plwr-test-nopage count h1
+---
+No page open. Use 'plwr open <url>' first.
+
+===
+cookie list fails after start but before open
+===
+! plwr -S plwr-test-nopage cookie --list
+---
+No page open. Use 'plwr open <url>' first.
+
+===
+header works after start but before open
+===
+plwr -S plwr-test-nopage header X-Test value
+---
+
+===
+viewport works after start but before open
+===
+plwr -S plwr-test-nopage viewport 800 600
+---
+
+===
+stop no-page session
+===
+plwr -S plwr-test-nopage stop
+---
+Stopped session 'plwr-test-nopage'
