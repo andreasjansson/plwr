@@ -68,6 +68,11 @@ plwr press Enter
 plwr press Control+c
 ```
 
+Supported keys for `press`: `Backspace`, `Tab`, `Enter`, `Escape`, `Space`,
+`ArrowUp`, `ArrowDown`, `ArrowLeft`, `ArrowRight`, `Home`, `End`, `PageUp`,
+`PageDown`, `Delete`, `Insert`, `F1`–`F12`, `a`–`z`, `0`–`9`, `Control`,
+`Shift`, `Alt`, `Meta`. Chords use `+`: `Control+c`, `Shift+Enter`, `Meta+a`.
+
 ### Querying
 
 ```bash
@@ -87,6 +92,22 @@ plwr header CF-Access-Client-Id "$CLIENT_ID"
 plwr header CF-Access-Client-Secret "$CLIENT_SECRET"
 plwr open "$WORKER_URL"          # headers sent automatically
 plwr header --clear              # remove all extra headers
+```
+
+### Cookies
+
+```bash
+plwr cookie session_id abc123    # set on current page's URL
+plwr cookie token xyz --url https://example.com
+plwr cookie --list               # list all cookies as JSON
+plwr cookie --clear              # remove all cookies
+```
+
+### Viewport
+
+```bash
+plwr viewport 1280 720          # desktop
+plwr viewport 375 667           # iPhone SE
 ```
 
 ### JavaScript
