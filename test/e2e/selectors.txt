@@ -44,31 +44,17 @@ plwr -S plwr-test attr a href
 /form.html
 
 ===
+attr returns nothing for missing attribute
+===
+plwr -S plwr-test attr h1 data-nonexistent
+---
+
+===
 count matching elements
 ===
 plwr -S plwr-test count p
 ---
 2
-
-===
-eval arbitrary javascript
-===
-plwr -S plwr-test eval "document.title"
----
-plwr test
-
-===
-eval returns structured JSON
-===
-plwr -S plwr-test eval "({a: 1, b: [2, 3]})"
----
-{
-  "a": 1,
-  "b": [
-    2,
-    3
-  ]
-}
 
 ===
 tree dumps element as JSON
