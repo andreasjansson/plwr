@@ -96,7 +96,6 @@ fn start_daemon(socket_path: &Path, headed: bool) -> Result<()> {
         }
     }
 
-    let output = child.wait_with_output()?;
-    let stderr = String::from_utf8_lossy(&output.stderr);
-    bail!("Daemon exited unexpectedly: {}", stderr.trim());
+    let _ = child.wait();
+    bail!("Daemon exited unexpectedly");
 }
