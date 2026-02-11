@@ -1,0 +1,67 @@
+===
+navigate to test page
+%require
+===
+plwr -S plwr-test open "http://localhost:8599/index.html"
+---
+
+===
+set a cookie
+===
+plwr -S plwr-test cookie session abc123
+---
+
+===
+set a second cookie
+===
+plwr -S plwr-test cookie theme dark
+---
+
+===
+list cookies shows both
+===
+plwr -S plwr-test cookie --list
+---
+{{ cookies: json array }}
+---
+where
+* len(cookies) == 2
+
+===
+cookies are accessible from JS
+===
+plwr -S plwr-test eval "document.cookie.split('; ').sort().join('; ')"
+---
+session=abc123; theme=dark
+
+===
+overwrite a cookie
+===
+plwr -S plwr-test cookie session xyz789
+---
+
+===
+overwritten cookie has new value
+===
+plwr -S plwr-test eval "document.cookie.split('; ').find(c => c.startsWith('session=')).split('=')[1]"
+---
+xyz789
+
+===
+clear all cookies
+===
+plwr -S plwr-test cookie --clear
+---
+
+===
+cookies are empty after clear
+===
+plwr -S plwr-test cookie --list
+---
+[]
+
+===
+JS confirms cookies cleared
+===
+plwr -S plwr-test eval "document.cookie"
+---
