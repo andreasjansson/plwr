@@ -3,3 +3,9 @@ stop browser
 ===
 plwr -S plwr-test stop
 ---
+
+===
+stop web server
+===
+bash -c 'kill $(cat /tmp/plwr-serve.pid) 2>/dev/null; rm -f /tmp/plwr-serve.pid /tmp/plwr-serve.log'
+---
