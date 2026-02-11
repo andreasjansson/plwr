@@ -1,0 +1,40 @@
+===
+navigate to example.com
+%require
+===
+plwr -S plwr-test open "https://example.com"
+---
+
+===
+start video recording
+===
+plwr -S plwr-test video-start --dir /tmp/plwr-test-video
+---
+
+===
+do something while recording
+===
+plwr -S plwr-test reload
+---
+
+===
+stop recording and save as webm
+===
+plwr -S plwr-test video-stop /tmp/plwr-test-recording.webm
+---
+{{ output }}
+---
+where
+* output contains "/tmp/plwr-test-recording.webm"
+
+===
+video file exists
+===
+test -f /tmp/plwr-test-recording.webm
+---
+
+===
+video file has content
+===
+bash -c 'size=$(stat -f%z /tmp/plwr-test-recording.webm); echo "$size"; test "$size" -gt 0'
+---
