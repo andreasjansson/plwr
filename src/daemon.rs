@@ -437,6 +437,20 @@ async fn handle_command(state: &mut State, command: Command, headed: bool) -> Re
     }
 }
 
+async fn wait_for_visible(loc: &Locator, selector: &str, timeout: u64) -> Result<()> {
+    let start = std::time::Instant::now();
+    loop {
+        let n = loc.count().await?;
+        if n > 0 && loc.first().is_visible().await? {
+            return Ok(());
+        }
+        if start.elapsed().as_millis() as u64 > timeout {
+            anyhow::bail!("Timeout {}ms exceeded. [selector: {}]", timeout, selector);
+        }
+        tokio::time::sleep(std::time::Duration::from_millis(50)).await;
+    }
+}
+
 fn clean_error(e: anyhow::Error) -> String {
     let msg = e.to_string();
 
