@@ -145,11 +145,11 @@ async fn handle_command(state: &mut State, command: Command, headed: bool) -> Re
                 value,
                 domain: String::new(),
                 path: String::new(),
-                url: url,
                 expires: -1.0,
                 http_only: false,
                 secure: false,
                 same_site: None,
+                url: Some(url),
             };
             ctx.add_cookies(&[cookie]).await?;
             return Ok(Response::ok_empty());
