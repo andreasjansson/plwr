@@ -48,6 +48,41 @@ tree fails on missing selector
 Element not found: .does-not-exist
 
 ===
+open fails with invalid URL
+===
+! plwr -S plwr-test open "not-a-url"
+---
+Cannot navigate to invalid URL
+
+===
+eval fails with invalid JS
+===
+! plwr -S plwr-test eval "???"
+---
+SyntaxError: Unexpected token '??'
+
+===
+press fails with invalid key
+===
+! plwr -S plwr-test press NotAKey
+---
+Unknown key: "NotAKey"
+
+===
+screenshot fails with invalid path
+===
+! plwr -S plwr-test screenshot --path /nonexistent/dir/img.png
+---
+No such file or directory (os error 2)
+
+===
+video-stop fails when not recording
+===
+! plwr -S plwr-test video-stop /tmp/plwr-never.webm
+---
+No video recording in progress
+
+===
 stop when no daemon is a no-op
 ===
 plwr -S plwr-test-nonexistent stop
