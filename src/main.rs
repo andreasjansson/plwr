@@ -138,6 +138,17 @@ async fn main() -> ExitCode {
                 Cmd::Fill { selector, text } => Command::Fill { selector, text, timeout: cli.timeout },
                 Cmd::Press { key } => Command::Press { key },
                 Cmd::Exists { selector } => Command::Exists { selector },
+                Cmd::Header { clear: true, .. } => Command::HeaderClear,
+                Cmd::Header { name: Some(name), value: Some(value), .. } => Command::Header { name, value },
+                Cmd::Header { name: Some(name), value: None, .. } => {
+                    eprintln!("Usage: plwr header <name> <value> or plwr header --clear");
+                    eprintln!("Missing value for header '{}'", name);
+                    return ExitCode::FAILURE;
+                }
+                Cmd::Header { name: None, .. } => {
+                    eprintln!("Usage: plwr header <name> <value> or plwr header --clear");
+                    return ExitCode::FAILURE;
+                }
                 Cmd::Text { selector } => Command::Text { selector, timeout: cli.timeout },
                 Cmd::Attr { selector, name } => Command::Attr { selector, name, timeout: cli.timeout },
                 Cmd::Count { selector } => Command::Count { selector },
