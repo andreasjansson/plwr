@@ -273,11 +273,7 @@ async fn handle_command(state: &mut State, command: Command, headed: bool) -> Re
 
         Command::Text { selector, timeout } => {
             let loc = page.locator(&selector).await;
-            loc.click(Some(ClickOptions {
-                timeout: Some(timeout as f64),
-                trial: Some(true),
-                ..Default::default()
-            })).await?;
+            wait_for_visible(&loc, &selector, timeout).await?;
             let text = loc.text_content().await?.unwrap_or_default();
             Ok(Response::ok_value(serde_json::Value::String(text)))
         }
