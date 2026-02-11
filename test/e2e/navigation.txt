@@ -10,7 +10,7 @@ get current URL
 ===
 plwr -S plwr-test url
 ---
-http://localhost:8599/index.html
+http://localhost:8599/
 
 ===
 reload the page
@@ -23,4 +23,4 @@ URL is unchanged after reload
 ===
 plwr -S plwr-test url
 ---
-http://localhost:8599/index.html
+http://localhost:8599/
