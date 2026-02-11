@@ -253,16 +253,18 @@ async fn handle_command(state: &mut State, command: Command, headed: bool) -> Re
                 Err(e) => {
                     let msg = clean_error(anyhow::anyhow!(e));
                     if msg.contains("Unknown key") {
-                        anyhow::bail!(
-                            "{msg}\n\nValid keys: Backspace, Tab, Enter, Escape, Space, \
+                        Ok(Response::err(format!(
+                            "{msg}\n\n\
+                            Valid keys: Backspace, Tab, Enter, Escape, Space, \
                             ArrowUp, ArrowDown, ArrowLeft, ArrowRight, \
                             Home, End, PageUp, PageDown, Delete, Insert, \
                             F1-F12, a-z, 0-9, \
                             Control, Shift, Alt, Meta\n\
                             Chords: Control+c, Shift+Enter, Alt+Tab, Meta+a"
-                        );
+                        )))
+                    } else {
+                        Ok(Response::err(msg))
                     }
-                    anyhow::bail!("{}", msg);
                 }
             }
         }
