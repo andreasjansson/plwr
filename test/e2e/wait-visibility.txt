@@ -1,0 +1,82 @@
+===
+open selectors page
+%require
+===
+plwr -S plwr-test open "http://localhost:8599/selectors.html"
+---
+
+===
+wait finds a disabled button
+===
+plwr -S plwr-test wait .btn-disabled
+---
+
+===
+wait finds a disabled input
+===
+plwr -S plwr-test wait 'input[disabled]'
+---
+
+===
+text reads a disabled button
+===
+plwr -S plwr-test text .btn-disabled
+---
+Disabled Button
+
+===
+attr reads disabled attribute
+===
+plwr -S plwr-test attr .btn-disabled disabled
+---
+
+===
+attr reads placeholder on disabled input
+===
+plwr -S plwr-test attr 'input[disabled]' placeholder
+---
+Password
+
+===
+wait times out on display:none element
+===
+! plwr -S plwr-test wait .hidden -T 500
+---
+
+===
+wait times out on visibility:hidden element
+===
+! plwr -S plwr-test wait .invisible -T 500
+---
+
+===
+wait times out on nonexistent element
+===
+! plwr -S plwr-test wait .does-not-exist -T 500
+---
+
+===
+exists finds disabled element
+===
+plwr -S plwr-test exists .btn-disabled
+---
+
+===
+exists finds display:none element
+===
+plwr -S plwr-test exists .hidden
+---
+
+===
+count includes disabled elements
+===
+plwr -S plwr-test count 'button[disabled]'
+---
+1
+
+===
+count includes display:none elements
+===
+plwr -S plwr-test count '.hidden'
+---
+1
