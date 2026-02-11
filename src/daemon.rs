@@ -298,6 +298,20 @@ async fn handle_command(state: &mut State, command: Command, headed: bool) -> Re
             Ok(Response::ok_value(tree))
         }
 
+        Command::Header { name, value } => {
+            state.headers.insert(name, value);
+            let ctx = page.context()?;
+            ctx.set_extra_http_headers(state.headers.clone()).await?;
+            Ok(Response::ok_empty())
+        }
+
+        Command::HeaderClear => {
+            state.headers.clear();
+            let ctx = page.context()?;
+            ctx.set_extra_http_headers(HashMap::new()).await?;
+            Ok(Response::ok_empty())
+        }
+
         Command::VideoStart { dir } => {
             std::fs::create_dir_all(&dir)?;
             let tmp_dir = tempfile::tempdir()?;
