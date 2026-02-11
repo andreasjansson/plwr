@@ -1,17 +1,10 @@
 use crate::protocol::{Command, Request, Response};
 use anyhow::{bail, Result};
-use std::io::{BufRead, Write};
+use std::io::BufRead;
 use std::path::Path;
 use std::process::{Command as StdCommand, Stdio};
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use tokio::net::UnixStream;
-
-fn dlog(msg: &str) {
-    let path = std::env::temp_dir().join("plwr-debug.log");
-    if let Ok(mut f) = std::fs::OpenOptions::new().create(true).append(true).open(&path) {
-        let _ = writeln!(f, "[client-{}] {}", std::process::id(), msg);
-    }
-}
 
 const STARTUP_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(30);
 
