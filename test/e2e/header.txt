@@ -1,0 +1,45 @@
+===
+navigate to test page
+%require
+===
+plwr -S plwr-test open "http://localhost:8599/index.html"
+---
+
+===
+set a custom header
+===
+plwr -S plwr-test header X-Custom-One first
+---
+
+===
+set a second custom header
+===
+plwr -S plwr-test header X-Custom-Two second
+---
+
+===
+headers are sent with fetch requests
+===
+plwr -S plwr-test eval "await fetch('/index.html').then(r => r.status)"
+---
+200
+
+===
+verify custom header is sent via fetch
+===
+plwr -S plwr-test eval "await new Promise(resolve => { const x = new XMLHttpRequest(); x.open('GET', '/index.html', true); x.onload = () => resolve('ok'); x.send(); })"
+---
+ok
+
+===
+clear all headers
+===
+plwr -S plwr-test header --clear
+---
+
+===
+page still works after clearing headers
+===
+plwr -S plwr-test text h1
+---
+Test Page
