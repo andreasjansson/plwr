@@ -68,7 +68,7 @@ press fails with invalid key and shows valid keys
 ---
 Unknown key: "NotAKey"
 
-Valid keys: a-z A-Z 0-9, Backspace Tab Enter Escape Space Delete Insert, ArrowUp ArrowDown ArrowLeft ArrowRight Home End PageUp PageDown, F1-F12, Control Shift Alt Meta, any US keyboard character: !@#$%^&*()_+-=[]{}\\|;':\",./<>?`~
+Valid keys: a-z A-Z 0-9, Backspace Tab Enter Escape Space Delete Insert, ArrowUp ArrowDown ArrowLeft ArrowRight Home End PageUp PageDown, F1-F12, Control Shift Alt Meta, any US keyboard character: !@#$%^&*()_+-=[]{}\|;':",./<>?`~
 Chords: Control+c, Shift+Enter, Alt+Tab, Meta+a
 
 ===
