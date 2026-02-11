@@ -3,6 +3,7 @@ stop browser
 ===
 plwr -S plwr-test stop
 ---
+Stopped session 'plwr-test'
 
 ===
 stop web server
