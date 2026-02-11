@@ -10,30 +10,42 @@ wait times out on missing element
 ===
 ! plwr -S plwr-test wait .does-not-exist -T 500
 ---
+Timeout 500ms exceeded. [selector: .does-not-exist]
 
 ===
 click fails on missing element
 ===
 ! plwr -S plwr-test click .does-not-exist -T 500
 ---
+Timeout 500ms exceeded. [selector: .does-not-exist]
 
 ===
 text fails on missing element
 ===
 ! plwr -S plwr-test text .does-not-exist -T 500
 ---
+Timeout 500ms exceeded. [selector: .does-not-exist]
 
 ===
 attr fails on missing element
 ===
 ! plwr -S plwr-test attr .does-not-exist href -T 500
 ---
+Timeout 500ms exceeded. [selector: .does-not-exist]
+
+===
+fill fails on missing element
+===
+! plwr -S plwr-test fill .does-not-exist hello -T 500
+---
+Timeout 500ms exceeded.
 
 ===
 tree fails on missing selector
 ===
 ! plwr -S plwr-test tree .does-not-exist
 ---
+Element not found: .does-not-exist
 
 ===
 stop when no daemon is a no-op
