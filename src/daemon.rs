@@ -368,6 +368,33 @@ async fn handle_command(state: &mut State, command: Command, headed: bool) -> Re
     }
 }
 
+fn clean_error(e: anyhow::Error) -> String {
+    let msg = e.to_string();
+
+    // Playwright errors look like:
+    //   Protocol error: Timeout 200ms exceeded. \n TimeoutError: ... \n    at ...stack... [selector: .foo]
+    //   Protocol error: Error: Element not found: .foo \n Error: ... \n    at ...stack...
+    // Extract the first line after "Protocol error: " and append any trailing [selector: ...].
+    if let Some(rest) = msg.strip_prefix("Protocol error: ") {
+        let first_line = rest.lines().next().unwrap_or(rest).trim();
+
+        let selector_suffix = rest.lines().last()
+            .and_then(|l| l.rfind("[selector: ").map(|i| &l[i..]))
+            .unwrap_or("");
+
+        let clean = first_line
+            .strip_prefix("Error: ").unwrap_or(first_line)
+            .trim_end();
+
+        if selector_suffix.is_empty() {
+            return clean.to_string();
+        }
+        return format!("{} {}", clean, selector_suffix);
+    }
+
+    msg
+}
+
 fn js_str(s: &str) -> String {
     let escaped = s
         .replace('\\', "\\\\")
