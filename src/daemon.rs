@@ -126,13 +126,13 @@ async fn handle_command(state: &mut State, command: Command, headed: bool) -> Re
         Command::Header { name, value } => {
             state.headers.insert(name, value);
             let ctx = state.active_page().context()?;
-            ctx.set_extra_http_headers(state.headers.clone()).await?;
+            pw_ext::set_extra_http_headers(&ctx, state.headers.clone()).await?;
             return Ok(Response::ok_empty());
         }
         Command::HeaderClear => {
             state.headers.clear();
             let ctx = state.active_page().context()?;
-            ctx.set_extra_http_headers(HashMap::new()).await?;
+            pw_ext::set_extra_http_headers(&ctx, HashMap::new()).await?;
             return Ok(Response::ok_empty());
         }
         Command::Cookie { name, value, url } => {
