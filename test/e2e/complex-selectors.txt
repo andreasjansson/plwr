@@ -1,8 +1,8 @@
 ===
-open a page with varied elements
+open selectors page
 %require
 ===
-plwr -S plwr-test open "data:text/html,<ul id='list'><li class='item done'>Buy milk</li><li class='item'>Walk dog</li><li class='item done'>Clean house</li></ul><div class='card'><h2>Section A</h2><p>Hello world</p></div><div class='card'><h2>Section B</h2><p>Goodbye</p></div><a href='/about'>About</a><a href='/contact'>Contact</a><input type='text' placeholder='Name'><input type='email' placeholder='Email'>"
+plwr -S plwr-test open "http://localhost:8599/selectors.html"
 ---
 
 ===
