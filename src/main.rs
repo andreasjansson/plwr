@@ -56,6 +56,17 @@ enum Cmd {
     /// Print the number of elements matching a CSS selector
     Count { selector: String },
 
+    /// Set an extra HTTP header sent with every request (use --clear to remove all)
+    Header {
+        /// Header name (omit to clear all headers)
+        name: Option<String>,
+        /// Header value
+        value: Option<String>,
+        /// Clear all extra headers
+        #[arg(long)]
+        clear: bool,
+    },
+
     /// Evaluate arbitrary JavaScript in page context, print the result
     Eval { js: String },
 
