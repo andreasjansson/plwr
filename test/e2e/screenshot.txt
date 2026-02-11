@@ -1,0 +1,44 @@
+===
+navigate to example.com
+%require
+===
+plwr -S plwr-test open "https://example.com"
+---
+
+===
+take full page screenshot
+===
+plwr -S plwr-test screenshot --path /tmp/plwr-test-full.png
+---
+{
+  "bytes": {{ bytes:number }},
+  "path": "/tmp/plwr-test-full.png"
+}
+---
+where
+* bytes > 1000
+
+===
+screenshot file exists
+===
+test -f /tmp/plwr-test-full.png
+---
+
+===
+take element screenshot
+===
+plwr -S plwr-test screenshot --selector h1 --path /tmp/plwr-test-h1.png
+---
+{
+  "bytes": {{ bytes:number }},
+  "path": "/tmp/plwr-test-h1.png"
+}
+---
+where
+* bytes > 100
+
+===
+element screenshot is smaller than full page
+===
+bash -c 'full=$(stat -f%z /tmp/plwr-test-full.png); elem=$(stat -f%z /tmp/plwr-test-h1.png); echo "$elem $full"; test "$elem" -lt "$full"'
+---
