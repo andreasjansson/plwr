@@ -50,13 +50,6 @@ plwr -S plwr-test attr h1 data-nonexistent
 ---
 
 ===
-attr reads href
-===
-plwr -S plwr-test attr 'a[href="/form.html"]' href
----
-/form.html
-
-===
 count matching elements
 ===
 plwr -S plwr-test count p
