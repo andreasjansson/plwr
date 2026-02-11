@@ -23,6 +23,8 @@ pub enum Command {
     Eval { js: String },
     Screenshot { selector: Option<String>, path: String, timeout: u64 },
     Tree { selector: Option<String>, timeout: u64 },
+    Header { name: String, value: String },
+    HeaderClear,
     VideoStart { dir: String },
     VideoStop { output: String },
     Stop,
