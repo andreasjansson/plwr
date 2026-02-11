@@ -289,7 +289,7 @@ async fn main() -> ExitCode {
 
         Cmd::Start { headed } => {
             let headed = headed || std::env::var("PLAYWRIGHT_HEADED").is_ok_and(|v| !v.is_empty());
-            match client::ensure_started(&sock, headed) {
+            match client::ensure_started(&sock, headed).await {
                 Ok(()) => {
                     println!("Started session '{}'", cli.session);
                     ExitCode::SUCCESS
