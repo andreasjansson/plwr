@@ -19,11 +19,11 @@ For video conversion to non-webm formats, install [ffmpeg](https://ffmpeg.org/).
 
 ## Usage
 
-The browser starts automatically on first use and stays alive for subsequent
-commands. No setup step needed.
+Start a browser session, navigate, interact, and stop:
 
 ```bash
-plwr open https://example.com   # auto-starts browser, navigates
+plwr start                      # start headless browser
+plwr open https://example.com   # navigate to URL
 plwr text h1                    # Example Domain
 plwr stop                       # shut down browser
 ```
@@ -39,12 +39,27 @@ plwr stop                       # shut down browser
 All commands take `-S`/`--session` and `-T`/`--timeout` as global options,
 which override the environment variables.
 
+### Starting and stopping
+
+`start` launches the browser. All other commands require a running session.
+Use `--headed` (or the `PLAYWRIGHT_HEADED` env var) to show the browser window.
+
+```bash
+plwr start                   # headless
+plwr start --headed           # visible browser window
+plwr stop                    # shut down
+```
+
+Commands that interact with page content (`text`, `click`, `wait`, `eval`,
+etc.) require a page to be open first via `plwr open`. Commands that configure
+the session (`header`, `viewport`) work before any page is opened.
+
 ### Navigation
 
 `open` navigates the current page within the existing browser context. Headers,
 cookies, and other state are preserved across navigations. There is no separate
 `goto` command — `open` always reuses the same context. If you need a fresh
-context, use `plwr stop` followed by `plwr open`.
+context, use `plwr stop` followed by `plwr start` and `plwr open`.
 
 ```bash
 plwr open "https://example.com"
@@ -87,7 +102,7 @@ plwr exists '.sidebar'           # exit 0 if found, 1 if not
 ### Headers
 
 Set extra HTTP headers sent with every request. Headers persist across
-navigations within the same session.
+navigations within the same session. Can be set before or after `open`.
 
 ```bash
 plwr header CF-Access-Client-Id "$CLIENT_ID"
@@ -147,6 +162,8 @@ plwr video-stop recording.webm  # stop, keep as webm (no ffmpeg needed)
 Run multiple independent browser sessions in parallel:
 
 ```bash
+plwr -S session-a start
+plwr -S session-b start
 plwr -S session-a open https://example.com
 plwr -S session-b open https://other.com
 plwr -S session-a text h1   # Example Domain
@@ -283,7 +300,7 @@ interpreted by bash if not single-quoted:
 
 ```bash
 plwr count "a[href$=.pdf]"                # ✗ bash eats the $
-plwr count 'a[href$=.pdf]'                # ✓ single quotes
+plwr count 'a[href$=.pdf]'                # �� single quotes
 ```
 
 ## Example: cctr e2e test
