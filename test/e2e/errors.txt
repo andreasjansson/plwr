@@ -1,0 +1,42 @@
+===
+navigate to example.com
+%require
+===
+plwr -S plwr-test open "https://example.com"
+---
+
+===
+wait times out on missing element
+===
+! plwr -S plwr-test wait .does-not-exist -T 500
+---
+
+===
+click fails on missing element
+===
+! plwr -S plwr-test click .does-not-exist -T 500
+---
+
+===
+text fails on missing element
+===
+! plwr -S plwr-test text .does-not-exist -T 500
+---
+
+===
+attr fails on missing element
+===
+! plwr -S plwr-test attr .does-not-exist href -T 500
+---
+
+===
+tree fails on missing selector
+===
+! plwr -S plwr-test tree .does-not-exist
+---
+
+===
+stop when no daemon is a no-op
+===
+plwr -S plwr-test-nonexistent stop
+---
