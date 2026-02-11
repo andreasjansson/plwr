@@ -1,5 +1,5 @@
 use playwright_rs::server::channel_owner::ChannelOwner;
-use playwright_rs::{BrowserContext, Locator, Page};
+use playwright_rs::{BrowserContext, Page};
 use serde::Deserialize;
 use std::collections::HashMap;
 
