@@ -308,7 +308,7 @@ async fn main() -> ExitCode {
                 Cmd::Click { selector } => Command::Click { selector, timeout: cli.timeout },
                 Cmd::Fill { selector, text } => Command::Fill { selector, text, timeout: cli.timeout },
                 Cmd::Press { key } => Command::Press { key },
-                Cmd::Exists { selector } => Command::Exists { selector },
+                Cmd::Exists { selector } => Command::Exists { selector, timeout: cli.timeout },
                 Cmd::Cookie { list: true, .. } => Command::CookieList,
                 Cmd::Cookie { clear: true, .. } => Command::CookieClear,
                 Cmd::Cookie { name: Some(name), value: Some(value), url, .. } => {
