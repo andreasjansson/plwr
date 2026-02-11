@@ -371,7 +371,13 @@ async fn handle_command(state: &mut State, command: Command, headed: bool) -> Re
 fn clean_error(e: anyhow::Error) -> String {
     let msg = e.to_string();
 
-    // Strip stack traces: everything after "\n " (Playwright appends " \n stack")
+    // Extract [selector: ...] suffix before stripping (it may be at the very end,
+    // after stack traces that we're about to remove)
+    let selector_suffix = msg.rfind("[selector: ").map(|i| &msg[i..])
+        .and_then(|s| s.find(']').map(|j| &s[..=j]))
+        .unwrap_or("");
+
+    // Strip stack traces: everything after " \n " (Playwright appends " \n stack")
     let msg = msg.split(" \n ").next().unwrap_or(&msg);
     // Also strip lines starting with "    at " (JS stack frames)
     let msg = msg.lines()
@@ -379,24 +385,15 @@ fn clean_error(e: anyhow::Error) -> String {
         .collect::<Vec<_>>()
         .join("\n");
 
-    // Strip nested prefixes layered by playwright-rs and the Playwright server:
-    //   "Protocol error: Protocol error (Page.navigate): Cannot navigate..."
-    //   "Protocol error: Timeout 200ms exceeded."
-    //   "Protocol error: Error: Element not found: .foo"
+    // Strip nested prefixes layered by playwright-rs and the Playwright server
     let msg = msg.strip_prefix("Protocol error: ").unwrap_or(&msg);
     let msg = msg.strip_prefix("Protocol error ").unwrap_or(msg);
-    // Strip "(Method.name): " prefix
     let msg = if msg.starts_with('(') {
         msg.find(": ").map(|i| &msg[i + 2..]).unwrap_or(msg)
     } else {
         msg
     };
     let msg = msg.strip_prefix("Error: ").unwrap_or(msg);
-
-    // Preserve trailing [selector: ...] from the first or last line
-    let selector_suffix = msg.lines().last()
-        .and_then(|l| l.rfind("[selector: ").map(|i| &l[i..]))
-        .unwrap_or("");
 
     let first_line = msg.lines().next().unwrap_or(msg).trim_end();
 
