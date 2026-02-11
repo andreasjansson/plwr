@@ -90,9 +90,13 @@ pub async fn run(socket_path: &Path, headed: bool) -> Result<()> {
 
             let req: Request = serde_json::from_str(&line)?;
             let is_stop = matches!(req.command, Command::Stop);
-            let resp = handle_command(&mut state, req.command, headed)
-                .await
-                .unwrap_or_else(|e| Response::err(clean_error(e)));
+            let resp = if !state.page_opened && req.command.requires_page() {
+                Response::err("No page open. Use 'plwr open <url>' first.".to_string())
+            } else {
+                handle_command(&mut state, req.command, headed)
+                    .await
+                    .unwrap_or_else(|e| Response::err(clean_error(e)))
+            };
 
             let mut buf = serde_json::to_vec(&resp)?;
             buf.push(b'\n');
