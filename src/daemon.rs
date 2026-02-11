@@ -338,7 +338,9 @@ async fn handle_command(state: &mut State, command: Command, headed: bool) -> Re
                     Some(webm_path) => {
                         if output.ends_with(".webm") {
                             std::fs::rename(&webm_path, &output)?;
-                            Ok(Response::ok_value(serde_json::json!({"path": output, "format": "webm"})))
+                            Ok(Response::ok_value(serde_json::Value::String(
+                                format!("Saved recording to {}", output),
+                            )))
                         } else {
                             let status = std::process::Command::new("ffmpeg")
                                 .args(["-y", "-i"])
@@ -349,10 +351,9 @@ async fn handle_command(state: &mut State, command: Command, headed: bool) -> Re
                                 .status()?;
                             if status.success() {
                                 std::fs::remove_file(&webm_path).ok();
-                                let ext = Path::new(&output).extension()
-                                    .and_then(|e| e.to_str())
-                                    .unwrap_or("mp4");
-                                Ok(Response::ok_value(serde_json::json!({"path": output, "format": ext})))
+                                Ok(Response::ok_value(serde_json::Value::String(
+                                    format!("Saved recording to {}", output),
+                                )))
                             } else {
                                 Ok(Response::err(format!("ffmpeg exited with {}", status)))
                             }
