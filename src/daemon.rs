@@ -280,11 +280,7 @@ async fn handle_command(state: &mut State, command: Command, headed: bool) -> Re
 
         Command::Attr { selector, name, timeout } => {
             let loc = page.locator(&selector).await;
-            loc.click(Some(ClickOptions {
-                timeout: Some(timeout as f64),
-                trial: Some(true),
-                ..Default::default()
-            })).await?;
+            wait_for_visible(&loc, &selector, timeout).await?;
             match loc.get_attribute(&name).await? {
                 Some(val) => Ok(Response::ok_value(serde_json::Value::String(val))),
                 None => Ok(Response::ok_value(serde_json::Value::Null)),
