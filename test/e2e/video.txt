@@ -33,5 +33,5 @@ test -f /tmp/plwr-test-recording.webm
 ===
 video file has content
 ===
-bash -c 'size=$(stat -f%z /tmp/plwr-test-recording.webm); echo "$size"; test "$size" -gt 0'
+bash -c 'size=$(wc -c < /tmp/plwr-test-recording.webm); echo "$size"; test "$size" -gt 0'
 ---
