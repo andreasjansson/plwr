@@ -13,33 +13,28 @@ pub async fn send_if_running(socket_path: &Path, command: Command) -> Result<Opt
         Ok(s) => s,
         Err(_) => return Ok(None),
     };
-
-    let (reader, mut writer) = stream.into_split();
-
-    let req = Request { command };
-    let mut buf = serde_json::to_vec(&req)?;
-    buf.push(b'\n');
-    writer.write_all(&buf).await?;
-
-    let mut reader = BufReader::new(reader);
-    let mut line = String::new();
-    reader.read_line(&mut line).await?;
-
-    let resp: Response = serde_json::from_str(&line)?;
-    Ok(Some(resp))
+    send_on_stream(stream, command).await.map(Some)
 }
 
 pub async fn send(socket_path: &Path, command: Command) -> Result<Response> {
-    // Try connecting; if it fails, auto-start the daemon and retry.
+    let stream = UnixStream::connect(socket_path).await
+        .map_err(|_| anyhow::anyhow!("No session running. Use 'plwr start' first."))?;
+    send_on_stream(stream, command).await
+}
+
+pub async fn start_and_send(socket_path: &Path, command: Command, headed: bool) -> Result<Response> {
     let stream = match UnixStream::connect(socket_path).await {
         Ok(s) => s,
         Err(_) => {
-            start_daemon(socket_path)?;
+            start_daemon(socket_path, headed)?;
             UnixStream::connect(socket_path).await
                 .map_err(|e| anyhow::anyhow!("Daemon started but cannot connect: {}", e))?
         }
     };
+    send_on_stream(stream, command).await
+}
 
+async fn send_on_stream(stream: UnixStream, command: Command) -> Result<Response> {
     let (reader, mut writer) = stream.into_split();
 
     let req = Request { command };
@@ -55,36 +50,34 @@ pub async fn send(socket_path: &Path, command: Command) -> Result<Response> {
     Ok(resp)
 }
 
-/// Spawn `plwr daemon` as a detached child, wait for the ready signal on
-/// its stdout. Env vars (PLAYWRIGHT_HEADED, etc.) are inherited.
-fn start_daemon(socket_path: &Path) -> Result<()> {
-    // Clean stale socket
+fn start_daemon(socket_path: &Path, headed: bool) -> Result<()> {
     if socket_path.exists() {
         std::fs::remove_file(socket_path).ok();
     }
 
     let exe = std::env::current_exe()?;
 
-    // Reconstruct the session name from the socket filename
     let session = socket_path
         .file_stem()
         .and_then(|s| s.to_str())
         .unwrap_or("default");
 
-    let mut child = StdCommand::new(&exe)
-        .args(["--session", session, "daemon"])
+    let mut cmd = StdCommand::new(&exe);
+    cmd.args(["--session", session, "daemon"])
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
-        .stdin(Stdio::null())
-        .spawn()
+        .stdin(Stdio::null());
+
+    if headed {
+        cmd.env("PLAYWRIGHT_HEADED", "1");
+    }
+
+    let mut child = cmd.spawn()
         .map_err(|e| anyhow::anyhow!("Failed to spawn daemon: {}", e))?;
 
     let stdout = child.stdout.take().unwrap();
     let reader = std::io::BufReader::new(stdout);
 
-    // Read lines until we see the ready signal, an error signal, or EOF.
-    // This blocks the current thread, which is fine — we're waiting for
-    // the daemon to be ready before sending it commands.
     let deadline = std::time::Instant::now() + STARTUP_TIMEOUT;
 
     for line in reader.lines() {
@@ -96,19 +89,16 @@ fn start_daemon(socket_path: &Path) -> Result<()> {
         let line = line?;
 
         if line == "### ready" {
-            // Detach: drop our handle so the daemon outlives us
             drop(child);
             return Ok(());
         }
 
         if let Some(err) = line.strip_prefix("### error ") {
-            // Wait for the process to finish so we don't leave zombies
             let _ = child.wait();
             bail!("{}", err);
         }
     }
 
-    // stdout closed without a signal — daemon crashed
     let output = child.wait_with_output()?;
     let stderr = String::from_utf8_lossy(&output.stderr);
     bail!("Daemon exited unexpectedly: {}", stderr.trim());
