@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head><title>Echo Headers</title></head>
+<body>
+  <h1>Echo Headers</h1>
+  <div id="result"></div>
+  <script>
+    fetch(window.location.href).then(r => r.headers).then(h => {
+      // fetch won't show request headers, so we use a different approach:
+      // the test will use eval to make a fetch and inspect via the server
+    });
+  </script>
+</body>
+</html>
