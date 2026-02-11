@@ -42,14 +42,10 @@ const EXAMPLES: &str = "\x1b[1;4mExamples:\x1b[0m
     plwr click 'button[type=submit]'
     plwr wait '.dashboard'               # wait for redirect
 
-  Use Playwright selectors (superset of CSS):
-    plwr click ':has-text(\"Sign in\")'
-    plwr wait 'text=Welcome back'
-    plwr text '.card:has-text(\"Total\") >> span.amount'
-
   When a selector matches multiple elements:
     plwr click 'li.item >> nth=0'        # first match
     plwr click 'li.item >> nth=2'        # third match
+    plwr text ':nth-match(li.item, 2)'   # alternative syntax
 
   Chain with shell conditionals:
     plwr exists '.cookie-banner' && plwr click '.accept-cookies'
@@ -99,6 +95,46 @@ const EXAMPLES: &str = "\x1b[1;4mExamples:\x1b[0m
 
   Custom timeout:
     plwr wait '.slow-element' -T 30000   # wait up to 30s
+
+\x1b[1;4mSelector reference:\x1b[0m
+
+  Playwright extends CSS selectors with extra features.
+
+  CSS selectors (all standard CSS works):
+    plwr click '#submit-btn'             # by id
+    plwr click '.btn.primary'            # compound class
+    plwr count 'input[type=email]'       # attribute match
+    plwr count 'input:checked'           # pseudo-class
+    plwr count 'input:disabled'          # form state
+    plwr count 'input:required'          # form validation
+    plwr count 'div:empty'              # empty elements
+    plwr click 'li:first-child'          # positional
+    plwr click 'li:last-child'           # positional
+    plwr count '#list > li'              # child combinator
+    plwr count 'h1 + p'                  # adjacent sibling
+    plwr count 'h1 ~ p'                  # general sibling
+    plwr count 'a[href^=/]'              # starts with
+    plwr count 'a[href$=.pdf]'           # ends with
+    plwr count 'a[href*=example]'        # contains
+    plwr count 'a[download]'             # has attribute
+    plwr click 'li:not(.done)'           # negation
+    plwr click '.card:has(img)'          # has descendant
+
+  Playwright extensions:
+    plwr click ':has-text(\"Sign in\")'    # contains text
+    plwr click 'text=Sign in'            # text shorthand
+    plwr click 'li.item >> nth=0'        # pick nth match
+    plwr click ':visible'                # only visible
+    plwr text 'tr:has-text(\"Bob\") >> td.status'
+                                         # chain with >>
+
+  Attribute values must NOT be quoted (Playwright quirk):
+    plwr click '[data-testid=login-form]'     # ✓ correct
+    plwr click '[data-testid=\"login-form\"]'   # ✗ broken
+
+  :nth-child() / :nth-of-type() are NOT supported — use >> nth=N:
+    plwr text 'li >> nth=2'              # third <li>
+    plwr text ':nth-match(li, 2)'        # alternative
 
 \x1b[1;4mEnvironment variables:\x1b[0m
 
