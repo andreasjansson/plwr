@@ -58,8 +58,6 @@ pub async fn run(socket_path: &Path, headed: bool) -> Result<()> {
             return Err(e.into());
         }
     };
-    let root = page.locator("html").await;
-
     let listener = match UnixListener::bind(socket_path) {
         Ok(l) => l,
         Err(e) => {
