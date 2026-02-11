@@ -371,35 +371,40 @@ async fn handle_command(state: &mut State, command: Command, headed: bool) -> Re
 fn clean_error(e: anyhow::Error) -> String {
     let msg = e.to_string();
 
-    // Playwright errors look like:
-    //   Protocol error: Timeout 200ms exceeded. \n TimeoutError: ... \n    at ...stack... [selector: .foo]
-    //   Protocol error: Error: Element not found: .foo \n Error: ... \n    at ...stack...
-    //   Protocol error (Page.navigate): Cannot navigate to invalid URL
-    // Extract the first line after the prefix and append any trailing [selector: ...].
-    if let Some(rest) = msg.strip_prefix("Protocol error: ") {
-        let first_line = rest.lines().next().unwrap_or(rest).trim();
+    // Strip stack traces: everything after "\n " (Playwright appends " \n stack")
+    let msg = msg.split(" \n ").next().unwrap_or(&msg);
+    // Also strip lines starting with "    at " (JS stack frames)
+    let msg = msg.lines()
+        .take_while(|l| !l.starts_with("    at "))
+        .collect::<Vec<_>>()
+        .join("\n");
 
-        let selector_suffix = rest.lines().last()
-            .and_then(|l| l.rfind("[selector: ").map(|i| &l[i..]))
-            .unwrap_or("");
+    // Strip nested prefixes layered by playwright-rs and the Playwright server:
+    //   "Protocol error: Protocol error (Page.navigate): Cannot navigate..."
+    //   "Protocol error: Timeout 200ms exceeded."
+    //   "Protocol error: Error: Element not found: .foo"
+    let msg = msg.strip_prefix("Protocol error: ").unwrap_or(&msg);
+    let msg = msg.strip_prefix("Protocol error ").unwrap_or(msg);
+    // Strip "(Method.name): " prefix
+    let msg = if msg.starts_with('(') {
+        msg.find(": ").map(|i| &msg[i + 2..]).unwrap_or(msg)
+    } else {
+        msg
+    };
+    let msg = msg.strip_prefix("Error: ").unwrap_or(msg);
 
-        // Strip nested prefixes like "Error: " or "(Page.navigate): "
-        let clean = first_line;
-        let clean = clean.strip_prefix("Error: ").unwrap_or(clean);
-        let clean = if clean.starts_with('(') {
-            clean.find(": ").map(|i| &clean[i + 2..]).unwrap_or(clean)
-        } else {
-            clean
-        };
-        let clean = clean.trim_end();
+    // Preserve trailing [selector: ...] from the first or last line
+    let selector_suffix = msg.lines().last()
+        .and_then(|l| l.rfind("[selector: ").map(|i| &l[i..]))
+        .unwrap_or("");
 
-        if selector_suffix.is_empty() {
-            return clean.to_string();
-        }
-        return format!("{} {}", clean, selector_suffix);
+    let first_line = msg.lines().next().unwrap_or(msg).trim_end();
+
+    if selector_suffix.is_empty() || first_line.ends_with(']') {
+        first_line.to_string()
+    } else {
+        format!("{} {}", first_line, selector_suffix)
     }
-
-    msg
 }
 
 fn js_str(s: &str) -> String {
