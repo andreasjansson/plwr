@@ -150,10 +150,26 @@ async fn main() -> ExitCode {
             }
         }
 
+        Cmd::Stop => {
+            match client::send_if_running(&sock, Command::Stop).await {
+                Ok(Some(_)) => {
+                    eprintln!("Stopped session '{}'", cli.session);
+                    ExitCode::SUCCESS
+                }
+                Ok(None) => {
+                    eprintln!("No session '{}' running", cli.session);
+                    ExitCode::SUCCESS
+                }
+                Err(e) => {
+                    eprintln!("{}", e);
+                    ExitCode::FAILURE
+                }
+            }
+        }
+
         cmd => {
             let command = match cmd {
-                Cmd::Daemon => unreachable!(),
-                Cmd::Stop => Command::Stop,
+                Cmd::Daemon | Cmd::Stop => unreachable!(),
                 Cmd::Open { url } => Command::Open { url },
                 Cmd::Reload => Command::Reload,
                 Cmd::Url => Command::Url,
