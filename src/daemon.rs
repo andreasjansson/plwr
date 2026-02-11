@@ -499,11 +499,4 @@ fn clean_error(e: anyhow::Error) -> String {
     }
 }
 
-fn js_str(s: &str) -> String {
-    let escaped = s
-        .replace('\\', "\\\\")
-        .replace('\'', "\\'")
-        .replace('\n', "\\n")
-        .replace('\r', "\\r");
-    format!("'{}'", escaped)
-}
+
