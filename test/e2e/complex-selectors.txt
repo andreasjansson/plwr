@@ -109,6 +109,27 @@ plwr -S plwr-test exists '.card:has-text("Goodbye")'
 ---
 
 ===
+attr reads type attribute
+===
+plwr -S plwr-test attr 'input[placeholder="Email"]' type
+---
+email
+
+===
+attr reads placeholder
+===
+plwr -S plwr-test attr 'input[type="text"]' placeholder
+---
+Name
+
+===
+attr reads class
+===
+plwr -S plwr-test attr '#list li >> nth=0' class
+---
+item done
+
+===
 exists fails with complex selector
 ===
 ! plwr -S plwr-test exists '.card:has-text("Nonexistent")'
