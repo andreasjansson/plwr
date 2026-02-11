@@ -122,6 +122,11 @@ pub async fn run(socket_path: &Path, headed: bool) -> Result<()> {
 async fn handle_command(state: &mut State, command: Command, headed: bool) -> Result<Response> {
     // Handle commands that mutate state before borrowing the page
     match command {
+        Command::Open { url } => {
+            state.active_page().goto(&url, None).await?;
+            state.page_opened = true;
+            return Ok(Response::ok_empty());
+        }
         Command::Header { name, value } => {
             state.headers.insert(name, value);
             let ctx = state.active_page().context()?;
@@ -177,12 +182,6 @@ async fn handle_command(state: &mut State, command: Command, headed: bool) -> Re
 
     match command {
         Command::Stop => {
-            Ok(Response::ok_empty())
-        }
-
-        Command::Open { url } => {
-            page.goto(&url, None).await?;
-            state.page_opened = true;
             Ok(Response::ok_empty())
         }
 
