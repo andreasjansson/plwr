@@ -68,10 +68,12 @@ plwr press Enter
 plwr press Control+c
 ```
 
-Supported keys for `press`: `Backspace`, `Tab`, `Enter`, `Escape`, `Space`,
-`ArrowUp`, `ArrowDown`, `ArrowLeft`, `ArrowRight`, `Home`, `End`, `PageUp`,
-`PageDown`, `Delete`, `Insert`, `F1`–`F12`, `a`–`z`, `0`–`9`, `Control`,
-`Shift`, `Alt`, `Meta`. Chords use `+`: `Control+c`, `Shift+Enter`, `Meta+a`.
+Supported keys for `press`: `a`–`z`, `A`–`Z`, `0`–`9`, `Backspace`, `Tab`,
+`Enter`, `Escape`, `Space`, `Delete`, `Insert`, `ArrowUp`, `ArrowDown`,
+`ArrowLeft`, `ArrowRight`, `Home`, `End`, `PageUp`, `PageDown`, `F1`–`F12`,
+`Control`, `Shift`, `Alt`, `Meta`, and any US keyboard character
+(`` !@#$%^&*()_+-=[]{}\\|;:'",./<>?`~ ``). Chords use `+`: `Control+c`,
+`Shift+Enter`, `Meta+a`.
 
 ### Querying
 
