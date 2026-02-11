@@ -299,7 +299,7 @@ async fn handle_command(state: &mut State, command: Command, headed: bool) -> Re
                 "() => {{ const __r = ({}); return typeof __r === 'object' ? JSON.stringify(__r) : __r; }}",
                 js
             );
-            let val = state.root.evaluate_value(&wrapper).await?;
+            let val = pw_ext::page_evaluate_value(page, &wrapper).await?;
             match serde_json::from_str::<serde_json::Value>(&val) {
                 Ok(serde_json::Value::String(s)) => {
                     match serde_json::from_str::<serde_json::Value>(&s) {
