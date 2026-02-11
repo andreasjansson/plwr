@@ -18,7 +18,14 @@ plwr -S plwr-test cookie theme dark
 ---
 
 ===
-list cookies shows both
+cookies are accessible from JS
+===
+plwr -S plwr-test eval "document.cookie.split('; ').sort().join('; ')"
+---
+session=abc123; theme=dark
+
+===
+list cookies includes both
 ===
 plwr -S plwr-test cookie --list
 ---
@@ -26,13 +33,6 @@ plwr -S plwr-test cookie --list
 ---
 where
 * len(cookies) == 2
-
-===
-cookies are accessible from JS
-===
-plwr -S plwr-test eval "document.cookie.split('; ').sort().join('; ')"
----
-session=abc123; theme=dark
 
 ===
 overwrite a cookie
