@@ -163,6 +163,22 @@ async fn main() -> ExitCode {
                 Cmd::Fill { selector, text } => Command::Fill { selector, text, timeout: cli.timeout },
                 Cmd::Press { key } => Command::Press { key },
                 Cmd::Exists { selector } => Command::Exists { selector },
+                Cmd::Cookie { list: true, .. } => Command::CookieList,
+                Cmd::Cookie { clear: true, .. } => Command::CookieClear,
+                Cmd::Cookie { name: Some(name), value: Some(value), url, .. } => {
+                    let url = url.unwrap_or_default();
+                    Command::Cookie { name, value, url }
+                }
+                Cmd::Cookie { name: Some(name), value: None, .. } => {
+                    eprintln!("Usage: plwr cookie <name> <value> [--url <url>], plwr cookie --list, or plwr cookie --clear");
+                    eprintln!("Missing value for cookie '{}'", name);
+                    return ExitCode::FAILURE;
+                }
+                Cmd::Cookie { .. } => {
+                    eprintln!("Usage: plwr cookie <name> <value> [--url <url>], plwr cookie --list, or plwr cookie --clear");
+                    return ExitCode::FAILURE;
+                }
+                Cmd::Viewport { width, height } => Command::Viewport { width, height },
                 Cmd::Header { clear: true, .. } => Command::HeaderClear,
                 Cmd::Header { name: Some(name), value: Some(value), .. } => Command::Header { name, value },
                 Cmd::Header { name: Some(name), value: None, .. } => {
