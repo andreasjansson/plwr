@@ -8,17 +8,101 @@ use std::path::PathBuf;
 use std::process::ExitCode;
 
 #[derive(Parser)]
-#[command(name = "plwr", about = "Clean CLI for Playwright browser automation with CSS selectors")]
+#[command(
+    name = "plwr",
+    about = "Playwright CLI for browser automation using CSS selectors",
+    after_long_help = EXAMPLES,
+    after_help = "Use --help for examples",
+)]
 struct Cli {
+    /// Session name for parallel browser instances
     #[arg(short = 'S', long, global = true, env = "PLWR_SESSION", default_value = "default")]
     session: String,
 
+    /// Timeout in milliseconds for wait/click/fill operations
     #[arg(short = 'T', long, global = true, env = "PLWR_TIMEOUT", default_value_t = 5000)]
     timeout: u64,
 
     #[command(subcommand)]
     command: Cmd,
 }
+
+const EXAMPLES: &str = "\x1b[1;4mExamples:\x1b[0m
+
+  Navigate and extract text:
+    plwr open https://example.com
+    plwr text h1                         # \"Example Domain\"
+    plwr attr a href                     # \"https://www.iana.org/...\"
+
+  Fill a form and submit:
+    plwr fill '#email' 'alice@test.com'
+    plwr fill '#password' 'hunter2'
+    plwr click 'button[type=submit]'
+    plwr wait '.dashboard'               # wait for redirect
+
+  Use Playwright selectors (superset of CSS):
+    plwr click ':has-text(\"Sign in\")'
+    plwr wait 'text=Welcome back'
+    plwr text '.card:has-text(\"Total\") >> span.amount'
+
+  When a selector matches multiple elements:
+    plwr click 'li.item >> nth=0'        # first match
+    plwr click 'li.item >> nth=2'        # third match
+
+  Chain with shell conditionals:
+    plwr exists '.cookie-banner' && plwr click '.accept-cookies'
+
+  Set headers for authenticated requests:
+    plwr header Authorization 'Bearer tok_xxx'
+    plwr open https://api.example.com/dashboard
+
+  Manage cookies:
+    plwr cookie session_id abc123
+    plwr cookie --list                   # show all as JSON
+    plwr cookie --clear
+
+  Run JavaScript:
+    plwr eval 'document.title'
+    plwr eval '({count: document.querySelectorAll(\"li\").length})'
+
+  Inspect the DOM:
+    plwr tree '.sidebar'                 # JSON tree of element
+    plwr count '.search-result'          # number of matches
+
+  Screenshot and video:
+    plwr screenshot --selector '.chart' --path chart.png
+    plwr video-start
+    plwr click '#run-demo'
+    plwr video-stop demo.mp4
+
+  Adjust viewport for responsive testing:
+    plwr viewport 375 667               # iPhone SE
+    plwr screenshot --path mobile.png
+    plwr viewport 1280 720              # desktop
+
+  Keyboard input:
+    plwr press Enter
+    plwr press Control+a                 # select all
+    plwr press Meta+c                    # copy (macOS)
+
+  Sessions — each session is an independent browser with its own
+  cookies, headers, and page state. The browser starts automatically
+  on first use and persists until stopped:
+    plwr -S admin open https://app.com/admin
+    plwr -S user open https://app.com/login
+    plwr -S user fill '#email' 'user@test.com'
+    plwr -S admin text '.active-users'   # check admin view
+    plwr -S admin stop
+    plwr -S user stop
+
+  Custom timeout:
+    plwr wait '.slow-element' -T 30000   # wait up to 30s
+
+\x1b[1;4mEnvironment variables:\x1b[0m
+
+  PLAYWRIGHT_HEADED    Show browser window (set to any value)
+  PLWR_SESSION         Default session name (default: \"default\")
+  PLWR_TIMEOUT         Default timeout in ms (default: 5000)";
 
 #[derive(Subcommand)]
 enum Cmd {
