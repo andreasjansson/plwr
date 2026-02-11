@@ -22,10 +22,10 @@ stop recording and save as webm
 ===
 plwr -S plwr-test video-stop /tmp/plwr-test-recording.webm
 ---
-{{ output }}
----
-where
-* output contains "/tmp/plwr-test-recording.webm"
+{
+  "format": "webm",
+  "path": "/tmp/plwr-test-recording.webm"
+}
 
 ===
 video file exists
