@@ -1,8 +1,8 @@
 ===
-open a simple page
+open tree page
 %require
 ===
-plwr -S plwr-test open "data:text/html,<html><head><title>Tree</title></head><body><div id='main' class='container active'><h1>Hello</h1><p data-x='42'>World</p></div></body></html>"
+plwr -S plwr-test open "http://localhost:8599/tree.html"
 ---
 
 ===
