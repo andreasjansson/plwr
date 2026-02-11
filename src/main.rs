@@ -153,11 +153,11 @@ async fn main() -> ExitCode {
         Cmd::Stop => {
             match client::send_if_running(&sock, Command::Stop).await {
                 Ok(Some(_)) => {
-                    eprintln!("Stopped session '{}'", cli.session);
+                    println!("Stopped session '{}'", cli.session);
                     ExitCode::SUCCESS
                 }
                 Ok(None) => {
-                    eprintln!("No session '{}' running", cli.session);
+                    println!("No session '{}' running", cli.session);
                     ExitCode::SUCCESS
                 }
                 Err(e) => {
