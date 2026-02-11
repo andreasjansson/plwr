@@ -255,11 +255,11 @@ async fn handle_command(state: &mut State, command: Command, headed: bool) -> Re
                     if msg.contains("Unknown key") {
                         Ok(Response::err(format!(
                             "{msg}\n\n\
-                            Valid keys: Backspace, Tab, Enter, Escape, Space, \
-                            ArrowUp, ArrowDown, ArrowLeft, ArrowRight, \
-                            Home, End, PageUp, PageDown, Delete, Insert, \
-                            F1-F12, a-z, 0-9, \
-                            Control, Shift, Alt, Meta\n\
+                            Valid keys: a-z A-Z 0-9, \
+                            Backspace Tab Enter Escape Space Delete Insert, \
+                            ArrowUp ArrowDown ArrowLeft ArrowRight Home End PageUp PageDown, \
+                            F1-F12, Control Shift Alt Meta, \
+                            any US keyboard character: !@#$%^&*()_+-=[]{{}}\\|;':\",./<>?`~\n\
                             Chords: Control+c, Shift+Enter, Alt+Tab, Meta+a"
                         )))
                     } else {
