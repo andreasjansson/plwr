@@ -51,11 +51,10 @@ plwr -S plwr-test eval "document.querySelector('h1').textContent"
 Test Page
 
 ===
-eval returns boolean
+eval returns boolean true (exit 0, no output)
 ===
 plwr -S plwr-test eval "document.querySelectorAll('p').length > 0"
 ---
-true
 
 ===
 eval returns null
