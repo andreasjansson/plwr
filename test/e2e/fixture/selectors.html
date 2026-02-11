@@ -1,12 +1,23 @@
 <!DOCTYPE html>
-<html>
-<head><title>Selectors</title></head>
+<html lang="en">
+<head>
+  <title>Selectors</title>
+  <style>
+    .hidden { display: none; }
+    .invisible { visibility: hidden; }
+    :root { --brand: blue; }
+    table { border-collapse: collapse; }
+    td, th { border: 1px solid #ccc; padding: 4px 8px; }
+    .empty-div {}
+  </style>
+</head>
 <body>
   <ul id="list">
     <li class="item done">Buy milk</li>
     <li class="item">Walk dog</li>
     <li class="item done">Clean house</li>
   </ul>
+
   <div class="card">
     <h2>Section A</h2>
     <p>Hello world</p>
@@ -15,9 +26,58 @@
     <h2>Section B</h2>
     <p>Goodbye</p>
   </div>
+
   <a href="/about">About</a>
   <a href="/contact">Contact</a>
+  <a href="https://example.com/page?q=1&lang=en" data-external>Example Link</a>
+
   <input type="text" placeholder="Name">
-  <input type="email" placeholder="Email">
+  <input type="email" placeholder="Email" required>
+  <input type="password" placeholder="Password" disabled>
+  <input type="checkbox" id="terms" checked>
+  <label for="terms">I agree to the terms</label>
+
+  <table id="data-table">
+    <thead>
+      <tr><th>Name</th><th>Role</th><th>Status</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Alice</td><td>Admin</td><td class="status active">Active</td></tr>
+      <tr><td>Bob</td><td>Editor</td><td class="status inactive">Inactive</td></tr>
+      <tr><td>Carol</td><td>Admin</td><td class="status active">Active</td></tr>
+      <tr><td>Dave</td><td>Viewer</td><td class="status active">Active</td></tr>
+    </tbody>
+  </table>
+
+  <div class="mixed-children">
+    <span>First span</span>
+    <p>A paragraph</p>
+    <span>Second span</span>
+    <p>Another paragraph</p>
+    <span>Third span</span>
+  </div>
+
+  <div class="hidden">Hidden content</div>
+  <div class="invisible">Invisible content</div>
+  <div class="empty-div"></div>
+  <div class="has-text-only">Just some text</div>
+
+  <nav aria-label="breadcrumb">
+    <ol>
+      <li><a href="/">Home</a></li>
+      <li><a href="/products">Products</a></li>
+      <li aria-current="page">Widget</li>
+    </ol>
+  </nav>
+
+  <details>
+    <summary>Click to expand</summary>
+    <p>Expanded content here</p>
+  </details>
+
+  <div data-testid="login-form" data-state="ready" data-count="3">
+    <button data-action="submit" class="btn primary">Submit</button>
+    <button data-action="cancel" class="btn">Cancel</button>
+  </div>
 </body>
 </html>
