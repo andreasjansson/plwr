@@ -1,8 +1,8 @@
 ===
-navigate to example.com
+navigate to test page
 %require
 ===
-plwr -S plwr-test open "https://example.com"
+plwr -S plwr-test open "http://localhost:8599/index.html"
 ---
 
 ===
@@ -34,31 +34,28 @@ get text content of h1
 ===
 plwr -S plwr-test text h1
 ---
-Example Domain
+Test Page
 
 ===
 get attribute value
 ===
 plwr -S plwr-test attr a href
 ---
-https://iana.org/domains/example
+/form.html
 
 ===
 count matching elements
 ===
 plwr -S plwr-test count p
 ---
-{{ count }}
----
-where
-* count > 0
+2
 
 ===
 eval arbitrary javascript
 ===
 plwr -S plwr-test eval "document.title"
 ---
-Example Domain
+plwr test
 
 ===
 eval returns structured JSON
@@ -80,5 +77,5 @@ plwr -S plwr-test tree h1
 ---
 {
   "tag": "h1",
-  "text": "Example Domain"
+  "text": "Test Page"
 }
