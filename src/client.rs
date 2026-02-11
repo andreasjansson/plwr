@@ -24,8 +24,13 @@ pub async fn send_if_running(socket_path: &Path, command: Command) -> Result<Opt
 }
 
 pub async fn send(socket_path: &Path, command: Command) -> Result<Response> {
+    dlog(&format!("send: connecting to {:?}", socket_path));
     let stream = UnixStream::connect(socket_path).await
-        .map_err(|_| anyhow::anyhow!("No session running. Use 'plwr start' first."))?;
+        .map_err(|e| {
+            dlog(&format!("send: connect failed: {}", e));
+            anyhow::anyhow!("No session running. Use 'plwr start' first.")
+        })?;
+    dlog("send: connected, sending command");
     send_on_stream(stream, command).await
 }
 
