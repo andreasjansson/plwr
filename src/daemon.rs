@@ -248,10 +248,9 @@ async fn handle_command(state: &mut State, command: Command, headed: bool) -> Re
                 None => page.screenshot(None).await?,
             };
             std::fs::write(&path, &bytes)?;
-            Ok(Response::ok_value(serde_json::json!({
-                "path": path,
-                "bytes": bytes.len(),
-            })))
+            Ok(Response::ok_value(serde_json::Value::String(
+                format!("Saved {} bytes to {}", bytes.len(), path),
+            )))
         }
 
         Command::Tree { selector, .. } => {
