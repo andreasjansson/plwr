@@ -155,6 +155,137 @@ plwr -S session-a stop
 plwr -S session-b stop
 ```
 
+## Selectors
+
+Playwright uses its own selector engine that extends CSS. Most standard CSS
+selectors work directly, but some advanced pseudo-classes need a `css=` prefix
+to bypass Playwright's parser.
+
+### Basics
+
+```bash
+plwr click '#submit-btn'                   # by id
+plwr click '.btn.primary'                  # compound class
+plwr click 'button'                        # by tag
+plwr count 'input[type=email]'             # attribute match
+plwr count 'input[type=text]'              # no quotes needed
+```
+
+### Combinators
+
+```bash
+plwr count '#list > li'                    # child
+plwr count 'h1 + p'                        # adjacent sibling
+plwr count 'h1 ~ p'                        # general sibling
+plwr text '.card p'                        # descendant
+```
+
+### Attribute selectors
+
+Unquoted attribute values work directly. For quoted values, use the `css=`
+prefix (see [css= prefix](#css-prefix) below).
+
+```bash
+plwr count 'a[data-external]'             # has attribute
+plwr count 'a[href^=/]'                   # starts with
+plwr count 'a[href$=.pdf]'                # ends with
+plwr count 'a[href*=example]'             # contains
+plwr count '[data-testid=login-form]'      # exact match (no quotes)
+```
+
+### Pseudo-classes that work without prefix
+
+```bash
+plwr click 'li:first-child'
+plwr click 'li:last-child'
+plwr text '#list li:nth-child(2)'          # second item
+plwr count '#list li:nth-child(odd)'       # 1st, 3rd, ...
+plwr count 'li:not(.done)'
+plwr count '.card:has(img)'
+plwr count 'div:empty'
+plwr count 'input:checked'
+plwr count 'input:disabled'
+plwr count 'input:enabled'
+plwr count 'input:required'
+```
+
+### Playwright extensions
+
+These are Playwright-specific and don't exist in standard CSS:
+
+```bash
+plwr click ':has-text("Sign in")'          # contains text
+plwr click 'text=Sign in'                  # text shorthand
+plwr click 'li.item >> nth=0'             # first match (0-based)
+plwr click 'li.item >> nth=-1'            # last match
+plwr text ':nth-match(li.item, 2)'         # alternative to nth=
+plwr count 'button:visible'               # only visible elements
+plwr text 'tr:has-text("Bob") >> td.name'  # chain with >>
+```
+
+The `>>` operator chains selectors — each segment is scoped to the previous
+match. You can mix CSS and Playwright engines:
+
+```bash
+plwr text '#data-table >> tr:has-text("Alice") >> td.status'
+```
+
+### css= prefix
+
+Playwright's selector parser auto-detects whether a string is CSS, XPath, or a
+Playwright selector. Some valid CSS pseudo-classes confuse the auto-detection
+because Playwright tries to interpret parenthesized arguments or quoted strings
+as its own syntax. Prefixing with `css=` forces native CSS evaluation.
+
+**Need `css=` prefix:**
+
+| Selector | Example |
+|----------|---------|
+| `:last-of-type` | `css=.list span:last-of-type` |
+| `:first-of-type` | `css=.list p:first-of-type` |
+| `:nth-of-type()` | `css=span:nth-of-type(2)` |
+| `:nth-last-child()` | `css=li:nth-last-child(1)` |
+| `:is()` | `css=:is(.card, .sidebar)` |
+| `:where()` | `css=:where(.card, .sidebar) > p` |
+| Quoted `[attr="val"]` | `css=[data-testid="login-form"]` |
+
+```bash
+plwr text 'css=.mixed span:last-of-type'
+plwr text 'css=li:nth-of-type(2)'
+plwr count 'css=:is(.card, .sidebar)'
+plwr text 'css=[data-testid="login-form"] button'
+```
+
+**Work without prefix** (Playwright recognizes these natively):
+
+`:nth-child()`, `:first-child`, `:last-child`, `:not()`, `:has()`, `:empty`,
+`:checked`, `:disabled`, `:enabled`, `:required`, `:visible`, `:has-text()`,
+`text=`, `>> nth=N`.
+
+### Strict mode
+
+Playwright locators are strict by default — if a selector matches multiple
+elements, commands like `text`, `click`, and `attr` will fail. Use `>> nth=N`
+or `:nth-match()` to pick one:
+
+```bash
+plwr text 'li.item'                        # fails if >1 match
+plwr text 'li.item >> nth=0'              # first match
+plwr text ':nth-match(li.item, 2)'         # second match (1-based)
+plwr count 'li.item'                       # count always works
+plwr exists 'li.item'                      # exists always works
+```
+
+### Shell quoting
+
+Watch out for shell metacharacters in selectors. The `$` in `$=` will be
+interpreted by bash if not single-quoted:
+
+```bash
+plwr count "a[href$=.pdf]"                # ✗ bash eats the $
+plwr count 'a[href$=.pdf]'                # ✓ single quotes
+```
+
 ## Example: cctr e2e test
 
 Before (with raw `playwright-cli run-code`):
