@@ -182,6 +182,7 @@ async fn handle_command(state: &mut State, command: Command, headed: bool) -> Re
 
         Command::Open { url } => {
             page.goto(&url, None).await?;
+            state.page_opened = true;
             Ok(Response::ok_empty())
         }
 
