@@ -478,10 +478,24 @@ fn clean_error(e: anyhow::Error) -> String {
 
     let first_line = msg.lines().next().unwrap_or(msg).trim_end();
 
-    if selector_suffix.is_empty() || first_line.ends_with(']') {
+    let cleaned = if selector_suffix.is_empty() || first_line.ends_with(']') {
         first_line.to_string()
     } else {
         format!("{} {}", first_line, selector_suffix)
+    };
+
+    if cleaned.contains("strict mode violation") {
+        // Extract the selector from [selector: ...]
+        let sel = selector_suffix
+            .strip_prefix("[selector: ")
+            .and_then(|s| s.strip_suffix(']'))
+            .unwrap_or("SELECTOR");
+        format!(
+            "{cleaned}\n\nHint: use '>> nth=0' to select the first match, e.g.:\n  \
+            plwr click \"{sel} >> nth=0\""
+        )
+    } else {
+        cleaned
     }
 }
 
