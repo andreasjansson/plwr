@@ -1,4 +1,5 @@
 use crate::protocol::{Command, Request, Response};
+use crate::pw_ext;
 use anyhow::Result;
 use playwright_rs::{
     BrowserContextOptions, ClickOptions, FillOptions, LaunchOptions, Locator, Page, Playwright,
