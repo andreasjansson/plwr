@@ -4,3 +4,10 @@ start web server
 ===
 bash -c 'npx -y serve -p 8599 "$CCTR_FIXTURE_DIR" &>/tmp/plwr-serve.log & echo $! > /tmp/plwr-serve.pid; for i in $(seq 1 30); do curl -s http://localhost:8599 >/dev/null && exit 0; sleep 0.1; done; exit 1'
 ---
+
+===
+start echo header server
+%require
+===
+bash -c 'node -e "require(\"http\").createServer((q,r)=>{r.writeHead(200,{\"Content-Type\":\"application/json\",\"Access-Control-Allow-Origin\":\"*\"});r.end(JSON.stringify(q.headers))}).listen(8598,()=>console.log(\"ready\"))" &>/tmp/plwr-echo.log & echo $! > /tmp/plwr-echo.pid; for i in $(seq 1 30); do curl -s http://localhost:8598 >/dev/null && exit 0; sleep 0.1; done; exit 1'
+---
