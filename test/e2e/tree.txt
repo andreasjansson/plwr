@@ -1,0 +1,45 @@
+===
+open a simple page
+%require
+===
+plwr -S plwr-test open "data:text/html,<html><head><title>Tree</title></head><body><div id='main' class='container active'><h1>Hello</h1><p data-x='42'>World</p></div></body></html>"
+---
+
+===
+tree of specific element
+===
+plwr -S plwr-test tree '#main'
+---
+{
+  "children": [
+    {
+      "tag": "h1",
+      "text": "Hello"
+    },
+    {
+      "attrs": {
+        "data-x": "42"
+      },
+      "tag": "p",
+      "text": "World"
+    }
+  ],
+  "class": [
+    "container",
+    "active"
+  ],
+  "id": "main",
+  "tag": "div"
+}
+
+===
+full page tree contains html root
+===
+plwr -S plwr-test tree
+---
+{{ tree:json object }}
+---
+where
+* tree contains "tag"
+* tree.tag == "html"
+* tree contains "children"
