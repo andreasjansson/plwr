@@ -18,24 +18,44 @@ plwr -S plwr-test header X-Custom-Two second
 ---
 
 ===
-headers are sent with fetch requests
+custom headers are sent with requests
 ===
-plwr -S plwr-test eval "await fetch('/index.html').then(r => r.status)"
+plwr -S plwr-test eval "(() => { const x = new XMLHttpRequest(); x.open('GET', 'http://localhost:8598/', false); x.send(); return JSON.parse(x.responseText)['x-custom-one']; })()"
 ---
-200
+first
 
 ===
-verify custom header is sent via fetch
+multiple custom headers are sent
 ===
-plwr -S plwr-test eval "await new Promise(resolve => { const x = new XMLHttpRequest(); x.open('GET', '/index.html', true); x.onload = () => resolve('ok'); x.send(); })"
+plwr -S plwr-test eval "(() => { const x = new XMLHttpRequest(); x.open('GET', 'http://localhost:8598/', false); x.send(); return JSON.parse(x.responseText)['x-custom-two']; })()"
 ---
-ok
+second
+
+===
+overwrite an existing header
+===
+plwr -S plwr-test header X-Custom-One updated
+---
+
+===
+overwritten header has new value
+===
+plwr -S plwr-test eval "(() => { const x = new XMLHttpRequest(); x.open('GET', 'http://localhost:8598/', false); x.send(); return JSON.parse(x.responseText)['x-custom-one']; })()"
+---
+updated
 
 ===
 clear all headers
 ===
 plwr -S plwr-test header --clear
 ---
+
+===
+cleared headers are no longer sent
+===
+plwr -S plwr-test eval "(() => { const x = new XMLHttpRequest(); x.open('GET', 'http://localhost:8598/', false); x.send(); return String(JSON.parse(x.responseText)['x-custom-one']); })()"
+---
+undefined
 
 ===
 page still works after clearing headers
