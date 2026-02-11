@@ -2,7 +2,7 @@
 open a URL
 %require
 ===
-plwr -S plwr-test open "https://example.com"
+plwr -S plwr-test open "http://localhost:8599/index.html"
 ---
 
 ===
@@ -10,7 +10,7 @@ get current URL
 ===
 plwr -S plwr-test url
 ---
-https://example.com/
+http://localhost:8599/index.html
 
 ===
 reload the page
@@ -23,4 +23,4 @@ URL is unchanged after reload
 ===
 plwr -S plwr-test url
 ---
-https://example.com/
+http://localhost:8599/index.html
