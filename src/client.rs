@@ -22,11 +22,11 @@ pub async fn send(socket_path: &Path, command: Command) -> Result<Response> {
     send_on_stream(stream, command).await
 }
 
-pub async fn ensure_started(socket_path: &Path, headed: bool) -> Result<()> {
+pub fn ensure_started(socket_path: &Path, headed: bool) -> Result<()> {
     if socket_path.exists() {
-        if UnixStream::connect(socket_path).await.is_ok() {
-            return Ok(());
-        }
+        // Socket file exists — assume daemon is running. If it's stale,
+        // start_daemon will clean it up on the next start attempt.
+        return Ok(());
     }
     start_daemon(socket_path, headed)
 }
