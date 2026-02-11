@@ -14,6 +14,7 @@ use std::process::ExitCode;
     after_long_help = EXAMPLES,
     after_help = "Use --help for examples",
     disable_help_subcommand = true,
+    version,
 )]
 struct Cli {
     /// Session name for parallel browser instances
