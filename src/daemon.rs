@@ -6,17 +6,9 @@ use playwright_rs::{
     RecordVideo,
 };
 use std::collections::HashMap;
-use std::io::Write;
 use std::path::Path;
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use tokio::net::UnixListener;
-
-fn dlog(msg: &str) {
-    let path = std::env::temp_dir().join("plwr-debug.log");
-    if let Ok(mut f) = std::fs::OpenOptions::new().create(true).append(true).open(&path) {
-        let _ = writeln!(f, "[{}] {}", std::process::id(), msg);
-    }
-}
 
 const READY_SIGNAL: &str = "### ready";
 const ERROR_PREFIX: &str = "### error ";
