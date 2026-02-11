@@ -338,7 +338,7 @@ async fn main() -> ExitCode {
                 }
                 Cmd::Text { selector } => Command::Text { selector, timeout: cli.timeout },
                 Cmd::Attr { selector, name } => Command::Attr { selector, name, timeout: cli.timeout },
-                Cmd::Count { selector } => Command::Count { selector, timeout: cli.timeout },
+                Cmd::Count { selector } => Command::Count { selector },
                 Cmd::Eval { js } => Command::Eval { js },
                 Cmd::Screenshot { selector, path } => Command::Screenshot { selector, path, timeout: cli.timeout },
                 Cmd::Tree { selector } => Command::Tree { selector, timeout: cli.timeout },
