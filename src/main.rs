@@ -128,13 +128,21 @@ const EXAMPLES: &str = "\x1b[1;4mExamples:\x1b[0m
     plwr text 'tr:has-text(\"Bob\") >> td.status'
                                          # chain with >>
 
-  Attribute values must NOT be quoted (Playwright quirk):
-    plwr click '[data-testid=login-form]'     # ✓ correct
-    plwr click '[data-testid=\"login-form\"]'   # ✗ broken
+  Some CSS pseudo-classes need the css= prefix to avoid
+  Playwright's selector parser misinterpreting them:
+    plwr text 'css=span:last-of-type'         # ✓ works
+    plwr text 'span:last-of-type'             # ✗ misinterpreted
+    plwr text 'css=li:nth-of-type(2)'         # ✓ works
+    plwr text 'css=:is(.card, .sidebar)'      # ✓ works
+    plwr text 'css=[data-id=\"login\"]'         # ✓ quoted attrs
 
-  :nth-child() / :nth-of-type() are NOT supported — use >> nth=N:
-    plwr text 'li >> nth=2'              # third <li>
-    plwr text ':nth-match(li, 2)'        # alternative
+  The css= prefix is needed for: :last-of-type, :first-of-type,
+  :nth-of-type(), :nth-last-child(), :is(), :where(),
+  and quoted attribute values [attr=\"val\"].
+
+  These work without the prefix: :nth-child(), :first-child,
+  :last-child, :not(), :has(), :empty, :checked, :disabled,
+  :enabled, :required, :visible, :has-text().
 
 \x1b[1;4mEnvironment variables:\x1b[0m
 
