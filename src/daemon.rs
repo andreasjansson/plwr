@@ -4,6 +4,7 @@ use playwright_rs::{
     BrowserContextOptions, ClickOptions, FillOptions, LaunchOptions, Locator, Page, Playwright,
     RecordVideo,
 };
+use std::collections::HashMap;
 use std::path::Path;
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use tokio::net::UnixListener;
