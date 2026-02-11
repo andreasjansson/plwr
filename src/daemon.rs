@@ -338,7 +338,7 @@ async fn handle_command(state: &mut State, command: Command, headed: bool) -> Re
         }
 
         Command::Tree { selector, .. } => {
-            let walk_fn = r#"
+            let walk_js = r#"el => {
                 function walk(el) {
                     const node = { tag: el.tagName ? el.tagName.toLowerCase() : '#text' };
                     if (el.id) node.id = el.id;
@@ -362,18 +362,11 @@ async fn handle_command(state: &mut State, command: Command, headed: bool) -> Re
                     if (children.length > 0) node.children = children;
                     return node;
                 }
-            "#;
-            let set_js = match &selector {
-                Some(sel) => format!(
-                    "() => {{ {} const el = document.querySelector({}); if (!el) throw new Error('Element not found: ' + {}); return JSON.stringify(walk(el)); }}",
-                    walk_fn, js_str(sel), js_str(sel),
-                ),
-                None => format!(
-                    "() => {{ {} return JSON.stringify(walk(document.documentElement)); }}",
-                    walk_fn,
-                ),
-            };
-            let val = state.root.evaluate_value(&set_js).await?;
+                return JSON.stringify(walk(el));
+            }"#;
+            let sel = selector.as_deref().unwrap_or("html");
+            let loc = page.locator(sel).await;
+            let val = loc.evaluate(walk_js).await?;
             let json_str: String = serde_json::from_str(&val).unwrap_or(val);
             let tree: serde_json::Value = serde_json::from_str(&json_str)?;
             Ok(Response::ok_value(tree))
