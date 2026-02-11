@@ -248,8 +248,23 @@ async fn handle_command(state: &mut State, command: Command, headed: bool) -> Re
         }
 
         Command::Press { key } => {
-            page.keyboard().press(&key, None).await?;
-            Ok(Response::ok_empty())
+            match page.keyboard().press(&key, None).await {
+                Ok(()) => Ok(Response::ok_empty()),
+                Err(e) => {
+                    let msg = clean_error(anyhow::anyhow!(e));
+                    if msg.contains("Unknown key") {
+                        anyhow::bail!(
+                            "{}\n\nValid keys: Backspace, Tab, Enter, Escape, Space, \
+                            ArrowUp, ArrowDown, ArrowLeft, ArrowRight, \
+                            Home, End, PageUp, PageDown, Delete, Insert, \
+                            F1-F12, a-z, 0-9, \
+                            Control, Shift, Alt, Meta\n\
+                            Chords: Control+c, Shift+Enter, Alt+Tab, Meta+a"
+                        );
+                    }
+                    anyhow::bail!("{}", msg);
+                }
+            }
         }
 
         Command::Exists { selector } => {
