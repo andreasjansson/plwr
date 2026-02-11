@@ -17,7 +17,8 @@ pub async fn send_if_running(socket_path: &Path, command: Command) -> Result<Opt
 }
 
 pub async fn send(socket_path: &Path, command: Command) -> Result<Response> {
-    let stream = UnixStream::connect(socket_path).await
+    let stream = UnixStream::connect(socket_path)
+        .await
         .map_err(|_| anyhow::anyhow!("No session running. Use 'plwr start' first."))?;
     send_on_stream(stream, command).await
 }
@@ -69,7 +70,8 @@ fn start_daemon(socket_path: &Path, headed: bool) -> Result<()> {
         cmd.env("PLAYWRIGHT_HEADED", "1");
     }
 
-    let mut child = cmd.spawn()
+    let mut child = cmd
+        .spawn()
         .map_err(|e| anyhow::anyhow!("Failed to spawn daemon: {}", e))?;
 
     let stdout = child.stdout.take().unwrap();

@@ -34,7 +34,9 @@ pub async fn run(socket_path: &Path, headed: bool) -> Result<()> {
     // Ignore SIGPIPE — stdout is a pipe from the parent process that
     // closes after reading the ready signal. Any later stdout write
     // (e.g. from Playwright internals) must not kill us.
-    unsafe { libc::signal(libc::SIGPIPE, libc::SIG_IGN); }
+    unsafe {
+        libc::signal(libc::SIGPIPE, libc::SIG_IGN);
+    }
 
     if socket_path.exists() {
         std::fs::remove_file(socket_path)?;
@@ -47,10 +49,14 @@ pub async fn run(socket_path: &Path, headed: bool) -> Result<()> {
             return Err(e.into());
         }
     };
-    let browser = match playwright.chromium().launch_with_options(LaunchOptions {
-        headless: Some(!headed),
-        ..Default::default()
-    }).await {
+    let browser = match playwright
+        .chromium()
+        .launch_with_options(LaunchOptions {
+            headless: Some(!headed),
+            ..Default::default()
+        })
+        .await
+    {
         Ok(b) => b,
         Err(e) => {
             println!("{}{}", ERROR_PREFIX, e);
@@ -108,7 +114,8 @@ pub async fn run(socket_path: &Path, headed: bool) -> Result<()> {
             writer.write_all(&buf).await?;
 
             Ok::<bool, anyhow::Error>(is_stop)
-        }.await;
+        }
+        .await;
 
         match resp {
             Ok(true) => break,
@@ -157,18 +164,21 @@ async fn handle_command(state: &mut State, command: Command, headed: bool) -> Re
         Command::CookieList => {
             let ctx = state.active_page().context()?;
             let cookies = pw_ext::get_cookies(&ctx).await?;
-            let json: Vec<serde_json::Value> = cookies.iter().map(|c| {
-                serde_json::json!({
-                    "name": c.name,
-                    "value": c.value,
-                    "domain": c.domain,
-                    "path": c.path,
-                    "expires": c.expires,
-                    "httpOnly": c.http_only,
-                    "secure": c.secure,
-                    "sameSite": c.same_site,
+            let json: Vec<serde_json::Value> = cookies
+                .iter()
+                .map(|c| {
+                    serde_json::json!({
+                        "name": c.name,
+                        "value": c.value,
+                        "domain": c.domain,
+                        "path": c.path,
+                        "expires": c.expires,
+                        "httpOnly": c.http_only,
+                        "secure": c.secure,
+                        "sameSite": c.same_site,
+                    })
                 })
-            }).collect();
+                .collect();
             return Ok(Response::ok_value(serde_json::Value::Array(json)));
         }
         Command::CookieClear => {
@@ -177,7 +187,10 @@ async fn handle_command(state: &mut State, command: Command, headed: bool) -> Re
             return Ok(Response::ok_empty());
         }
         Command::Viewport { width, height } => {
-            state.active_page().set_viewport_size(playwright_rs::Viewport { width, height }).await?;
+            state
+                .active_page()
+                .set_viewport_size(playwright_rs::Viewport { width, height })
+                .await?;
             return Ok(Response::ok_empty());
         }
         _ => {}
@@ -186,18 +199,14 @@ async fn handle_command(state: &mut State, command: Command, headed: bool) -> Re
     let page = state.active_page();
 
     match command {
-        Command::Stop => {
-            Ok(Response::ok_empty())
-        }
+        Command::Stop => Ok(Response::ok_empty()),
 
         Command::Reload => {
             page.reload(None).await?;
             Ok(Response::ok_empty())
         }
 
-        Command::Url => {
-            Ok(Response::ok_value(serde_json::Value::String(page.url())))
-        }
+        Command::Url => Ok(Response::ok_value(serde_json::Value::String(page.url()))),
 
         Command::Wait { selector, timeout } => {
             let loc = page.locator(&selector).await;
@@ -225,49 +234,58 @@ async fn handle_command(state: &mut State, command: Command, headed: bool) -> Re
             loc.click(Some(ClickOptions {
                 timeout: Some(timeout as f64),
                 ..Default::default()
-            })).await?;
+            }))
+            .await?;
             Ok(Response::ok_empty())
         }
 
-        Command::Fill { selector, text, timeout } => {
+        Command::Fill {
+            selector,
+            text,
+            timeout,
+        } => {
             let loc = page.locator(&selector).await;
-            loc.fill(&text, Some(FillOptions {
-                timeout: Some(timeout as f64),
-                ..Default::default()
-            })).await?;
+            loc.fill(
+                &text,
+                Some(FillOptions {
+                    timeout: Some(timeout as f64),
+                    ..Default::default()
+                }),
+            )
+            .await?;
             Ok(Response::ok_empty())
         }
 
-        Command::Press { key } => {
-            match page.keyboard().press(&key, None).await {
-                Ok(()) => Ok(Response::ok_empty()),
-                Err(e) => {
-                    let msg = clean_error(anyhow::anyhow!(e));
-                    if msg.contains("Unknown key") {
-                        Ok(Response::err(format!(
-                            "{msg}\n\n\
+        Command::Press { key } => match page.keyboard().press(&key, None).await {
+            Ok(()) => Ok(Response::ok_empty()),
+            Err(e) => {
+                let msg = clean_error(anyhow::anyhow!(e));
+                if msg.contains("Unknown key") {
+                    Ok(Response::err(format!(
+                        "{msg}\n\n\
                             Valid keys: a-z A-Z 0-9, \
                             Backspace Tab Enter Escape Space Delete Insert, \
                             ArrowUp ArrowDown ArrowLeft ArrowRight Home End PageUp PageDown, \
                             F1-F12, Control Shift Alt Meta, \
                             any US keyboard character: !@#$%^&*()_+-=[]{{}}\\|;':\",./<>?`~\n\
                             Chords: Control+c, Shift+Enter, Alt+Tab, Meta+a"
-                        )))
-                    } else {
-                        Ok(Response::err(msg))
-                    }
+                    )))
+                } else {
+                    Ok(Response::err(msg))
                 }
             }
-        }
+        },
 
         Command::Exists { selector } => {
             let loc = page.locator(&selector).await;
-            let n = tokio::time::timeout(
-                CHANNEL_TIMEOUT,
-                loc.count(),
-            ).await
-                .map_err(|_| anyhow::anyhow!("Timeout waiting for Playwright response. [selector: {}]", selector))?
-                ?;
+            let n = tokio::time::timeout(CHANNEL_TIMEOUT, loc.count())
+                .await
+                .map_err(|_| {
+                    anyhow::anyhow!(
+                        "Timeout waiting for Playwright response. [selector: {}]",
+                        selector
+                    )
+                })??;
             Ok(Response::ok_value(serde_json::Value::Bool(n > 0)))
         }
 
@@ -278,7 +296,11 @@ async fn handle_command(state: &mut State, command: Command, headed: bool) -> Re
             Ok(Response::ok_value(serde_json::Value::String(text)))
         }
 
-        Command::Attr { selector, name, timeout } => {
+        Command::Attr {
+            selector,
+            name,
+            timeout,
+        } => {
             let loc = page.locator(&selector).await;
             wait_for_visible(&loc, &selector, timeout).await?;
             match loc.get_attribute(&name).await? {
@@ -289,12 +311,14 @@ async fn handle_command(state: &mut State, command: Command, headed: bool) -> Re
 
         Command::Count { selector } => {
             let loc = page.locator(&selector).await;
-            let n = tokio::time::timeout(
-                CHANNEL_TIMEOUT,
-                loc.count(),
-            ).await
-                .map_err(|_| anyhow::anyhow!("Timeout waiting for Playwright response. [selector: {}]", selector))?
-                ?;
+            let n = tokio::time::timeout(CHANNEL_TIMEOUT, loc.count())
+                .await
+                .map_err(|_| {
+                    anyhow::anyhow!(
+                        "Timeout waiting for Playwright response. [selector: {}]",
+                        selector
+                    )
+                })??;
             Ok(Response::ok_value(serde_json::json!(n)))
         }
 
@@ -307,7 +331,8 @@ async fn handle_command(state: &mut State, command: Command, headed: bool) -> Re
             match serde_json::from_str::<serde_json::Value>(&val) {
                 Ok(serde_json::Value::String(s)) => {
                     match serde_json::from_str::<serde_json::Value>(&s) {
-                        Ok(v @ serde_json::Value::Object(_)) | Ok(v @ serde_json::Value::Array(_)) => Ok(Response::ok_value(v)),
+                        Ok(v @ serde_json::Value::Object(_))
+                        | Ok(v @ serde_json::Value::Array(_)) => Ok(Response::ok_value(v)),
                         _ => Ok(Response::ok_value(serde_json::Value::String(s))),
                     }
                 }
@@ -325,9 +350,11 @@ async fn handle_command(state: &mut State, command: Command, headed: bool) -> Re
                 None => page.screenshot(None).await?,
             };
             std::fs::write(&path, &bytes)?;
-            Ok(Response::ok_value(serde_json::Value::String(
-                format!("Saved {} bytes to {}", bytes.len(), path),
-            )))
+            Ok(Response::ok_value(serde_json::Value::String(format!(
+                "Saved {} bytes to {}",
+                bytes.len(),
+                path
+            ))))
         }
 
         Command::Tree { selector, .. } => {
@@ -365,8 +392,11 @@ async fn handle_command(state: &mut State, command: Command, headed: bool) -> Re
         }
 
         Command::Open { .. }
-        | Command::Header { .. } | Command::HeaderClear
-        | Command::Cookie { .. } | Command::CookieList | Command::CookieClear
+        | Command::Header { .. }
+        | Command::HeaderClear
+        | Command::Cookie { .. }
+        | Command::CookieList
+        | Command::CookieClear
         | Command::Viewport { .. } => unreachable!(),
 
         Command::VideoStart { dir } => {
@@ -374,7 +404,9 @@ async fn handle_command(state: &mut State, command: Command, headed: bool) -> Re
             let tmp_dir = tempfile::tempdir()?;
             let user_data = tmp_dir.path().to_string_lossy().to_string();
 
-            let ctx = state.playwright.chromium()
+            let ctx = state
+                .playwright
+                .chromium()
                 .launch_persistent_context_with_options(
                     user_data,
                     BrowserContextOptions {
@@ -385,7 +417,8 @@ async fn handle_command(state: &mut State, command: Command, headed: bool) -> Re
                         }),
                         ..Default::default()
                     },
-                ).await?;
+                )
+                .await?;
             let vpage = ctx.new_page().await?;
 
             let url = state.page.url();
@@ -412,9 +445,10 @@ async fn handle_command(state: &mut State, command: Command, headed: bool) -> Re
                     Some(webm_path) => {
                         if output.ends_with(".webm") {
                             std::fs::rename(&webm_path, &output)?;
-                            Ok(Response::ok_value(serde_json::Value::String(
-                                format!("Saved recording to {}", output),
-                            )))
+                            Ok(Response::ok_value(serde_json::Value::String(format!(
+                                "Saved recording to {}",
+                                output
+                            ))))
                         } else {
                             let status = std::process::Command::new("ffmpeg")
                                 .args(["-y", "-i"])
@@ -425,9 +459,10 @@ async fn handle_command(state: &mut State, command: Command, headed: bool) -> Re
                                 .status()?;
                             if status.success() {
                                 std::fs::remove_file(&webm_path).ok();
-                                Ok(Response::ok_value(serde_json::Value::String(
-                                    format!("Saved recording to {}", output),
-                                )))
+                                Ok(Response::ok_value(serde_json::Value::String(format!(
+                                    "Saved recording to {}",
+                                    output
+                                ))))
                             } else {
                                 Ok(Response::err(format!("ffmpeg exited with {}", status)))
                             }
@@ -461,14 +496,17 @@ fn clean_error(e: anyhow::Error) -> String {
 
     // Extract [selector: ...] suffix before stripping (it may be at the very end,
     // after stack traces that we're about to remove)
-    let selector_suffix = msg.rfind("[selector: ").map(|i| &msg[i..])
+    let selector_suffix = msg
+        .rfind("[selector: ")
+        .map(|i| &msg[i..])
         .and_then(|s| s.find(']').map(|j| &s[..=j]))
         .unwrap_or("");
 
     // Strip stack traces: everything after " \n " (Playwright appends " \n stack")
     let msg = msg.split(" \n ").next().unwrap_or(&msg);
     // Also strip lines starting with "    at " (JS stack frames)
-    let msg = msg.lines()
+    let msg = msg
+        .lines()
         .take_while(|l| !l.starts_with("    at "))
         .collect::<Vec<_>>()
         .join("\n");
@@ -505,5 +543,3 @@ fn clean_error(e: anyhow::Error) -> String {
         cleaned
     }
 }
-
-

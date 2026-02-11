@@ -82,7 +82,11 @@ pub async fn page_evaluate_value(page: &Page, js: &str) -> playwright_rs::Result
 // Locator::evaluate_value runs JS in the page context via the locator's frame.
 // Stock playwright-rs doesn't expose these, so we use page.evaluate with querySelector.
 
-pub async fn locator_eval_on_selector(page: &Page, selector: &str, js: &str) -> playwright_rs::Result<String> {
+pub async fn locator_eval_on_selector(
+    page: &Page,
+    selector: &str,
+    js: &str,
+) -> playwright_rs::Result<String> {
     let escaped_selector = selector.replace('\\', "\\\\").replace('\'', "\\'");
     let wrapper = format!(
         "() => {{ const el = document.querySelector('{}'); if (!el) throw new Error('No element found for selector: {}'); const fn_ = {}; return JSON.stringify(fn_(el)); }}",
