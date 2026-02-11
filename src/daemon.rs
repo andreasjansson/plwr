@@ -359,7 +359,8 @@ async fn handle_command(state: &mut State, command: Command, headed: bool) -> Re
             Ok(Response::ok_value(tree))
         }
 
-        Command::Header { .. } | Command::HeaderClear
+        Command::Open { .. }
+        | Command::Header { .. } | Command::HeaderClear
         | Command::Cookie { .. } | Command::CookieList | Command::CookieClear
         | Command::Viewport { .. } => unreachable!(),
 
