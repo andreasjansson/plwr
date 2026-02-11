@@ -492,7 +492,7 @@ fn clean_error(e: anyhow::Error) -> String {
             .unwrap_or("SELECTOR");
         format!(
             "{cleaned}\n\nHint: use '>> nth=0' to select the first match, e.g.:\n  \
-            plwr click \"{sel} >> nth=0\""
+            plwr <command> \"{sel} >> nth=0\""
         )
     } else {
         cleaned
