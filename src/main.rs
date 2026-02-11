@@ -19,11 +19,23 @@ use std::process::ExitCode;
 )]
 struct Cli {
     /// Session name for parallel browser instances
-    #[arg(short = 'S', long, global = true, env = "PLWR_SESSION", default_value = "default")]
+    #[arg(
+        short = 'S',
+        long,
+        global = true,
+        env = "PLWR_SESSION",
+        default_value = "default"
+    )]
     session: String,
 
     /// Timeout in milliseconds for wait/click/fill operations
-    #[arg(short = 'T', long, global = true, env = "PLWR_TIMEOUT", default_value_t = 5000)]
+    #[arg(
+        short = 'T',
+        long,
+        global = true,
+        env = "PLWR_TIMEOUT",
+        default_value_t = 5000
+    )]
     timeout: u64,
 
     #[command(subcommand)]
@@ -305,22 +317,20 @@ async fn main() -> ExitCode {
             }
         }
 
-        Cmd::Stop => {
-            match client::send_if_running(&sock, Command::Stop).await {
-                Ok(Some(_)) => {
-                    println!("Stopped session '{}'", cli.session);
-                    ExitCode::SUCCESS
-                }
-                Ok(None) => {
-                    println!("No session '{}' running", cli.session);
-                    ExitCode::SUCCESS
-                }
-                Err(e) => {
-                    eprintln!("{}", e);
-                    ExitCode::FAILURE
-                }
+        Cmd::Stop => match client::send_if_running(&sock, Command::Stop).await {
+            Ok(Some(_)) => {
+                println!("Stopped session '{}'", cli.session);
+                ExitCode::SUCCESS
             }
-        }
+            Ok(None) => {
+                println!("No session '{}' running", cli.session);
+                ExitCode::SUCCESS
+            }
+            Err(e) => {
+                eprintln!("{}", e);
+                ExitCode::FAILURE
+            }
+        },
 
         cmd => {
             let command = match cmd {
@@ -328,19 +338,41 @@ async fn main() -> ExitCode {
                 Cmd::Open { url } => Command::Open { url },
                 Cmd::Reload => Command::Reload,
                 Cmd::Url => Command::Url,
-                Cmd::Wait { selector } => Command::Wait { selector, timeout: cli.timeout },
-                Cmd::WaitNot { selector } => Command::WaitNot { selector, timeout: cli.timeout },
-                Cmd::Click { selector } => Command::Click { selector, timeout: cli.timeout },
-                Cmd::Fill { selector, text } => Command::Fill { selector, text, timeout: cli.timeout },
+                Cmd::Wait { selector } => Command::Wait {
+                    selector,
+                    timeout: cli.timeout,
+                },
+                Cmd::WaitNot { selector } => Command::WaitNot {
+                    selector,
+                    timeout: cli.timeout,
+                },
+                Cmd::Click { selector } => Command::Click {
+                    selector,
+                    timeout: cli.timeout,
+                },
+                Cmd::Fill { selector, text } => Command::Fill {
+                    selector,
+                    text,
+                    timeout: cli.timeout,
+                },
                 Cmd::Press { key } => Command::Press { key },
                 Cmd::Exists { selector } => Command::Exists { selector },
                 Cmd::Cookie { list: true, .. } => Command::CookieList,
                 Cmd::Cookie { clear: true, .. } => Command::CookieClear,
-                Cmd::Cookie { name: Some(name), value: Some(value), url, .. } => {
+                Cmd::Cookie {
+                    name: Some(name),
+                    value: Some(value),
+                    url,
+                    ..
+                } => {
                     let url = url.unwrap_or_default();
                     Command::Cookie { name, value, url }
                 }
-                Cmd::Cookie { name: Some(name), value: None, .. } => {
+                Cmd::Cookie {
+                    name: Some(name),
+                    value: None,
+                    ..
+                } => {
                     eprintln!("Usage: plwr cookie <name> <value> [--url <url>], plwr cookie --list, or plwr cookie --clear");
                     eprintln!("Missing value for cookie '{}'", name);
                     return ExitCode::FAILURE;
@@ -351,8 +383,16 @@ async fn main() -> ExitCode {
                 }
                 Cmd::Viewport { width, height } => Command::Viewport { width, height },
                 Cmd::Header { clear: true, .. } => Command::HeaderClear,
-                Cmd::Header { name: Some(name), value: Some(value), .. } => Command::Header { name, value },
-                Cmd::Header { name: Some(name), value: None, .. } => {
+                Cmd::Header {
+                    name: Some(name),
+                    value: Some(value),
+                    ..
+                } => Command::Header { name, value },
+                Cmd::Header {
+                    name: Some(name),
+                    value: None,
+                    ..
+                } => {
                     eprintln!("Usage: plwr header <name> <value> or plwr header --clear");
                     eprintln!("Missing value for header '{}'", name);
                     return ExitCode::FAILURE;
@@ -361,12 +401,26 @@ async fn main() -> ExitCode {
                     eprintln!("Usage: plwr header <name> <value> or plwr header --clear");
                     return ExitCode::FAILURE;
                 }
-                Cmd::Text { selector } => Command::Text { selector, timeout: cli.timeout },
-                Cmd::Attr { selector, name } => Command::Attr { selector, name, timeout: cli.timeout },
+                Cmd::Text { selector } => Command::Text {
+                    selector,
+                    timeout: cli.timeout,
+                },
+                Cmd::Attr { selector, name } => Command::Attr {
+                    selector,
+                    name,
+                    timeout: cli.timeout,
+                },
                 Cmd::Count { selector } => Command::Count { selector },
                 Cmd::Eval { js } => Command::Eval { js },
-                Cmd::Screenshot { selector, path } => Command::Screenshot { selector, path, timeout: cli.timeout },
-                Cmd::Tree { selector } => Command::Tree { selector, timeout: cli.timeout },
+                Cmd::Screenshot { selector, path } => Command::Screenshot {
+                    selector,
+                    path,
+                    timeout: cli.timeout,
+                },
+                Cmd::Tree { selector } => Command::Tree {
+                    selector,
+                    timeout: cli.timeout,
+                },
                 Cmd::VideoStart { dir } => Command::VideoStart { dir },
                 Cmd::VideoStop { output } => Command::VideoStop { output },
             };
@@ -383,7 +437,9 @@ async fn main() -> ExitCode {
                                     }
                                 }
                                 serde_json::Value::Null => {}
-                                other => println!("{}", serde_json::to_string_pretty(&other).unwrap()),
+                                other => {
+                                    println!("{}", serde_json::to_string_pretty(&other).unwrap())
+                                }
                             }
                         }
                         ExitCode::SUCCESS
