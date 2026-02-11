@@ -133,6 +133,53 @@ async fn handle_command(state: &mut State, command: Command, headed: bool) -> Re
             ctx.set_extra_http_headers(HashMap::new()).await?;
             return Ok(Response::ok_empty());
         }
+        Command::Cookie { name, value, url } => {
+            let ctx = state.active_page().context()?;
+            let url = if url.is_empty() {
+                state.active_page().url()
+            } else {
+                url
+            };
+            let cookie = playwright_rs::Cookie {
+                name,
+                value,
+                domain: String::new(),
+                path: String::new(),
+                url: url,
+                expires: -1.0,
+                http_only: false,
+                secure: false,
+                same_site: None,
+            };
+            ctx.add_cookies(&[cookie]).await?;
+            return Ok(Response::ok_empty());
+        }
+        Command::CookieList => {
+            let ctx = state.active_page().context()?;
+            let cookies = ctx.cookies().await?;
+            let json: Vec<serde_json::Value> = cookies.iter().map(|c| {
+                serde_json::json!({
+                    "name": c.name,
+                    "value": c.value,
+                    "domain": c.domain,
+                    "path": c.path,
+                    "expires": c.expires,
+                    "httpOnly": c.http_only,
+                    "secure": c.secure,
+                    "sameSite": c.same_site,
+                })
+            }).collect();
+            return Ok(Response::ok_value(serde_json::Value::Array(json)));
+        }
+        Command::CookieClear => {
+            let ctx = state.active_page().context()?;
+            ctx.clear_cookies().await?;
+            return Ok(Response::ok_empty());
+        }
+        Command::Viewport { width, height } => {
+            state.active_page().set_viewport_size(playwright_rs::Viewport { width, height }).await?;
+            return Ok(Response::ok_empty());
+        }
         _ => {}
     }
 
