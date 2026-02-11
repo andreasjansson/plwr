@@ -91,8 +91,12 @@ pub async fn run(socket_path: &Path, headed: bool) -> Result<()> {
 
     loop {
         dlog("waiting for connection");
-        let (stream, _) = listener.accept().await?;
-        dlog("accepted connection");
+        let accept_result = listener.accept().await;
+        match &accept_result {
+            Ok(_) => dlog("accepted connection"),
+            Err(e) => dlog(&format!("accept error: {}", e)),
+        }
+        let (stream, _) = accept_result?;
 
         let resp = async {
             let (reader, mut writer) = stream.into_split();
