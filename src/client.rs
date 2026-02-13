@@ -23,11 +23,12 @@ pub async fn send(socket_path: &Path, command: Command) -> Result<Response> {
     send_on_stream(stream, command).await
 }
 
-pub fn ensure_started(socket_path: &Path, headed: bool) -> Result<()> {
+pub async fn ensure_started(socket_path: &Path, headed: bool) -> Result<()> {
     if socket_path.exists() {
-        // Socket file exists — assume daemon is running. If it's stale,
-        // start_daemon will clean it up on the next start attempt.
-        return Ok(());
+        if UnixStream::connect(socket_path).await.is_ok() {
+            return Ok(());
+        }
+        std::fs::remove_file(socket_path).ok();
     }
     start_daemon(socket_path, headed)
 }
