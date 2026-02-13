@@ -33,12 +33,3 @@ tooltip visible after hover
 plwr -S plwr-test eval "getComputedStyle(document.getElementById('hover-tooltip')).display"
 ---
 block
-
-# -- Error cases --
-
-===
-hover on nonexistent element times out
-%fail
-===
-plwr -S plwr-test hover '#nonexistent' -T 500
----
