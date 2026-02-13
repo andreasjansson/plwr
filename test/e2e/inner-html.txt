@@ -12,8 +12,6 @@ wait for rich content to load
 plwr -S plwr-test wait '#rich-content'
 ---
 
-# -- innerHTML --
-
 ===
 get inner html of element with nested tags
 ===
