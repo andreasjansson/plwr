@@ -322,6 +322,24 @@ async fn handle_command(state: &mut State, command: Command, headed: bool) -> Re
             Ok(Response::ok_value(serde_json::json!(n)))
         }
 
+        Command::InputFiles {
+            selector,
+            paths,
+            timeout,
+        } => {
+            let loc = page.locator(&selector).await;
+            wait_for_visible(&loc, &selector, timeout).await?;
+            if paths.is_empty() {
+                loc.set_input_files_multiple(&[], None).await?;
+            } else {
+                let pathbufs: Vec<std::path::PathBuf> =
+                    paths.iter().map(std::path::PathBuf::from).collect();
+                let refs: Vec<&std::path::PathBuf> = pathbufs.iter().collect();
+                loc.set_input_files_multiple(&refs, None).await?;
+            }
+            Ok(Response::ok_empty())
+        }
+
         Command::Eval { js } => {
             let wrapper = format!(
                 "() => {{ const __r = ({}); return typeof __r === 'object' ? JSON.stringify(__r) : __r; }}",
