@@ -27,15 +27,15 @@ plwr -S plwr-test text '#rich-content'
 bold and italic
 
 ===
-inner html of empty element
-===
-plwr -S plwr-test inner-html '#result'
----
-
-
-===
 inner html of element with text only
 ===
 plwr -S plwr-test inner-html '#dblclick-target'
 ---
 Double-click me
+
+===
+inner html of h1
+===
+plwr -S plwr-test inner-html 'h1'
+---
+Form
