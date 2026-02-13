@@ -127,6 +127,14 @@ plwr viewport 1280 720          # desktop
 plwr viewport 375 667           # iPhone SE
 ```
 
+### File uploads
+
+```bash
+plwr input-files 'input[type=file]' photo.png
+plwr input-files '#upload' a.txt b.txt c.txt   # multiple files
+plwr input-files '#upload'                      # clear selection
+```
+
 ### JavaScript
 
 ```bash
