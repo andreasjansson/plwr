@@ -12,8 +12,6 @@ wait for focus input to load
 plwr -S plwr-test wait '#focus-input'
 ---
 
-# -- Focus --
-
 ===
 focus message hidden initially
 ===
@@ -41,8 +39,6 @@ plwr -S plwr-test eval "document.activeElement.id"
 ---
 focus-input
 
-# -- Blur --
-
 ===
 blur message hidden initially
 ===
@@ -69,8 +65,6 @@ element no longer active after blur
 plwr -S plwr-test eval "document.activeElement.id || document.activeElement.tagName"
 ---
 BODY
-
-# -- Focus a different element --
 
 ===
 focus the name input
