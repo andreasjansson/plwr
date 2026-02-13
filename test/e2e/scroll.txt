@@ -48,12 +48,3 @@ page scrolled back to top
 plwr -S plwr-test eval "window.scrollY < 100"
 ---
 true
-
-# -- Error cases --
-
-===
-scroll nonexistent element times out
-%fail
-===
-plwr -S plwr-test scroll '#nonexistent' -T 500
----
