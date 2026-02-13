@@ -127,12 +127,16 @@ jobs:
         include:
           - target: x86_64-unknown-linux-gnu
             os: ubuntu-latest
+            features: vendored-openssl
           - target: x86_64-unknown-linux-musl
             os: ubuntu-latest
+            features: vendored-openssl
           - target: aarch64-unknown-linux-gnu
             os: ubuntu-latest
+            features: vendored-openssl
           - target: aarch64-unknown-linux-musl
             os: ubuntu-latest
+            features: vendored-openssl
           - target: x86_64-apple-darwin
             os: macos-latest
           - target: aarch64-apple-darwin
@@ -145,6 +149,7 @@ jobs:
         with:
           bin: plwr
           target: ${{ matrix.target }}
+          features: ${{ matrix.features || '' }}
           archive: plwr-v${{ needs.check-release.outputs.version }}-${{ matrix.target }}
           ref: refs/tags/v${{ needs.check-release.outputs.version }}
           token: ${{ secrets.GITHUB_TOKEN }}
