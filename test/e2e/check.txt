@@ -15,7 +15,7 @@ plwr -S plwr-test wait '#agree'
 ===
 checkbox starts unchecked
 ===
-plwr -S plwr-test eval "document.getElementById('agree').checked"
+plwr -S plwr-test eval "String(document.getElementById('agree').checked)"
 ---
 false
 
@@ -28,7 +28,7 @@ plwr -S plwr-test check '#agree'
 ===
 checkbox is now checked
 ===
-plwr -S plwr-test eval "document.getElementById('agree').checked"
+plwr -S plwr-test eval "String(document.getElementById('agree').checked)"
 ---
 true
 
@@ -41,14 +41,14 @@ plwr -S plwr-test check '#agree'
 ===
 still checked after redundant check
 ===
-plwr -S plwr-test eval "document.getElementById('agree').checked"
+plwr -S plwr-test eval "String(document.getElementById('agree').checked)"
 ---
 true
 
 ===
 newsletter starts checked
 ===
-plwr -S plwr-test eval "document.getElementById('newsletter').checked"
+plwr -S plwr-test eval "String(document.getElementById('newsletter').checked)"
 ---
 true
 
@@ -61,7 +61,7 @@ plwr -S plwr-test uncheck '#newsletter'
 ===
 newsletter now unchecked
 ===
-plwr -S plwr-test eval "document.getElementById('newsletter').checked"
+plwr -S plwr-test eval "String(document.getElementById('newsletter').checked)"
 ---
 false
 
@@ -74,7 +74,7 @@ plwr -S plwr-test uncheck '#newsletter'
 ===
 still unchecked after redundant uncheck
 ===
-plwr -S plwr-test eval "document.getElementById('newsletter').checked"
+plwr -S plwr-test eval "String(document.getElementById('newsletter').checked)"
 ---
 false
 
@@ -87,7 +87,7 @@ plwr -S plwr-test check '#plan-free'
 ===
 radio is checked
 ===
-plwr -S plwr-test eval "document.getElementById('plan-free').checked"
+plwr -S plwr-test eval "String(document.getElementById('plan-free').checked)"
 ---
 true
 
@@ -100,14 +100,14 @@ plwr -S plwr-test check '#plan-pro'
 ===
 new radio is checked
 ===
-plwr -S plwr-test eval "document.getElementById('plan-pro').checked"
+plwr -S plwr-test eval "String(document.getElementById('plan-pro').checked)"
 ---
 true
 
 ===
 old radio is unchecked
 ===
-plwr -S plwr-test eval "document.getElementById('plan-free').checked"
+plwr -S plwr-test eval "String(document.getElementById('plan-free').checked)"
 ---
 false
 
@@ -120,7 +120,7 @@ plwr -S plwr-test uncheck '#agree'
 ===
 agree now unchecked
 ===
-plwr -S plwr-test eval "document.getElementById('agree').checked"
+plwr -S plwr-test eval "String(document.getElementById('agree').checked)"
 ---
 false
 
@@ -133,6 +133,6 @@ plwr -S plwr-test check '#agree'
 ===
 agree checked again
 ===
-plwr -S plwr-test eval "document.getElementById('agree').checked"
+plwr -S plwr-test eval "String(document.getElementById('agree').checked)"
 ---
 true
