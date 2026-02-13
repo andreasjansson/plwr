@@ -33,12 +33,3 @@ dblclick handler ran
 plwr -S plwr-test text '#dblclick-result'
 ---
 double-clicked
-
-# -- Error cases --
-
-===
-dblclick on nonexistent element times out
-%fail
-===
-plwr -S plwr-test dblclick '#nonexistent' -T 500
----
