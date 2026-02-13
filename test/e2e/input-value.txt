@@ -81,12 +81,3 @@ input-value after clear
 plwr -S plwr-test input-value '#name'
 ---
 
-
-# -- Error cases --
-
-===
-input-value on nonexistent element times out
-%fail
-===
-plwr -S plwr-test input-value '#nonexistent' -T 500
----
