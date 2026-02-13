@@ -12,8 +12,6 @@ wait for select to load
 plwr -S plwr-test wait '#color'
 ---
 
-# -- Single select by value --
-
 ===
 select single option by value
 ===
@@ -47,8 +45,6 @@ plwr -S plwr-test text '#color-result'
 ---
 blue
 
-# -- Single select by label --
-
 ===
 select by visible label text
 ===
@@ -61,8 +57,6 @@ verify label selection
 plwr -S plwr-test input-value '#color'
 ---
 red
-
-# -- Multi-select --
 
 ===
 select multiple values
@@ -89,8 +83,6 @@ verify new multi-select result
 plwr -S plwr-test text '#multi-result'
 ---
 b,d
-
-# -- Multi-select by label --
 
 ===
 select multiple by label
