@@ -12,8 +12,6 @@ wait for dblclick target to load
 plwr -S plwr-test wait '#dblclick-target'
 ---
 
-# -- Double-click fires dblclick event --
-
 ===
 no result before dblclick
 ===
