@@ -12,8 +12,6 @@ wait for hover target to load
 plwr -S plwr-test wait '#hover-me'
 ---
 
-# -- Hover shows tooltip via CSS :hover --
-
 ===
 tooltip hidden before hover
 ===
