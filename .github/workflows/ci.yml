@@ -146,6 +146,8 @@ jobs:
         with:
           ref: v${{ needs.check-release.outputs.version }}
       - uses: taiki-e/upload-rust-binary-action@v1
+        env:
+          PLAYWRIGHT_DRIVER_VERSION: "1.56.1"
         with:
           bin: plwr
           target: ${{ matrix.target }}
