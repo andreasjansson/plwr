@@ -1,0 +1,115 @@
+===
+open form page
+%require
+===
+plwr -S plwr-test open "http://localhost:8599/form.html"
+---
+
+===
+wait for select to load
+%require
+===
+plwr -S plwr-test wait '#color'
+---
+
+# -- Single select by value --
+
+===
+select single option by value
+===
+plwr -S plwr-test select '#color' green
+---
+
+===
+verify selected value via change handler
+===
+plwr -S plwr-test text '#color-result'
+---
+green
+
+===
+verify selected value via input-value
+===
+plwr -S plwr-test input-value '#color'
+---
+green
+
+===
+select different option by value
+===
+plwr -S plwr-test select '#color' blue
+---
+
+===
+verify new selection
+===
+plwr -S plwr-test text '#color-result'
+---
+blue
+
+# -- Single select by label --
+
+===
+select by visible label text
+===
+plwr -S plwr-test select '#color' --label 'Red'
+---
+
+===
+verify label selection
+===
+plwr -S plwr-test input-value '#color'
+---
+red
+
+# -- Multi-select --
+
+===
+select multiple values
+===
+plwr -S plwr-test select '#multi' a c
+---
+
+===
+verify multi-select result
+===
+plwr -S plwr-test text '#multi-result'
+---
+a,c
+
+===
+select different multiple values
+===
+plwr -S plwr-test select '#multi' b d
+---
+
+===
+verify new multi-select result
+===
+plwr -S plwr-test text '#multi-result'
+---
+b,d
+
+# -- Multi-select by label --
+
+===
+select multiple by label
+===
+plwr -S plwr-test select '#multi' --label Alpha Gamma
+---
+
+===
+verify multi-select by label
+===
+plwr -S plwr-test text '#multi-result'
+---
+a,c
+
+# -- Error cases --
+
+===
+select on nonexistent element times out
+%fail
+===
+plwr -S plwr-test select '#nonexistent' foo -T 500
+---
