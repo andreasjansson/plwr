@@ -1,0 +1,162 @@
+===
+open form page
+%require
+===
+plwr -S plwr-test open "http://localhost:8599/form.html"
+---
+
+===
+wait for checkbox to load
+%require
+===
+plwr -S plwr-test wait '#agree'
+---
+
+# -- Check --
+
+===
+checkbox starts unchecked
+===
+plwr -S plwr-test eval "document.getElementById('agree').checked"
+---
+false
+
+===
+check the checkbox
+===
+plwr -S plwr-test check '#agree'
+---
+
+===
+checkbox is now checked
+===
+plwr -S plwr-test eval "document.getElementById('agree').checked"
+---
+true
+
+===
+check idempotent - already checked stays checked
+===
+plwr -S plwr-test check '#agree'
+---
+
+===
+still checked after redundant check
+===
+plwr -S plwr-test eval "document.getElementById('agree').checked"
+---
+true
+
+# -- Uncheck --
+
+===
+newsletter starts checked
+===
+plwr -S plwr-test eval "document.getElementById('newsletter').checked"
+---
+true
+
+===
+uncheck newsletter
+===
+plwr -S plwr-test uncheck '#newsletter'
+---
+
+===
+newsletter now unchecked
+===
+plwr -S plwr-test eval "document.getElementById('newsletter').checked"
+---
+false
+
+===
+uncheck idempotent - already unchecked stays unchecked
+===
+plwr -S plwr-test uncheck '#newsletter'
+---
+
+===
+still unchecked after redundant uncheck
+===
+plwr -S plwr-test eval "document.getElementById('newsletter').checked"
+---
+false
+
+# -- Radio buttons --
+
+===
+check a radio button
+===
+plwr -S plwr-test check '#plan-free'
+---
+
+===
+radio is checked
+===
+plwr -S plwr-test eval "document.getElementById('plan-free').checked"
+---
+true
+
+===
+check different radio in same group
+===
+plwr -S plwr-test check '#plan-pro'
+---
+
+===
+new radio is checked
+===
+plwr -S plwr-test eval "document.getElementById('plan-pro').checked"
+---
+true
+
+===
+old radio is unchecked
+===
+plwr -S plwr-test eval "document.getElementById('plan-free').checked"
+---
+false
+
+# -- Uncheck then re-check --
+
+===
+uncheck the agree checkbox
+===
+plwr -S plwr-test uncheck '#agree'
+---
+
+===
+agree now unchecked
+===
+plwr -S plwr-test eval "document.getElementById('agree').checked"
+---
+false
+
+===
+re-check agree
+===
+plwr -S plwr-test check '#agree'
+---
+
+===
+agree checked again
+===
+plwr -S plwr-test eval "document.getElementById('agree').checked"
+---
+true
+
+# -- Error cases --
+
+===
+check nonexistent element times out
+%fail
+===
+plwr -S plwr-test check '#nonexistent' -T 500
+---
+
+===
+uncheck nonexistent element times out
+%fail
+===
+plwr -S plwr-test uncheck '#nonexistent' -T 500
+---
