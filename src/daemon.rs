@@ -337,6 +337,117 @@ async fn handle_command(state: &mut State, command: Command, headed: bool) -> Re
             Ok(Response::ok_empty())
         }
 
+        Command::Select {
+            selector,
+            values,
+            by_label,
+            timeout,
+        } => {
+            let loc = page.locator(&selector).await;
+            let opts = Some(SelectOptions {
+                timeout: Some(timeout as f64),
+                ..Default::default()
+            });
+            let select_values: Vec<SelectOption> = values
+                .into_iter()
+                .map(|v| {
+                    if by_label {
+                        SelectOption::Label(v)
+                    } else {
+                        SelectOption::Value(v)
+                    }
+                })
+                .collect();
+            if select_values.len() == 1 {
+                loc.select_option(select_values.into_iter().next().unwrap(), opts)
+                    .await?;
+            } else {
+                loc.select_option_multiple(&select_values, opts).await?;
+            }
+            Ok(Response::ok_empty())
+        }
+
+        Command::Hover { selector, timeout } => {
+            let loc = page.locator(&selector).await;
+            loc.hover(Some(HoverOptions {
+                timeout: Some(timeout as f64),
+                ..Default::default()
+            }))
+            .await?;
+            Ok(Response::ok_empty())
+        }
+
+        Command::Check { selector, timeout } => {
+            let loc = page.locator(&selector).await;
+            loc.check(Some(CheckOptions {
+                timeout: Some(timeout as f64),
+                ..Default::default()
+            }))
+            .await?;
+            Ok(Response::ok_empty())
+        }
+
+        Command::Uncheck { selector, timeout } => {
+            let loc = page.locator(&selector).await;
+            loc.uncheck(Some(CheckOptions {
+                timeout: Some(timeout as f64),
+                ..Default::default()
+            }))
+            .await?;
+            Ok(Response::ok_empty())
+        }
+
+        Command::Dblclick { selector, timeout } => {
+            let loc = page.locator(&selector).await;
+            loc.dblclick(Some(ClickOptions {
+                timeout: Some(timeout as f64),
+                ..Default::default()
+            }))
+            .await?;
+            Ok(Response::ok_empty())
+        }
+
+        Command::Focus { selector, timeout } => {
+            let loc = page.locator(&selector).await;
+            wait_for_visible(&loc, &selector, timeout).await?;
+            loc.click(Some(ClickOptions {
+                trial: Some(true),
+                timeout: Some(timeout as f64),
+                ..Default::default()
+            }))
+            .await?;
+            pw_ext::locator_focus(page, &selector).await?;
+            Ok(Response::ok_empty())
+        }
+
+        Command::Blur { selector, timeout } => {
+            let loc = page.locator(&selector).await;
+            wait_for_visible(&loc, &selector, timeout).await?;
+            pw_ext::locator_blur(page, &selector).await?;
+            Ok(Response::ok_empty())
+        }
+
+        Command::InnerHtml { selector, timeout } => {
+            let loc = page.locator(&selector).await;
+            wait_for_visible(&loc, &selector, timeout).await?;
+            let html = loc.inner_html().await?;
+            Ok(Response::ok_value(serde_json::Value::String(html)))
+        }
+
+        Command::InputValue { selector, timeout } => {
+            let loc = page.locator(&selector).await;
+            wait_for_visible(&loc, &selector, timeout).await?;
+            let val = loc.input_value(None).await?;
+            Ok(Response::ok_value(serde_json::Value::String(val)))
+        }
+
+        Command::ScrollIntoView { selector, timeout } => {
+            let loc = page.locator(&selector).await;
+            wait_for_visible(&loc, &selector, timeout).await?;
+            pw_ext::locator_scroll_into_view(page, &selector).await?;
+            Ok(Response::ok_empty())
+        }
+
         Command::Eval { js } => {
             let wrapper = format!(
                 "() => {{ const __r = ({}); return typeof __r === 'object' ? JSON.stringify(__r) : __r; }}",
