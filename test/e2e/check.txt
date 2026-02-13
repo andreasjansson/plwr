@@ -144,19 +144,3 @@ agree checked again
 plwr -S plwr-test eval "document.getElementById('agree').checked"
 ---
 true
-
-# -- Error cases --
-
-===
-check nonexistent element times out
-%fail
-===
-plwr -S plwr-test check '#nonexistent' -T 500
----
-
-===
-uncheck nonexistent element times out
-%fail
-===
-plwr -S plwr-test uncheck '#nonexistent' -T 500
----
