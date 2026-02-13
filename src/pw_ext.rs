@@ -82,6 +82,36 @@ pub async fn page_evaluate_value(page: &Page, js: &str) -> playwright_rs::Result
 // Locator::evaluate_value runs JS in the page context via the locator's frame.
 // Stock playwright-rs doesn't expose these, so we use page.evaluate with querySelector.
 
+pub async fn locator_focus(page: &Page, selector: &str) -> playwright_rs::Result<()> {
+    let escaped = selector.replace('\\', "\\\\").replace('\'', "\\'");
+    let js = format!(
+        "() => {{ const el = document.querySelector('{}'); if (!el) throw new Error('No element found'); el.focus(); }}",
+        escaped
+    );
+    page.evaluate_value(&js).await?;
+    Ok(())
+}
+
+pub async fn locator_blur(page: &Page, selector: &str) -> playwright_rs::Result<()> {
+    let escaped = selector.replace('\\', "\\\\").replace('\'', "\\'");
+    let js = format!(
+        "() => {{ const el = document.querySelector('{}'); if (!el) throw new Error('No element found'); el.blur(); }}",
+        escaped
+    );
+    page.evaluate_value(&js).await?;
+    Ok(())
+}
+
+pub async fn locator_scroll_into_view(page: &Page, selector: &str) -> playwright_rs::Result<()> {
+    let escaped = selector.replace('\\', "\\\\").replace('\'', "\\'");
+    let js = format!(
+        "() => {{ const el = document.querySelector('{}'); if (!el) throw new Error('No element found'); el.scrollIntoView({{behavior: 'instant', block: 'center'}}); }}",
+        escaped
+    );
+    page.evaluate_value(&js).await?;
+    Ok(())
+}
+
 pub async fn locator_eval_on_selector(
     page: &Page,
     selector: &str,
