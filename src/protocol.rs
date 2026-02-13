@@ -81,6 +81,48 @@ pub enum Command {
         paths: Vec<String>,
         timeout: u64,
     },
+    Select {
+        selector: String,
+        values: Vec<String>,
+        by_label: bool,
+        timeout: u64,
+    },
+    Hover {
+        selector: String,
+        timeout: u64,
+    },
+    Check {
+        selector: String,
+        timeout: u64,
+    },
+    Uncheck {
+        selector: String,
+        timeout: u64,
+    },
+    Dblclick {
+        selector: String,
+        timeout: u64,
+    },
+    Focus {
+        selector: String,
+        timeout: u64,
+    },
+    Blur {
+        selector: String,
+        timeout: u64,
+    },
+    InnerHtml {
+        selector: String,
+        timeout: u64,
+    },
+    InputValue {
+        selector: String,
+        timeout: u64,
+    },
+    ScrollIntoView {
+        selector: String,
+        timeout: u64,
+    },
     VideoStart {
         dir: String,
     },
