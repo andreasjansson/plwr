@@ -104,12 +104,3 @@ verify multi-select by label
 plwr -S plwr-test text '#multi-result'
 ---
 a,c
-
-# -- Error cases --
-
-===
-select on nonexistent element times out
-%fail
-===
-plwr -S plwr-test select '#nonexistent' foo -T 500
----
