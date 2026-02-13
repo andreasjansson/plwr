@@ -15,7 +15,7 @@ plwr -S plwr-test wait '#focus-input'
 ===
 focus message hidden initially
 ===
-plwr -S plwr-test eval "document.getElementById('focus-msg').style.display"
+plwr -S plwr-test eval "getComputedStyle(document.getElementById('focus-msg')).display"
 ---
 none
 
@@ -28,7 +28,7 @@ plwr -S plwr-test focus '#focus-input'
 ===
 focus message visible after focus
 ===
-plwr -S plwr-test eval "document.getElementById('focus-msg').style.display"
+plwr -S plwr-test eval "getComputedStyle(document.getElementById('focus-msg')).display"
 ---
 block
 
@@ -42,7 +42,7 @@ focus-input
 ===
 blur message hidden initially
 ===
-plwr -S plwr-test eval "document.getElementById('blur-msg').style.display"
+plwr -S plwr-test eval "getComputedStyle(document.getElementById('blur-msg')).display"
 ---
 none
 
@@ -55,7 +55,7 @@ plwr -S plwr-test blur '#focus-input'
 ===
 blur message visible after blur
 ===
-plwr -S plwr-test eval "document.getElementById('blur-msg').style.display"
+plwr -S plwr-test eval "getComputedStyle(document.getElementById('blur-msg')).display"
 ---
 block
 
