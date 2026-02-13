@@ -12,8 +12,6 @@ wait for prefilled input to load
 plwr -S plwr-test wait '#prefilled'
 ---
 
-# -- Read pre-filled input value --
-
 ===
 get value of prefilled text input
 ===
@@ -28,16 +26,12 @@ plwr -S plwr-test input-value '#textarea'
 ---
 hello world
 
-# -- Read empty input --
-
 ===
 empty input returns empty string
 ===
 plwr -S plwr-test input-value '#name'
 ---
 
-
-# -- Fill then read back --
 
 ===
 fill a value
@@ -52,8 +46,6 @@ plwr -S plwr-test input-value '#name'
 ---
 typed text
 
-# -- Read select value --
-
 ===
 select an option
 ===
@@ -66,8 +58,6 @@ input-value reads select value
 plwr -S plwr-test input-value '#color'
 ---
 blue
-
-# -- Clear and re-read --
 
 ===
 fill with empty to clear
