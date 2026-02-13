@@ -1,0 +1,102 @@
+===
+open form page
+%require
+===
+plwr -S plwr-test open "http://localhost:8599/form.html"
+---
+
+===
+wait for focus input to load
+%require
+===
+plwr -S plwr-test wait '#focus-input'
+---
+
+# -- Focus --
+
+===
+focus message hidden initially
+===
+plwr -S plwr-test eval "document.getElementById('focus-msg').style.display"
+---
+none
+
+===
+focus the input
+===
+plwr -S plwr-test focus '#focus-input'
+---
+
+===
+focus message visible after focus
+===
+plwr -S plwr-test eval "document.getElementById('focus-msg').style.display"
+---
+block
+
+===
+element is the active element
+===
+plwr -S plwr-test eval "document.activeElement.id"
+---
+focus-input
+
+# -- Blur --
+
+===
+blur message hidden initially
+===
+plwr -S plwr-test eval "document.getElementById('blur-msg').style.display"
+---
+none
+
+===
+blur the input
+===
+plwr -S plwr-test blur '#focus-input'
+---
+
+===
+blur message visible after blur
+===
+plwr -S plwr-test eval "document.getElementById('blur-msg').style.display"
+---
+block
+
+===
+element no longer active after blur
+===
+plwr -S plwr-test eval "document.activeElement.id || document.activeElement.tagName"
+---
+BODY
+
+# -- Focus a different element --
+
+===
+focus the name input
+===
+plwr -S plwr-test focus '#name'
+---
+
+===
+name is now active
+===
+plwr -S plwr-test eval "document.activeElement.id"
+---
+name
+
+# -- Error cases --
+
+===
+focus nonexistent element times out
+%fail
+===
+plwr -S plwr-test focus '#nonexistent' -T 500
+---
+
+===
+blur nonexistent element times out
+%fail
+===
+plwr -S plwr-test blur '#nonexistent' -T 500
+---
