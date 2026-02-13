@@ -15,7 +15,7 @@ plwr -S plwr-test wait '#dblclick-target'
 ===
 no result before dblclick
 ===
-plwr -S plwr-test text '#dblclick-result'
+plwr -S plwr-test eval "document.getElementById('dblclick-result').textContent"
 ---
 
 
