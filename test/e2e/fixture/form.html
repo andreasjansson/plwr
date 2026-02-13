@@ -1,6 +1,13 @@
 <!DOCTYPE html>
 <html>
-<head><title>Form</title></head>
+<head><title>Form</title>
+<style>
+  .tooltip { display: none; }
+  .hover-target:hover + .tooltip { display: block; }
+  .scroll-spacer { height: 2000px; }
+  #blur-msg, #focus-msg { display: none; }
+</style>
+</head>
 <body>
   <h1>Form</h1>
   <input id="name" type="text">
@@ -10,5 +17,74 @@
   <div id="file-result"></div>
   <input id="hidden-upload" type="file" style="display: none" onchange="document.getElementById('hidden-file-result').textContent=Array.from(this.files).map(f=>f.name).join(',')">
   <div id="hidden-file-result"></div>
+
+  <!-- Select dropdown -->
+  <select id="color">
+    <option value="">--pick--</option>
+    <option value="red">Red</option>
+    <option value="green">Green</option>
+    <option value="blue">Blue</option>
+  </select>
+  <div id="color-result"></div>
+  <script>
+    document.getElementById('color').addEventListener('change', function() {
+      document.getElementById('color-result').textContent = this.value;
+    });
+  </script>
+
+  <select id="multi" multiple>
+    <option value="a">Alpha</option>
+    <option value="b">Beta</option>
+    <option value="c">Gamma</option>
+    <option value="d">Delta</option>
+  </select>
+  <div id="multi-result"></div>
+  <script>
+    document.getElementById('multi').addEventListener('change', function() {
+      var sel = Array.from(this.selectedOptions).map(o => o.value);
+      document.getElementById('multi-result').textContent = sel.join(',');
+    });
+  </script>
+
+  <!-- Checkboxes and radios -->
+  <input type="checkbox" id="agree">
+  <label for="agree">I agree</label>
+  <input type="checkbox" id="newsletter" checked>
+  <label for="newsletter">Newsletter</label>
+  <input type="radio" name="plan" id="plan-free" value="free">
+  <label for="plan-free">Free</label>
+  <input type="radio" name="plan" id="plan-pro" value="pro">
+  <label for="plan-pro">Pro</label>
+
+  <!-- Hover -->
+  <div class="hover-target" id="hover-me">Hover over me</div>
+  <div class="tooltip" id="hover-tooltip">Tooltip visible</div>
+
+  <!-- Dblclick -->
+  <div id="dblclick-target">Double-click me</div>
+  <div id="dblclick-result"></div>
+  <script>
+    document.getElementById('dblclick-target').addEventListener('dblclick', function() {
+      document.getElementById('dblclick-result').textContent = 'double-clicked';
+    });
+  </script>
+
+  <!-- Focus / blur -->
+  <input id="focus-input" type="text"
+    onfocus="document.getElementById('focus-msg').style.display='block'"
+    onblur="document.getElementById('blur-msg').style.display='block'">
+  <div id="focus-msg">focused</div>
+  <div id="blur-msg">blurred</div>
+
+  <!-- Input value -->
+  <input id="prefilled" type="text" value="initial-value">
+  <textarea id="textarea">hello world</textarea>
+
+  <!-- Scroll target -->
+  <div class="scroll-spacer"></div>
+  <div id="scroll-target">I am below the fold</div>
+
+  <!-- innerHTML -->
+  <div id="rich-content"><strong>bold</strong> and <em>italic</em></div>
 </body>
 </html>
