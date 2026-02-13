@@ -1,0 +1,44 @@
+===
+open form page
+%require
+===
+plwr -S plwr-test open "http://localhost:8599/form.html"
+---
+
+===
+wait for dblclick target to load
+%require
+===
+plwr -S plwr-test wait '#dblclick-target'
+---
+
+# -- Double-click fires dblclick event --
+
+===
+no result before dblclick
+===
+plwr -S plwr-test text '#dblclick-result'
+---
+
+
+===
+double-click the target
+===
+plwr -S plwr-test dblclick '#dblclick-target'
+---
+
+===
+dblclick handler ran
+===
+plwr -S plwr-test text '#dblclick-result'
+---
+double-clicked
+
+# -- Error cases --
+
+===
+dblclick on nonexistent element times out
+%fail
+===
+plwr -S plwr-test dblclick '#nonexistent' -T 500
+---
