@@ -76,6 +76,11 @@ pub enum Command {
         width: u32,
         height: u32,
     },
+    InputFiles {
+        selector: String,
+        paths: Vec<String>,
+        timeout: u64,
+    },
     VideoStart {
         dir: String,
     },
