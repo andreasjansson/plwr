@@ -15,9 +15,9 @@ plwr -S plwr-test wait '#scroll-target'
 ===
 scroll target is below the fold initially
 ===
-plwr -S plwr-test eval "String(document.getElementById('scroll-target').getBoundingClientRect().top > window.innerHeight)"
+plwr -S plwr-test eval "document.getElementById('scroll-target').getBoundingClientRect().top > window.innerHeight ? 'below' : 'visible'"
 ---
-true
+below
 
 ===
 scroll it into view
@@ -28,9 +28,9 @@ plwr -S plwr-test scroll '#scroll-target'
 ===
 after scroll the element is in the viewport
 ===
-plwr -S plwr-test eval "String((() => { const r = document.getElementById('scroll-target').getBoundingClientRect(); return r.top >= 0 && r.bottom <= window.innerHeight; })())"
+plwr -S plwr-test eval "(() => { const r = document.getElementById('scroll-target').getBoundingClientRect(); return r.top >= 0 && r.bottom <= window.innerHeight ? 'visible' : 'not-visible'; })()"
 ---
-true
+visible
 
 ===
 scroll to h1 at top
@@ -41,6 +41,6 @@ plwr -S plwr-test scroll 'h1'
 ===
 page scrolled back to top
 ===
-plwr -S plwr-test eval "String(window.scrollY < 100)"
+plwr -S plwr-test eval "window.scrollY < 100 ? 'top' : 'scrolled'"
 ---
-true
+top
