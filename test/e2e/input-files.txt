@@ -1,0 +1,52 @@
+===
+open form page
+%require
+===
+plwr -S plwr-test open "http://localhost:8599/form.html"
+---
+
+===
+wait for file input
+%require
+===
+plwr -S plwr-test wait '#upload'
+---
+
+===
+set a single file
+===
+bash -c 'echo "test content" > /tmp/plwr-test-upload.txt && plwr -S plwr-test input-files "#upload" /tmp/plwr-test-upload.txt'
+---
+
+===
+file name appears in result
+===
+plwr -S plwr-test text '#file-result'
+---
+plwr-test-upload.txt
+
+===
+set multiple files
+===
+bash -c 'echo "a" > /tmp/plwr-upload-a.txt && echo "b" > /tmp/plwr-upload-b.txt && plwr -S plwr-test input-files "#upload" /tmp/plwr-upload-a.txt /tmp/plwr-upload-b.txt'
+---
+
+===
+both file names appear
+===
+plwr -S plwr-test text '#file-result'
+---
+plwr-upload-a.txt,plwr-upload-b.txt
+
+===
+clear files
+===
+plwr -S plwr-test input-files '#upload'
+---
+
+===
+file result is empty after clear
+===
+plwr -S plwr-test eval "document.getElementById('upload').files.length"
+---
+0
