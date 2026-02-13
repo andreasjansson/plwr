@@ -50,3 +50,16 @@ file result is empty after clear
 plwr -S plwr-test eval "document.getElementById('upload').files.length"
 ---
 0
+
+===
+set file on hidden input (display: none)
+===
+bash -c 'echo "hidden" > /tmp/plwr-test-hidden.txt && plwr -S plwr-test input-files "#hidden-upload" /tmp/plwr-test-hidden.txt'
+---
+
+===
+hidden input received the file
+===
+plwr -S plwr-test text '#hidden-file-result'
+---
+plwr-test-hidden.txt
