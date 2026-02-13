@@ -1,0 +1,2 @@
+[build.env]
+passthrough = ["PLAYWRIGHT_DRIVER_VERSION"]
