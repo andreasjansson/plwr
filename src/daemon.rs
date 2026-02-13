@@ -2,8 +2,8 @@ use crate::protocol::{Command, Request, Response};
 use crate::pw_ext;
 use anyhow::Result;
 use playwright_rs::{
-    BrowserContextOptions, ClickOptions, FillOptions, LaunchOptions, Locator, Page, Playwright,
-    RecordVideo,
+    BrowserContextOptions, CheckOptions, ClickOptions, FillOptions, HoverOptions, LaunchOptions,
+    Locator, Page, Playwright, RecordVideo, SelectOption, SelectOptions,
 };
 use std::collections::HashMap;
 use std::path::Path;
