@@ -12,8 +12,6 @@ wait for scroll target to load
 plwr -S plwr-test wait '#scroll-target'
 ---
 
-# -- Scroll into view --
-
 ===
 scroll target is below the fold initially
 ===
@@ -33,8 +31,6 @@ after scroll the element is in the viewport
 plwr -S plwr-test eval "(() => { const r = document.getElementById('scroll-target').getBoundingClientRect(); return r.top >= 0 && r.bottom <= window.innerHeight; })()"
 ---
 true
-
-# -- Scroll to element at top of page resets scroll --
 
 ===
 scroll to h1 at top
