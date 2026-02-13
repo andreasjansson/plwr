@@ -8,5 +8,7 @@
   <div id="result"></div>
   <input id="upload" type="file" multiple onchange="document.getElementById('file-result').textContent=Array.from(this.files).map(f=>f.name).join(',')">
   <div id="file-result"></div>
+  <input id="hidden-upload" type="file" style="display: none" onchange="document.getElementById('hidden-file-result').textContent=Array.from(this.files).map(f=>f.name).join(',')">
+  <div id="hidden-file-result"></div>
 </body>
 </html>
