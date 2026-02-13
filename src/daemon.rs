@@ -323,9 +323,7 @@ async fn handle_command(state: &mut State, command: Command, headed: bool) -> Re
         }
 
         Command::InputFiles {
-            selector,
-            paths,
-            ..
+            selector, paths, ..
         } => {
             let loc = page.locator(&selector).await;
             if paths.is_empty() {
