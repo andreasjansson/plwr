@@ -1,0 +1,92 @@
+===
+open form page
+%require
+===
+plwr -S plwr-test open "http://localhost:8599/form.html"
+---
+
+===
+wait for prefilled input to load
+%require
+===
+plwr -S plwr-test wait '#prefilled'
+---
+
+# -- Read pre-filled input value --
+
+===
+get value of prefilled text input
+===
+plwr -S plwr-test input-value '#prefilled'
+---
+initial-value
+
+===
+get value of textarea
+===
+plwr -S plwr-test input-value '#textarea'
+---
+hello world
+
+# -- Read empty input --
+
+===
+empty input returns empty string
+===
+plwr -S plwr-test input-value '#name'
+---
+
+
+# -- Fill then read back --
+
+===
+fill a value
+===
+plwr -S plwr-test fill '#name' 'typed text'
+---
+
+===
+input-value reads back filled value
+===
+plwr -S plwr-test input-value '#name'
+---
+typed text
+
+# -- Read select value --
+
+===
+select an option
+===
+plwr -S plwr-test select '#color' blue
+---
+
+===
+input-value reads select value
+===
+plwr -S plwr-test input-value '#color'
+---
+blue
+
+# -- Clear and re-read --
+
+===
+fill with empty to clear
+===
+plwr -S plwr-test fill '#name' ''
+---
+
+===
+input-value after clear
+===
+plwr -S plwr-test input-value '#name'
+---
+
+
+# -- Error cases --
+
+===
+input-value on nonexistent element times out
+%fail
+===
+plwr -S plwr-test input-value '#nonexistent' -T 500
+---
