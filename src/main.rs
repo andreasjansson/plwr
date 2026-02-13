@@ -420,6 +420,11 @@ async fn main() -> ExitCode {
                     timeout: cli.timeout,
                 },
                 Cmd::Count { selector } => Command::Count { selector },
+                Cmd::InputFiles { selector, paths } => Command::InputFiles {
+                    selector,
+                    paths,
+                    timeout: cli.timeout,
+                },
                 Cmd::Eval { js } => Command::Eval { js },
                 Cmd::Screenshot { selector, path } => Command::Screenshot {
                     selector,
