@@ -245,6 +245,15 @@ enum Cmd {
         clear: bool,
     },
 
+    /// Set files on a file input element (e.g. for upload)
+    InputFiles {
+        /// CSS selector for the file input
+        selector: String,
+        /// File paths to set (omit to clear)
+        #[arg(trailing_var_arg = true)]
+        paths: Vec<String>,
+    },
+
     /// Evaluate arbitrary JavaScript in page context, print the result
     Eval { js: String },
 
