@@ -254,6 +254,43 @@ enum Cmd {
         paths: Vec<String>,
     },
 
+    /// Select option(s) in a <select> element by value
+    Select {
+        /// CSS selector for the <select> element
+        selector: String,
+        /// Option values to select
+        #[arg(required = true)]
+        values: Vec<String>,
+        /// Match by visible label text instead of value attribute
+        #[arg(long)]
+        label: bool,
+    },
+
+    /// Hover over an element matching a CSS selector
+    Hover { selector: String },
+
+    /// Check a checkbox or radio button
+    Check { selector: String },
+    /// Uncheck a checkbox
+    Uncheck { selector: String },
+
+    /// Double-click an element matching a CSS selector
+    Dblclick { selector: String },
+
+    /// Focus an element matching a CSS selector
+    Focus { selector: String },
+    /// Blur (unfocus) an element matching a CSS selector
+    Blur { selector: String },
+
+    /// Print the innerHTML of the first matching element
+    InnerHtml { selector: String },
+
+    /// Print the value of an input, textarea, or select element
+    InputValue { selector: String },
+
+    /// Scroll an element into view
+    Scroll { selector: String },
+
     /// Evaluate arbitrary JavaScript in page context, print the result
     Eval { js: String },
 
