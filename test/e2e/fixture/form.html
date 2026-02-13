@@ -6,5 +6,7 @@
   <input id="name" type="text">
   <button id="btn" onclick="document.getElementById('result').textContent='Hello, '+document.getElementById('name').value">Go</button>
   <div id="result"></div>
+  <input id="upload" type="file" multiple onchange="document.getElementById('file-result').textContent=Array.from(this.files).map(f=>f.name).join(',')">
+  <div id="file-result"></div>
 </body>
 </html>
