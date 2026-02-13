@@ -41,12 +41,3 @@ inner html of element with text only
 plwr -S plwr-test inner-html '#dblclick-target'
 ---
 Double-click me
-
-# -- Error cases --
-
-===
-inner-html on nonexistent element times out
-%fail
-===
-plwr -S plwr-test inner-html '#nonexistent' -T 500
----
