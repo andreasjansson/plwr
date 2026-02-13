@@ -462,6 +462,52 @@ async fn main() -> ExitCode {
                     paths,
                     timeout: cli.timeout,
                 },
+                Cmd::Select {
+                    selector,
+                    values,
+                    label,
+                } => Command::Select {
+                    selector,
+                    values,
+                    by_label: label,
+                    timeout: cli.timeout,
+                },
+                Cmd::Hover { selector } => Command::Hover {
+                    selector,
+                    timeout: cli.timeout,
+                },
+                Cmd::Check { selector } => Command::Check {
+                    selector,
+                    timeout: cli.timeout,
+                },
+                Cmd::Uncheck { selector } => Command::Uncheck {
+                    selector,
+                    timeout: cli.timeout,
+                },
+                Cmd::Dblclick { selector } => Command::Dblclick {
+                    selector,
+                    timeout: cli.timeout,
+                },
+                Cmd::Focus { selector } => Command::Focus {
+                    selector,
+                    timeout: cli.timeout,
+                },
+                Cmd::Blur { selector } => Command::Blur {
+                    selector,
+                    timeout: cli.timeout,
+                },
+                Cmd::InnerHtml { selector } => Command::InnerHtml {
+                    selector,
+                    timeout: cli.timeout,
+                },
+                Cmd::InputValue { selector } => Command::InputValue {
+                    selector,
+                    timeout: cli.timeout,
+                },
+                Cmd::Scroll { selector } => Command::ScrollIntoView {
+                    selector,
+                    timeout: cli.timeout,
+                },
                 Cmd::Eval { js } => Command::Eval { js },
                 Cmd::Screenshot { selector, path } => Command::Screenshot {
                     selector,
