@@ -325,10 +325,9 @@ async fn handle_command(state: &mut State, command: Command, headed: bool) -> Re
         Command::InputFiles {
             selector,
             paths,
-            timeout,
+            ..
         } => {
             let loc = page.locator(&selector).await;
-            wait_for_visible(&loc, &selector, timeout).await?;
             if paths.is_empty() {
                 loc.set_input_files_multiple(&[], None).await?;
             } else {
