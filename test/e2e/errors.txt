@@ -48,6 +48,76 @@ tree fails on missing selector
 No element found for selector: .does-not-exist
 
 ===
+hover fails on missing element
+===
+! plwr -S plwr-test hover .does-not-exist -T 500
+---
+Timeout 500ms exceeded.
+
+===
+check fails on missing element
+===
+! plwr -S plwr-test check .does-not-exist -T 500
+---
+Timeout 500ms exceeded.
+
+===
+uncheck fails on missing element
+===
+! plwr -S plwr-test uncheck .does-not-exist -T 500
+---
+Timeout 500ms exceeded.
+
+===
+dblclick fails on missing element
+===
+! plwr -S plwr-test dblclick .does-not-exist -T 500
+---
+Timeout 500ms exceeded.
+
+===
+select fails on missing element
+===
+! plwr -S plwr-test select .does-not-exist val -T 500
+---
+Timeout 500ms exceeded.
+
+===
+focus fails on missing element
+===
+! plwr -S plwr-test focus .does-not-exist -T 500
+---
+Timeout 500ms exceeded. [selector: .does-not-exist]
+
+===
+blur fails on missing element
+===
+! plwr -S plwr-test blur .does-not-exist -T 500
+---
+Timeout 500ms exceeded. [selector: .does-not-exist]
+
+===
+inner-html fails on missing element
+===
+! plwr -S plwr-test inner-html .does-not-exist -T 500
+---
+Timeout 500ms exceeded. [selector: .does-not-exist]
+
+===
+input-value fails on missing element
+===
+! plwr -S plwr-test input-value .does-not-exist -T 500
+---
+Timeout 500ms exceeded. [selector: .does-not-exist]
+
+===
+scroll fails on missing element
+===
+! plwr -S plwr-test scroll .does-not-exist -T 500
+---
+Timeout 500ms exceeded. [selector: .does-not-exist]
+
+===
 open fails with invalid URL
 ===
 ! plwr -S plwr-test open "not-a-url"
