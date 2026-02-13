@@ -1,0 +1,44 @@
+===
+open form page
+%require
+===
+plwr -S plwr-test open "http://localhost:8599/form.html"
+---
+
+===
+wait for hover target to load
+%require
+===
+plwr -S plwr-test wait '#hover-me'
+---
+
+# -- Hover shows tooltip via CSS :hover --
+
+===
+tooltip hidden before hover
+===
+plwr -S plwr-test eval "getComputedStyle(document.getElementById('hover-tooltip')).display"
+---
+none
+
+===
+hover over the target
+===
+plwr -S plwr-test hover '#hover-me'
+---
+
+===
+tooltip visible after hover
+===
+plwr -S plwr-test eval "getComputedStyle(document.getElementById('hover-tooltip')).display"
+---
+block
+
+# -- Error cases --
+
+===
+hover on nonexistent element times out
+%fail
+===
+plwr -S plwr-test hover '#nonexistent' -T 500
+---
