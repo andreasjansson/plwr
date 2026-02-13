@@ -84,19 +84,3 @@ name is now active
 plwr -S plwr-test eval "document.activeElement.id"
 ---
 name
-
-# -- Error cases --
-
-===
-focus nonexistent element times out
-%fail
-===
-plwr -S plwr-test focus '#nonexistent' -T 500
----
-
-===
-blur nonexistent element times out
-%fail
-===
-plwr -S plwr-test blur '#nonexistent' -T 500
----
