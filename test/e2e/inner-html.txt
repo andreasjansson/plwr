@@ -1,0 +1,52 @@
+===
+open form page
+%require
+===
+plwr -S plwr-test open "http://localhost:8599/form.html"
+---
+
+===
+wait for rich content to load
+%require
+===
+plwr -S plwr-test wait '#rich-content'
+---
+
+# -- innerHTML --
+
+===
+get inner html of element with nested tags
+===
+plwr -S plwr-test inner-html '#rich-content'
+---
+<strong>bold</strong> and <em>italic</em>
+
+===
+compare with text command (strips tags)
+===
+plwr -S plwr-test text '#rich-content'
+---
+bold and italic
+
+===
+inner html of empty element
+===
+plwr -S plwr-test inner-html '#result'
+---
+
+
+===
+inner html of element with text only
+===
+plwr -S plwr-test inner-html '#dblclick-target'
+---
+Double-click me
+
+# -- Error cases --
+
+===
+inner-html on nonexistent element times out
+%fail
+===
+plwr -S plwr-test inner-html '#nonexistent' -T 500
+---
