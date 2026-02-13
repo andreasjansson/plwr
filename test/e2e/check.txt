@@ -12,8 +12,6 @@ wait for checkbox to load
 plwr -S plwr-test wait '#agree'
 ---
 
-# -- Check --
-
 ===
 checkbox starts unchecked
 ===
@@ -46,8 +44,6 @@ still checked after redundant check
 plwr -S plwr-test eval "document.getElementById('agree').checked"
 ---
 true
-
-# -- Uncheck --
 
 ===
 newsletter starts checked
@@ -82,8 +78,6 @@ plwr -S plwr-test eval "document.getElementById('newsletter').checked"
 ---
 false
 
-# -- Radio buttons --
-
 ===
 check a radio button
 ===
@@ -116,8 +110,6 @@ old radio is unchecked
 plwr -S plwr-test eval "document.getElementById('plan-free').checked"
 ---
 false
-
-# -- Uncheck then re-check --
 
 ===
 uncheck the agree checkbox
