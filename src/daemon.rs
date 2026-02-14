@@ -127,26 +127,26 @@ async fn handle_command(state: &mut State, command: Command, headed: bool) -> Re
     // Handle commands that mutate state before borrowing the page
     match command {
         Command::Open { url } => {
-            state.active_page().goto(&url, None).await?;
+            &state.page.goto(&url, None).await?;
             state.page_opened = true;
             return Ok(Response::ok_empty());
         }
         Command::Header { name, value } => {
             state.headers.insert(name, value);
-            let ctx = state.active_page().context()?;
+            let ctx = &state.page.context()?;
             pw_ext::set_extra_http_headers(&ctx, state.headers.clone()).await?;
             return Ok(Response::ok_empty());
         }
         Command::HeaderClear => {
             state.headers.clear();
-            let ctx = state.active_page().context()?;
+            let ctx = &state.page.context()?;
             pw_ext::set_extra_http_headers(&ctx, HashMap::new()).await?;
             return Ok(Response::ok_empty());
         }
         Command::Cookie { name, value, url } => {
-            let ctx = state.active_page().context()?;
+            let ctx = &state.page.context()?;
             let url = if url.is_empty() {
-                state.active_page().url()
+                &state.page.url()
             } else {
                 url
             };
@@ -154,7 +154,7 @@ async fn handle_command(state: &mut State, command: Command, headed: bool) -> Re
             return Ok(Response::ok_empty());
         }
         Command::CookieList => {
-            let ctx = state.active_page().context()?;
+            let ctx = &state.page.context()?;
             let cookies = pw_ext::get_cookies(&ctx).await?;
             let json: Vec<serde_json::Value> = cookies
                 .iter()
@@ -174,13 +174,13 @@ async fn handle_command(state: &mut State, command: Command, headed: bool) -> Re
             return Ok(Response::ok_value(serde_json::Value::Array(json)));
         }
         Command::CookieClear => {
-            let ctx = state.active_page().context()?;
+            let ctx = &state.page.context()?;
             pw_ext::clear_cookies(&ctx).await?;
             return Ok(Response::ok_empty());
         }
         Command::Viewport { width, height } => {
             state
-                .active_page()
+                .page
                 .set_viewport_size(playwright_rs::Viewport { width, height })
                 .await?;
             return Ok(Response::ok_empty());
@@ -188,7 +188,7 @@ async fn handle_command(state: &mut State, command: Command, headed: bool) -> Re
         _ => {}
     }
 
-    let page = state.active_page();
+    let page = &state.page;
 
     match command {
         Command::Stop => Ok(Response::ok_empty()),
