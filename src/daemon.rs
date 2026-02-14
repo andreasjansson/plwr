@@ -209,6 +209,58 @@ async fn handle_command(state: &mut State, command: Command) -> Result<Response>
             Ok(Response::ok_empty())
         }
 
+        Command::WaitAny { selectors, timeout } => {
+            let start = std::time::Instant::now();
+            loop {
+                for sel in &selectors {
+                    let loc = page.locator(sel).await;
+                    let n = loc.count().await?;
+                    if n > 0 && loc.first().is_visible().await? {
+                        return Ok(Response::ok_value(serde_json::Value::String(sel.clone())));
+                    }
+                }
+                if start.elapsed().as_millis() as u64 > timeout {
+                    let list = selectors.join(", ");
+                    anyhow::bail!("Timeout {}ms exceeded. None matched: [{}]", timeout, list);
+                }
+                tokio::time::sleep(std::time::Duration::from_millis(50)).await;
+            }
+        }
+
+        Command::WaitAll { selectors, timeout } => {
+            let start = std::time::Instant::now();
+            loop {
+                let mut all_visible = true;
+                for sel in &selectors {
+                    let loc = page.locator(sel).await;
+                    let n = loc.count().await?;
+                    if n == 0 || !loc.first().is_visible().await? {
+                        all_visible = false;
+                        break;
+                    }
+                }
+                if all_visible {
+                    return Ok(Response::ok_empty());
+                }
+                if start.elapsed().as_millis() as u64 > timeout {
+                    let mut missing = Vec::new();
+                    for sel in &selectors {
+                        let loc = page.locator(sel).await;
+                        let n = loc.count().await?;
+                        if n == 0 || !loc.first().is_visible().await? {
+                            missing.push(sel.as_str());
+                        }
+                    }
+                    anyhow::bail!(
+                        "Timeout {}ms exceeded. Still missing: [{}]",
+                        timeout,
+                        missing.join(", ")
+                    );
+                }
+                tokio::time::sleep(std::time::Duration::from_millis(50)).await;
+            }
+        }
+
         Command::WaitNot { selector, timeout } => {
             let loc = page.locator(&selector).await;
             let start = std::time::Instant::now();
