@@ -76,6 +76,16 @@ plwr wait-not .loading-spinner -T 10000
 
 ### Interaction
 
+All interaction commands (`click`, `fill`, `hover`, `check`, etc.) auto-wait
+for the element to appear and become actionable before performing the action,
+up to the timeout (`-T`, default 5000ms). You rarely need an explicit
+`plwr wait` before an interaction — just use the interaction directly:
+
+```bash
+plwr click '#submit-btn'                 # waits for button, then clicks
+plwr fill '#name-input' 'Alice' -T 10000 # waits up to 10s, then fills
+```
+
 ```bash
 plwr click '#submit-btn'
 plwr fill '#name-input' 'Alice'
