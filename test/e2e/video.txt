@@ -53,15 +53,12 @@ where
 ===
 interact with page during recording (fill, click, navigate)
 ===
-plwr -S plwr-test fill '#name-input' 'Video Test User'
-plwr -S plwr-test click '#submit-btn'
-plwr -S plwr-test open "http://localhost:8599/index.html"
-plwr -S plwr-test text h1
+plwr -S plwr-test open "http://localhost:8599/form.html"
+plwr -S plwr-test fill '#name' 'Video Test User'
+plwr -S plwr-test click '#btn'
+plwr -S plwr-test text '#result'
 ---
-{{ output }}
----
-where
-* output contains "Hello"
+Hello, Video Test User
 
 ===
 stop recording with output path
