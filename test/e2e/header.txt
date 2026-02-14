@@ -94,3 +94,37 @@ page content is intact after clearing headers
 plwr -S plwr-test text h1
 ---
 Test Page
+
+===
+set headers before video-start
+===
+plwr -S plwr-test header X-Video-Test video-header-value
+---
+
+===
+start video recording
+===
+plwr -S plwr-test video-start --dir /tmp/plwr-test-header-video
+---
+{{ output }}
+---
+where
+* output contains "Video recording started"
+
+===
+headers persist after video-start
+===
+plwr -S plwr-test open "http://localhost:8598/"
+plwr -S plwr-test eval "JSON.parse(document.body.innerText)['x-video-test']"
+---
+video-header-value
+
+===
+stop video recording
+===
+plwr -S plwr-test video-stop
+---
+{{ output }}
+---
+where
+* output contains "Video stopped"
