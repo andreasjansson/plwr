@@ -552,9 +552,11 @@ async fn handle_command(state: &mut State, command: Command, headed: bool) -> Re
                 let _ = vpage.goto(&url, None).await;
             }
 
-            state.video_dir = Some(dir);
+            state.video_dir = Some(dir.clone());
             state.video_page = Some(vpage);
-            Ok(Response::ok_empty())
+            Ok(Response::ok_value(serde_json::Value::String(format!(
+                "Video recording started (dir: {})", dir
+            ))))
         }
 
         Command::VideoStop { output } => {
