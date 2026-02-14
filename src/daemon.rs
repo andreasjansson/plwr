@@ -20,7 +20,7 @@ struct State {
     page: Page,
     page_opened: bool,
     headers: HashMap<String, String>,
-    video_dir: Option<String>,
+    video_artifact_guid: Option<String>,
 }
 
 pub async fn run(socket_path: &Path, headed: bool) -> Result<()> {
