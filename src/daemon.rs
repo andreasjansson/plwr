@@ -521,8 +521,33 @@ async fn handle_command(state: &mut State, command: Command) -> Result<Response>
 
         Command::VideoStart { dir } => {
             std::fs::create_dir_all(&dir)?;
-            pw_ext::page_video_start(&state.page, &dir).await?;
+
+            let ctx = state
+                .browser
+                .new_context_with_options(BrowserContextOptions {
+                    record_video: Some(RecordVideo {
+                        dir: dir.clone(),
+                        size: None,
+                    }),
+                    ..Default::default()
+                })
+                .await?;
+
+            if !state.headers.is_empty() {
+                pw_ext::set_extra_http_headers(&ctx, state.headers.clone()).await?;
+            }
+
+            let vpage = ctx.new_page().await?;
+
+            let url = state.page.url();
+            if url != "about:blank" && state.page_opened {
+                vpage.goto(&url, None).await?;
+            }
+
+            let old_page = std::mem::replace(&mut state.page, vpage);
+            state.original_page = Some(old_page);
             state.video_dir = Some(dir.clone());
+
             Ok(Response::ok_value(serde_json::Value::String(format!(
                 "Video recording started (dir: {})", dir
             ))))
@@ -530,10 +555,19 @@ async fn handle_command(state: &mut State, command: Command) -> Result<Response>
 
         Command::VideoStop { output } => {
             if let Some(dir) = state.video_dir.take() {
-                pw_ext::page_video_stop(&state.page).await?;
+                let video_page = if let Some(orig) = state.original_page.take() {
+                    let url = state.page.url();
+                    let video_page = std::mem::replace(&mut state.page, orig);
+                    if url != "about:blank" {
+                        state.page.goto(&url, None).await?;
+                    }
+                    video_page
+                } else {
+                    anyhow::bail!("No original page to restore");
+                };
 
-                // Give Playwright a moment to flush the video file
-                tokio::time::sleep(std::time::Duration::from_millis(500)).await;
+                let ctx = video_page.context()?;
+                ctx.close().await?;
 
                 let webm = std::fs::read_dir(&dir)?
                     .filter_map(|e| e.ok())
