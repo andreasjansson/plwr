@@ -142,6 +142,7 @@ impl Command {
                 | Command::HeaderClear
                 | Command::Viewport { .. }
                 | Command::VideoStart { .. }
+                | Command::VideoStop { .. }
         )
     }
 }
