@@ -522,36 +522,30 @@ async fn handle_command(state: &mut State, command: Command) -> Result<Response>
 
         Command::VideoStart { dir } => {
             std::fs::create_dir_all(&dir)?;
-            pw_ext::page_video_start(&state.page, &dir).await?;
-            state.video_dir = Some(dir.clone());
+            let guid = pw_ext::page_video_start(&state.page).await?;
+            state.video_artifact_guid = Some(guid);
             Ok(Response::ok_value(serde_json::Value::String(format!(
                 "Video recording started (dir: {})", dir
             ))))
         }
 
         Command::VideoStop { output } => {
-            if let Some(dir) = state.video_dir.take() {
-                let artifact_path = pw_ext::page_video_stop(&state.page).await?;
+            if let Some(guid) = state.video_artifact_guid.take() {
+                match output {
+                    Some(output) => {
+                        let webm_path = if output.ends_with(".webm") {
+                            output.clone()
+                        } else {
+                            format!("{}.webm", output.trim_end_matches(|c: char| c == '.'))
+                        };
+                        pw_ext::page_video_stop_and_save(
+                            &state.page,
+                            &guid,
+                            &webm_path,
+                        )
+                        .await?;
 
-                let video_path = if let Some(path) = artifact_path {
-                    Some(std::path::PathBuf::from(path))
-                } else {
-                    std::fs::read_dir(&dir)?
-                        .filter_map(|e| e.ok())
-                        .find(|e| e.path().extension().is_some_and(|ext| ext == "webm"))
-                        .map(|e| e.path())
-                };
-
-                match (video_path, output) {
-                    (Some(webm_path), None) => {
-                        Ok(Response::ok_value(serde_json::Value::String(format!(
-                            "Video stopped. Recording at {}",
-                            webm_path.display()
-                        ))))
-                    }
-                    (Some(webm_path), Some(output)) => {
                         if output.ends_with(".webm") {
-                            std::fs::rename(&webm_path, &output)?;
                             Ok(Response::ok_value(serde_json::Value::String(format!(
                                 "Saved recording to {}",
                                 output
@@ -564,8 +558,8 @@ async fn handle_command(state: &mut State, command: Command) -> Result<Response>
                                 .stdout(std::process::Stdio::null())
                                 .stderr(std::process::Stdio::null())
                                 .status()?;
+                            std::fs::remove_file(&webm_path).ok();
                             if status.success() {
-                                std::fs::remove_file(&webm_path).ok();
                                 Ok(Response::ok_value(serde_json::Value::String(format!(
                                     "Saved recording to {}",
                                     output
@@ -575,7 +569,12 @@ async fn handle_command(state: &mut State, command: Command) -> Result<Response>
                             }
                         }
                     }
-                    (None, _) => Ok(Response::err("No video file found".to_string())),
+                    None => {
+                        pw_ext::page_video_stop(&state.page).await?;
+                        Ok(Response::ok_value(serde_json::Value::String(
+                            "Video stopped.".to_string()
+                        )))
+                    }
                 }
             } else {
                 Ok(Response::err("No video recording in progress".to_string()))
