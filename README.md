@@ -12,7 +12,7 @@ Clean CLI for Playwright browser automation with CSS selectors. Built on [playwr
 Requires Playwright browsers:
 
 ```bash
-npx playwright@1.56.1 install chromium
+npx playwright install chromium
 ```
 
 For video conversion to non-webm formats, install [ffmpeg](https://ffmpeg.org/).
