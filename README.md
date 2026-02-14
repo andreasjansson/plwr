@@ -122,6 +122,9 @@ plwr select '#colors' red green blue    # multi-select
 
 ### Querying
 
+Like interaction commands, `text`, `attr`, `inner-html`, and `input-value`
+auto-wait for the element to appear before reading its value.
+
 ```bash
 plwr text h1                     # print textContent
 plwr inner-html '.content'       # print innerHTML (preserves tags)
