@@ -127,7 +127,7 @@ pub enum Command {
         dir: String,
     },
     VideoStop {
-        output: String,
+        output: Option<String>,
     },
     Stop,
 }
