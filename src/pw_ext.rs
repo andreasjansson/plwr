@@ -73,24 +73,42 @@ pub async fn add_cookie(
 // Uses the videoStart/videoStop channel commands on the existing page,
 // matching exactly how playwright-cli does it.
 
-pub async fn page_video_start(page: &Page, dir: &str) -> playwright_rs::Result<()> {
-    let _resp: serde_json::Value = page
+/// Start video recording. Returns the artifact guid for later use.
+pub async fn page_video_start(page: &Page) -> playwright_rs::Result<String> {
+    let resp: serde_json::Value = page
         .channel()
-        .send("videoStart", serde_json::json!({ "dir": dir }))
+        .send("videoStart", serde_json::json!({}))
         .await?;
-    Ok(())
+    let guid = resp["artifact"]["guid"]
+        .as_str()
+        .ok_or_else(|| playwright_rs::Error::ObjectNotFound("artifact guid in videoStart response".into()))?
+        .to_string();
+    Ok(guid)
 }
 
-/// Stop video recording. Returns the artifact's absolute path if available.
-pub async fn page_video_stop(page: &Page) -> playwright_rs::Result<Option<String>> {
+/// Stop video recording and save to path. Uses the artifact's saveAs channel command.
+pub async fn page_video_stop_and_save(
+    page: &Page,
+    artifact_guid: &str,
+    save_path: &str,
+) -> playwright_rs::Result<()> {
     page.channel()
         .send_no_result("videoStop", serde_json::json!({}))
         .await?;
 
-    // Give Playwright a moment to flush the video file
-    tokio::time::sleep(std::time::Duration::from_millis(500)).await;
+    // Use the artifact's saveAs to copy the video to our desired path
+    let artifact_channel = page.connection()
+        .send_message(artifact_guid, "saveAs".to_string(), serde_json::json!({ "path": save_path }))
+        .await?;
+    let _ = artifact_channel;
+    Ok(())
+}
 
-    Ok(None)
+/// Stop video recording without saving.
+pub async fn page_video_stop(page: &Page) -> playwright_rs::Result<()> {
+    page.channel()
+        .send_no_result("videoStop", serde_json::json!({}))
+        .await
 }
 
 // -- Page extensions --
