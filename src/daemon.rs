@@ -127,7 +127,7 @@ async fn handle_command(state: &mut State, command: Command) -> Result<Response>
     // Handle commands that mutate state before borrowing the page
     match command {
         Command::Open { url } => {
-            &state.page.goto(&url, None).await?;
+            state.page.goto(&url, None).await?;
             state.page_opened = true;
             return Ok(Response::ok_empty());
         }
