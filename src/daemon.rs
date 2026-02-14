@@ -74,12 +74,11 @@ pub async fn run(socket_path: &Path, headed: bool) -> Result<()> {
     println!("{}", READY_SIGNAL);
 
     let mut state = State {
-        playwright,
+        _playwright: playwright,
         _browser: browser,
         page,
         page_opened: false,
         headers: HashMap::new(),
-        video_page: None,
         video_dir: None,
     };
 
