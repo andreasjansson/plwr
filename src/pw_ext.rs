@@ -69,6 +69,30 @@ pub async fn add_cookie(
         .await
 }
 
+// -- Page video extensions (Playwright 1.59+) --
+// Uses the videoStart/videoStop channel commands on the existing page,
+// matching exactly how playwright-cli does it.
+
+pub async fn page_video_start(page: &Page, dir: &str) -> playwright_rs::Result<()> {
+    let _resp: serde_json::Value = page
+        .channel()
+        .send("videoStart", serde_json::json!({ "dir": dir }))
+        .await?;
+    Ok(())
+}
+
+/// Stop video recording. Returns the artifact's absolute path if available.
+pub async fn page_video_stop(page: &Page) -> playwright_rs::Result<Option<String>> {
+    page.channel()
+        .send_no_result("videoStop", serde_json::json!({}))
+        .await?;
+
+    // Give Playwright a moment to flush the video file
+    tokio::time::sleep(std::time::Duration::from_millis(500)).await;
+
+    Ok(None)
+}
+
 // -- Page extensions --
 // page.evaluate_value exists but the stock signatures take &str where we need
 // String-based wrappers. These are thin helpers.
