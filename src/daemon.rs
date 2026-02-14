@@ -144,9 +144,9 @@ async fn handle_command(state: &mut State, command: Command) -> Result<Response>
             return Ok(Response::ok_empty());
         }
         Command::Cookie { name, value, url } => {
-            let ctx = &state.page.context()?;
+            let ctx = state.page.context()?;
             let url = if url.is_empty() {
-                &state.page.url()
+                state.page.url()
             } else {
                 url
             };
