@@ -73,16 +73,6 @@ pub async fn add_cookie(
 // playwright-rs doesn't expose videoStart/videoStop, but we can send them
 // directly via the page channel, matching what playwright-cli does internally.
 
-#[derive(Deserialize)]
-struct VideoStartResponse {
-    artifact: ArtifactRef,
-}
-
-#[derive(Deserialize)]
-struct ArtifactRef {
-    guid: String,
-}
-
 pub async fn page_video_start(
     page: &Page,
     dir: &str,
@@ -90,7 +80,7 @@ pub async fn page_video_start(
     let params = serde_json::json!({
         "dir": dir,
     });
-    let _resp: VideoStartResponse = page.channel().send("videoStart", params).await?;
+    let _resp: serde_json::Value = page.channel().send("videoStart", params).await?;
     Ok(())
 }
 
