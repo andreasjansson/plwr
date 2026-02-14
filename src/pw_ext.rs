@@ -73,8 +73,6 @@ pub async fn add_cookie(
 // playwright-rs doesn't expose videoStart/videoStop, but we can send them
 // directly via the page channel, matching what playwright-cli does internally.
 
-use playwright_rs::server::channel_owner::ChannelOwner;
-
 #[derive(Deserialize)]
 struct VideoStartResponse {
     artifact: ArtifactRef,
