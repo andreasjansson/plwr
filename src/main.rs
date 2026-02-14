@@ -110,6 +110,10 @@ const EXAMPLES: &str = "\x1b[1;4mExamples:\x1b[0m
     plwr -S admin stop
     plwr -S user stop
 
+  Wait for one of several outcomes:
+    plwr wait-any '.success-msg' '.error-msg'  # prints which matched
+    plwr wait-all '.header' '.sidebar' '.main' # all must appear
+
   Custom timeout:
     plwr wait '.slow-element' -T 30000   # wait up to 30s
 
