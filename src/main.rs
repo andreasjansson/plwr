@@ -402,6 +402,14 @@ async fn main() -> ExitCode {
                     selector,
                     timeout: cli.timeout,
                 },
+                Cmd::WaitAny { selectors } => Command::WaitAny {
+                    selectors,
+                    timeout: cli.timeout,
+                },
+                Cmd::WaitAll { selectors } => Command::WaitAll {
+                    selectors,
+                    timeout: cli.timeout,
+                },
                 Cmd::Click { selector } => Command::Click {
                     selector,
                     timeout: cli.timeout,
