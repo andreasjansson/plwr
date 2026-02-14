@@ -10,6 +10,7 @@ pub struct Request {
 pub enum Command {
     Open {
         url: String,
+        timeout: u64,
     },
     Reload,
     Url,
