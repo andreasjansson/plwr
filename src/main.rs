@@ -520,6 +520,7 @@ async fn main() -> ExitCode {
                 },
                 Cmd::VideoStart { dir } => Command::VideoStart { dir },
                 Cmd::VideoStop { output } => Command::VideoStop { output },
+
             };
 
             match client::send(&sock, command).await {
