@@ -547,6 +547,11 @@ async fn handle_command(state: &mut State, command: Command, headed: bool) -> Re
                 .await?;
             let vpage = ctx.new_page().await?;
 
+            if !state.headers.is_empty() {
+                let vctx = vpage.context()?;
+                pw_ext::set_extra_http_headers(&vctx, state.headers.clone()).await?;
+            }
+
             let url = state.page.url();
             if url != "about:blank" {
                 let _ = vpage.goto(&url, None).await;
