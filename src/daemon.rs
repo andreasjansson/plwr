@@ -123,7 +123,7 @@ pub async fn run(socket_path: &Path, headed: bool) -> Result<()> {
     Ok(())
 }
 
-async fn handle_command(state: &mut State, command: Command, headed: bool) -> Result<Response> {
+async fn handle_command(state: &mut State, command: Command) -> Result<Response> {
     // Handle commands that mutate state before borrowing the page
     match command {
         Command::Open { url } => {
