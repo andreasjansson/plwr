@@ -81,6 +81,11 @@ plwr click '#submit-btn'
 plwr fill '#name-input' 'Alice'
 plwr press Enter
 plwr press Control+c
+plwr dblclick '.editable-cell'   # double-click
+plwr hover '.dropdown-trigger'   # hover (for tooltips, menus)
+plwr focus '#search'             # focus an element
+plwr blur '#email'               # unfocus an element
+plwr scroll '.footer'            # scroll element into view
 ```
 
 Supported keys for `press`: `a`–`z`, `A`–`Z`, `0`–`9`, `Backspace`, `Tab`,
@@ -90,11 +95,28 @@ Supported keys for `press`: `a`–`z`, `A`–`Z`, `0`–`9`, `Backspace`, `Tab`,
 (`` !@#$%^&*()_+-=[]{}\\|;:'",./<>?`~ ``). Chords use `+`: `Control+c`,
 `Shift+Enter`, `Meta+a`.
 
+### Checkboxes and radios
+
+```bash
+plwr check '#agree-terms'        # check a checkbox or radio
+plwr uncheck '#newsletter'       # uncheck a checkbox
+```
+
+### Select dropdowns
+
+```bash
+plwr select '#country' us               # select by value
+plwr select '#country' --label 'Canada' # select by visible text
+plwr select '#colors' red green blue    # multi-select
+```
+
 ### Querying
 
 ```bash
 plwr text h1                     # print textContent
+plwr inner-html '.content'       # print innerHTML (preserves tags)
 plwr attr a href                 # print attribute value
+plwr input-value '#email'        # print value of input/textarea/select
 plwr count '.list-item'          # print number of matches
 plwr exists '.sidebar'           # exit 0 if found, 1 if not
 ```
