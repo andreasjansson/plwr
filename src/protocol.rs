@@ -22,6 +22,14 @@ pub enum Command {
         selector: String,
         timeout: u64,
     },
+    WaitAny {
+        selectors: Vec<String>,
+        timeout: u64,
+    },
+    WaitAll {
+        selectors: Vec<String>,
+        timeout: u64,
+    },
     Click {
         selector: String,
         timeout: u64,
