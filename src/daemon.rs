@@ -79,7 +79,7 @@ pub async fn run(socket_path: &Path, headed: bool) -> Result<()> {
         page,
         page_opened: false,
         headers: HashMap::new(),
-        video_dir: None,
+        video_artifact_guid: None,
     };
 
     loop {
