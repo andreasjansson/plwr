@@ -141,6 +141,7 @@ impl Command {
                 | Command::Header { .. }
                 | Command::HeaderClear
                 | Command::Viewport { .. }
+                | Command::VideoStart { .. }
         )
     }
 }
