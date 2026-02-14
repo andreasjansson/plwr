@@ -316,8 +316,8 @@ enum Cmd {
     },
     /// Stop video recording and save the file
     VideoStop {
-        /// Output file path (.mp4, .webm, .gif, etc.)
-        output: String,
+        /// Output file path (.mp4, .webm, .gif, etc.). Omit to leave raw .webm in video dir.
+        output: Option<String>,
     },
 
     /// Internal: run the browser daemon (not for direct use)
