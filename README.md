@@ -72,6 +72,8 @@ plwr url
 ```bash
 plwr wait .my-element
 plwr wait-not .loading-spinner -T 10000
+plwr wait-any '.success' '.error' '.timeout'   # prints first match
+plwr wait-all '.header' '.sidebar' '.content'
 ```
 
 ### Interaction
