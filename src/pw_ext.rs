@@ -98,7 +98,7 @@ pub async fn page_video_stop_and_save(
 
     // Use the artifact's saveAs to copy the video to our desired path
     let artifact_channel = page.connection()
-        .send_message(artifact_guid, "saveAs".to_string(), serde_json::json!({ "path": save_path }))
+        .send_message(artifact_guid, "saveAs", serde_json::json!({ "path": save_path }))
         .await?;
     let _ = artifact_channel;
     Ok(())
