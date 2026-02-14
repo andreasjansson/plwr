@@ -10,6 +10,10 @@ start video recording
 ===
 plwr -S plwr-test video-start --dir /tmp/plwr-test-video
 ---
+{{ output }}
+---
+where
+* output contains "Video recording started"
 
 ===
 do something while recording
@@ -35,3 +39,23 @@ video file has content
 ===
 bash -c 'size=$(wc -c < /tmp/plwr-test-recording.webm); echo "$size"; test "$size" -gt 0'
 ---
+
+===
+start second recording to test stop without output
+===
+plwr -S plwr-test video-start --dir /tmp/plwr-test-video-2
+---
+{{ output }}
+---
+where
+* output contains "Video recording started"
+
+===
+stop recording without output path
+===
+plwr -S plwr-test video-stop
+---
+{{ output }}
+---
+where
+* output contains "Video stopped"
