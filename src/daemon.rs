@@ -567,8 +567,14 @@ async fn handle_command(state: &mut State, command: Command, headed: bool) -> Re
                     .find(|e| e.path().extension().is_some_and(|ext| ext == "webm"))
                     .map(|e| e.path());
 
-                match webm {
-                    Some(webm_path) => {
+                match (webm, output) {
+                    (Some(webm_path), None) => {
+                        Ok(Response::ok_value(serde_json::Value::String(format!(
+                            "Video stopped. Recording at {}",
+                            webm_path.display()
+                        ))))
+                    }
+                    (Some(webm_path), Some(output)) => {
                         if output.ends_with(".webm") {
                             std::fs::rename(&webm_path, &output)?;
                             Ok(Response::ok_value(serde_json::Value::String(format!(
@@ -594,7 +600,7 @@ async fn handle_command(state: &mut State, command: Command, headed: bool) -> Re
                             }
                         }
                     }
-                    None => Ok(Response::err("No video file found".to_string())),
+                    (None, _) => Ok(Response::err("No video file found".to_string())),
                 }
             } else {
                 Ok(Response::err("No video recording in progress".to_string()))
