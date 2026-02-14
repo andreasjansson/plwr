@@ -126,8 +126,11 @@ pub async fn run(socket_path: &Path, headed: bool) -> Result<()> {
 async fn handle_command(state: &mut State, command: Command) -> Result<Response> {
     // Handle commands that mutate state before borrowing the page
     match command {
-        Command::Open { url } => {
-            state.page.goto(&url, None).await?;
+        Command::Open { url, timeout } => {
+            state.page.goto(&url, Some(playwright_rs::GotoOptions {
+                timeout: Some(std::time::Duration::from_millis(timeout)),
+                wait_until: None,
+            })).await?;
             state.page_opened = true;
             return Ok(Response::ok_empty());
         }
