@@ -381,7 +381,7 @@ async fn main() -> ExitCode {
         cmd => {
             let command = match cmd {
                 Cmd::Daemon | Cmd::Stop | Cmd::Start { .. } => unreachable!(),
-                Cmd::Open { url } => Command::Open { url },
+                Cmd::Open { url } => Command::Open { url, timeout: cli.timeout },
                 Cmd::Reload => Command::Reload,
                 Cmd::Url => Command::Url,
                 Cmd::Wait { selector } => Command::Wait {
