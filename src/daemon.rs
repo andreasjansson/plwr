@@ -519,47 +519,19 @@ async fn handle_command(state: &mut State, command: Command, headed: bool) -> Re
 
         Command::VideoStart { dir } => {
             std::fs::create_dir_all(&dir)?;
-            let tmp_dir = tempfile::tempdir()?;
-            let user_data = tmp_dir.path().to_string_lossy().to_string();
-
-            let ctx = state
-                .playwright
-                .chromium()
-                .launch_persistent_context_with_options(
-                    user_data,
-                    BrowserContextOptions {
-                        headless: Some(!headed),
-                        record_video: Some(RecordVideo {
-                            dir: dir.clone(),
-                            size: None,
-                        }),
-                        ..Default::default()
-                    },
-                )
-                .await?;
-            let vpage = ctx.new_page().await?;
-
-            if !state.headers.is_empty() {
-                let vctx = vpage.context()?;
-                pw_ext::set_extra_http_headers(&vctx, state.headers.clone()).await?;
-            }
-
-            let url = state.page.url();
-            if url != "about:blank" {
-                let _ = vpage.goto(&url, None).await;
-            }
-
+            pw_ext::page_video_start(&state.page, &dir).await?;
             state.video_dir = Some(dir.clone());
-            state.video_page = Some(vpage);
             Ok(Response::ok_value(serde_json::Value::String(format!(
                 "Video recording started (dir: {})", dir
             ))))
         }
 
         Command::VideoStop { output } => {
-            if let (Some(vpage), Some(dir)) = (state.video_page.take(), state.video_dir.take()) {
-                let ctx = vpage.context()?;
-                ctx.close().await?;
+            if let Some(dir) = state.video_dir.take() {
+                pw_ext::page_video_stop(&state.page).await?;
+
+                // Give Playwright a moment to flush the video file
+                tokio::time::sleep(std::time::Duration::from_millis(500)).await;
 
                 let webm = std::fs::read_dir(&dir)?
                     .filter_map(|e| e.ok())
