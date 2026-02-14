@@ -2,8 +2,8 @@ use crate::protocol::{Command, Request, Response};
 use crate::pw_ext;
 use anyhow::Result;
 use playwright_rs::{
-    CheckOptions, ClickOptions, FillOptions, HoverOptions, LaunchOptions, Locator, Page,
-    Playwright, SelectOption, SelectOptions,
+    BrowserContextOptions, CheckOptions, ClickOptions, FillOptions, HoverOptions, LaunchOptions,
+    Locator, Page, Playwright, RecordVideo, SelectOption, SelectOptions,
 };
 use std::collections::HashMap;
 use std::path::Path;
@@ -16,8 +16,9 @@ const CHANNEL_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(30);
 
 struct State {
     _playwright: Playwright,
-    _browser: playwright_rs::Browser,
+    browser: playwright_rs::Browser,
     page: Page,
+    original_page: Option<Page>,
     page_opened: bool,
     headers: HashMap<String, String>,
     video_dir: Option<String>,
