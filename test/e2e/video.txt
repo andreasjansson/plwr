@@ -41,9 +41,49 @@ bash -c 'size=$(wc -c < /tmp/plwr-test-recording.webm); echo "$size"; test "$siz
 ---
 
 ===
-start second recording for stop-without-output test
+start recording before interaction
 ===
 plwr -S plwr-test video-start --dir /tmp/plwr-test-video2
+---
+{{ output }}
+---
+where
+* output contains "Video recording started"
+
+===
+interact with page during recording (fill, click, navigate)
+===
+plwr -S plwr-test fill '#name-input' 'Video Test User'
+plwr -S plwr-test click '#submit-btn'
+plwr -S plwr-test open "http://localhost:8599/index.html"
+plwr -S plwr-test text h1
+---
+{{ output }}
+---
+where
+* output contains "Hello"
+
+===
+stop recording with output path
+===
+plwr -S plwr-test video-stop /tmp/plwr-test-interaction.webm
+---
+Saved recording to /tmp/plwr-test-interaction.webm
+
+===
+interaction video file is a valid webm with meaningful size
+===
+bash -c 'size=$(wc -c < /tmp/plwr-test-interaction.webm | tr -d " "); echo "${size} bytes"; test "$size" -gt 1000'
+---
+{{ output }}
+---
+where
+* output contains "bytes"
+
+===
+start third recording for stop-without-output test
+===
+plwr -S plwr-test video-start --dir /tmp/plwr-test-video3
 ---
 {{ output }}
 ---
