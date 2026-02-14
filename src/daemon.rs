@@ -2,8 +2,8 @@ use crate::protocol::{Command, Request, Response};
 use crate::pw_ext;
 use anyhow::Result;
 use playwright_rs::{
-    BrowserContextOptions, CheckOptions, ClickOptions, FillOptions, HoverOptions, LaunchOptions,
-    Locator, Page, Playwright, RecordVideo, SelectOption, SelectOptions,
+    CheckOptions, ClickOptions, FillOptions, HoverOptions, LaunchOptions, Locator, Page,
+    Playwright, SelectOption, SelectOptions,
 };
 use std::collections::HashMap;
 use std::path::Path;
@@ -15,19 +15,12 @@ const ERROR_PREFIX: &str = "### error ";
 const CHANNEL_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(30);
 
 struct State {
-    playwright: Playwright,
+    _playwright: Playwright,
     _browser: playwright_rs::Browser,
     page: Page,
     page_opened: bool,
     headers: HashMap<String, String>,
-    video_page: Option<Page>,
     video_dir: Option<String>,
-}
-
-impl State {
-    fn active_page(&self) -> &Page {
-        self.video_page.as_ref().unwrap_or(&self.page)
-    }
 }
 
 pub async fn run(socket_path: &Path, headed: bool) -> Result<()> {
