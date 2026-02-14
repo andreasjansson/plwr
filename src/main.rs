@@ -189,6 +189,16 @@ enum Cmd {
     Wait { selector: String },
     /// Wait for a CSS selector to disappear
     WaitNot { selector: String },
+    /// Wait for any of several selectors to appear, print the first match
+    WaitAny {
+        #[arg(required = true)]
+        selectors: Vec<String>,
+    },
+    /// Wait for all selectors to appear
+    WaitAll {
+        #[arg(required = true)]
+        selectors: Vec<String>,
+    },
 
     /// Click an element matching a CSS selector
     Click { selector: String },
