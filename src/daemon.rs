@@ -76,8 +76,9 @@ pub async fn run(socket_path: &Path, headed: bool) -> Result<()> {
 
     let mut state = State {
         _playwright: playwright,
-        _browser: browser,
+        browser,
         page,
+        original_page: None,
         page_opened: false,
         headers: HashMap::new(),
         video_dir: None,
