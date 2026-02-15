@@ -1,7 +1,7 @@
 [package]
 name = "plwr"
 description = "Clean CLI for Playwright browser automation with CSS selectors"
-version = "0.3.0"
+version = "0.7.0"
 edition = "2021"
 authors = ["Andreas Jansson"]
 license = "MIT"
@@ -13,9 +13,11 @@ tokio = { version = "1", features = ["full"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 anyhow = "1"
+tempfile = "3"
 libc = "0.2"
-tempfile = "3.25.0"
+
 openssl = { version = "0.10", features = ["vendored"], optional = true }
+dirs = "6.0.0"
 
 [features]
 vendored-openssl = ["openssl"]

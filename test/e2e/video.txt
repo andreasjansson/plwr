@@ -1,67 +1,75 @@
 ===
-navigate to test page
+start session with video recording
 %require
 ===
-plwr -S plwr-test open "http://localhost:8599/index.html"
+plwr -S plwr-video-test start --video /tmp/plwr-test-recording.webm
 ---
+Started session 'plwr-video-test'
 
 ===
-start video recording
+navigate and interact
 ===
-plwr -S plwr-test video-start --dir /tmp/plwr-test-video
+plwr -S plwr-video-test open "http://localhost:8599/index.html"
+plwr -S plwr-video-test text h1
 ---
-{{ output }}
+Test Page
+
+===
+page content persists (no second window)
+===
+plwr -S plwr-video-test reload
+plwr -S plwr-video-test text h1
+---
+Test Page
+
+===
+stop session saves video
+===
+plwr -S plwr-video-test stop
+---
+Stopped session 'plwr-video-test'
+
+===
+video file exists and has content
+===
+wc -c < /tmp/plwr-test-recording.webm | tr -d " "
+---
+{{ size:number }}
 ---
 where
-* output contains "Video recording started"
+* size > 0
 
 ===
-do something while recording
+start session with video and interact with form
+%require
 ===
-plwr -S plwr-test reload
+plwr -S plwr-video-test start --video /tmp/plwr-test-interaction.webm
 ---
+Started session 'plwr-video-test'
 
 ===
-stop recording and save as webm
+fill form while recording
 ===
-plwr -S plwr-test video-stop /tmp/plwr-test-recording.webm
+plwr -S plwr-video-test open "http://localhost:8599/form.html"
+plwr -S plwr-video-test fill '#name' 'Video Test User'
+plwr -S plwr-video-test click '#btn'
+plwr -S plwr-video-test text '#result'
 ---
-Saved recording to /tmp/plwr-test-recording.webm
+Hello, Video Test User
 
 ===
-video file exists
+stop saves interaction video
 ===
-test -f /tmp/plwr-test-recording.webm
+plwr -S plwr-video-test stop
 ---
+Stopped session 'plwr-video-test'
 
 ===
-video file has content
+interaction video is a valid webm with meaningful size
 ===
-bash -c 'size=$(wc -c < /tmp/plwr-test-recording.webm); echo "$size"; test "$size" -gt 0'
+wc -c < /tmp/plwr-test-interaction.webm | tr -d " "
 ---
-
-===
-start second recording for stop-without-output test
-===
-plwr -S plwr-test video-start --dir /tmp/plwr-test-video2
----
-{{ output }}
+{{ size:number }}
 ---
 where
-* output contains "Video recording started"
-
-===
-do something while recording
-===
-plwr -S plwr-test reload
----
-
-===
-stop recording without output path
-===
-plwr -S plwr-test video-stop
----
-{{ output }}
----
-where
-* output contains "Video stopped"
+* size > 1000

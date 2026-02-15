@@ -1,0 +1,64 @@
+===
+open selectors page
+%require
+===
+plwr -S plwr-test open "http://localhost:8599/selectors.html"
+---
+
+===
+wait-any finds first visible selector
+===
+plwr -S plwr-test wait-any '.does-not-exist' '#list' '.card'
+---
+#list
+
+===
+wait-any finds second when first missing
+===
+plwr -S plwr-test wait-any '.does-not-exist' '.card'
+---
+.card
+
+===
+wait-any skips display:none elements
+===
+plwr -S plwr-test wait-any '.hidden' '#list'
+---
+#list
+
+===
+wait-any skips visibility:hidden elements
+===
+plwr -S plwr-test wait-any '.invisible' '#list'
+---
+#list
+
+===
+wait-any times out when none match
+===
+! plwr -S plwr-test wait-any '.does-not-exist' '.also-missing' -T 500
+---
+
+===
+wait-all succeeds when all visible
+===
+plwr -S plwr-test wait-all '#list' '.card' '#data-table'
+---
+
+===
+wait-all times out when one is display:none
+===
+! plwr -S plwr-test wait-all '#list' '.hidden' -T 500
+---
+
+===
+wait-all times out when one is missing
+===
+! plwr -S plwr-test wait-all '#list' '.does-not-exist' -T 500
+---
+
+===
+wait-all times out when one is visibility:hidden
+===
+! plwr -S plwr-test wait-all '#list' '.invisible' -T 500
+---

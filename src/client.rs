@@ -1,6 +1,7 @@
 use crate::protocol::{Command, Request, Response};
 use anyhow::{bail, Result};
 use std::io::BufRead;
+use std::os::unix::process::CommandExt;
 use std::path::Path;
 use std::process::{Command as StdCommand, Stdio};
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
@@ -23,14 +24,14 @@ pub async fn send(socket_path: &Path, command: Command) -> Result<Response> {
     send_on_stream(stream, command).await
 }
 
-pub async fn ensure_started(socket_path: &Path, headed: bool) -> Result<()> {
+pub async fn ensure_started(socket_path: &Path, headed: bool, video: Option<&str>) -> Result<()> {
     if socket_path.exists() {
         if UnixStream::connect(socket_path).await.is_ok() {
             return Ok(());
         }
         std::fs::remove_file(socket_path).ok();
     }
-    start_daemon(socket_path, headed)
+    start_daemon(socket_path, headed, video)
 }
 
 async fn send_on_stream(stream: UnixStream, command: Command) -> Result<Response> {
@@ -49,7 +50,7 @@ async fn send_on_stream(stream: UnixStream, command: Command) -> Result<Response
     Ok(resp)
 }
 
-fn start_daemon(socket_path: &Path, headed: bool) -> Result<()> {
+fn start_daemon(socket_path: &Path, headed: bool, video: Option<&str>) -> Result<()> {
     if socket_path.exists() {
         std::fs::remove_file(socket_path).ok();
     }
@@ -67,8 +68,19 @@ fn start_daemon(socket_path: &Path, headed: bool) -> Result<()> {
         .stderr(Stdio::null())
         .stdin(Stdio::null());
 
+    // Safety: setsid() is async-signal-safe and has no preconditions
+    unsafe {
+        cmd.pre_exec(|| {
+            libc::setsid();
+            Ok(())
+        });
+    }
+
     if headed {
         cmd.env("PLAYWRIGHT_HEADED", "1");
+    }
+    if let Some(path) = video {
+        cmd.env("PLWR_VIDEO", path);
     }
 
     let mut child = cmd

@@ -1,0 +1,3424 @@
+# SYSTEM
+
+You are Greger, and expert coding agent.
+
+${greger-prompt-code-style<eval-result-132753207634>
+# Code style
+
+## Don't be overly defensive
+
+I don't trust the code you write, so I want you to fail early and loudly.
+
+**Don't** add fallbacks, guards, or try/catch blocks against errors unless I specifically ask you to. I don't trust the code you write so I'd rather fail hard early and detect your errors than softly receive a fallback and not detect your errors.
+
+## Imports go at the top
+
+Don't sprinkle the code with imports unless in very special circumstances or if I explicltly ask you to.
+
+## No unnecessary comments
+
+You have a tendency to comment every line. I'm an expert programmer and I prefer reading code to prose. Most of the time I can read the code faster than the comment to understand what's going on. Only add comments in cases where the code is unintuitive or particularly hard to follow (e.g. custom parsers).
+
+## Read full files
+
+Important: The first time you read a source code file, read the _entire_ file (_not_ piecemeal with start-line and end-line) so you get a real holistic understanding of the logic.
+
+## Guidelines while linting
+
+Clean up properly during linting (DON'T BE LAZY! Leave the code base in a better state than you found it):
+* Any time you find unused things, see if they're actually used in the code base. If they're not delete them.
+* If you find unused function arguments, don't underscore them but delete them from the callers' side
+
+If you're using Leta, `leta refs` can find references.
+
+Go back and clean up places you've already underscored.
+
+## Using bd
+
+When using bd (beads), make issues small and granular with comprehensive descriptions.
+
+## IMPORTANT: NO SUMMARY DOCUMENTS!!!
+
+IMPORTANT: DON'T write summary documents (e.g. SUMMARY.md, FINAL_REPORT.md) unless the user explicitly asks you to. If you feel the need to explain something, just do it in the chat. The ONLY exception to this rule is if the user explicitly asks you to write up a markdown file on disk.
+</eval-result-132753207634>}
+
+# README.md
+
+${:sh cat README.md<eval-result-132753989906># plwr
+
+Clean CLI for Playwright browser automation with CSS selectors. Built on [playwright-rs](https://github.com/padamson/playwright-rust).
+
+## Install
+
+```bash
+./script/install              # installs to ~/.local/bin
+./script/install -d ~/bin     # custom directory
+```
+
+Requires Playwright browsers:
+
+```bash
+npx playwright install chromium
+```
+
+For video conversion to non-webm formats, install [ffmpeg](https://ffmpeg.org/).
+
+## Usage
+
+Start a browser session, navigate, interact, and stop:
+
+```bash
+plwr start                      # start headless browser
+plwr open https://example.com   # navigate to URL
+plwr text h1                    # Example Domain
+plwr stop                       # shut down browser
+```
+
+### Environment variables
+
+| Variable | Effect |
+|----------|--------|
+| `PLAYWRIGHT_HEADED` | Set to any value to run the browser with a visible window |
+| `PLWR_SESSION` | Default session name (default: `default`) |
+| `PLWR_TIMEOUT` | Default timeout in ms (default: `5000`) |
+
+All commands take `-S`/`--session` and `-T`/`--timeout` as global options,
+which override the environment variables.
+
+### Starting and stopping
+
+`start` launches the browser. All other commands require a running session.
+Use `--headed` (or the `PLAYWRIGHT_HEADED` env var) to show the browser window.
+
+```bash
+plwr start                   # headless
+plwr start --headed           # visible browser window
+plwr stop                    # shut down
+```
+
+Commands that interact with page content (`text`, `click`, `wait`, `eval`,
+etc.) require a page to be open first via `plwr open`. Commands that configure
+the session (`header`, `viewport`) work before any page is opened.
+
+### Navigation
+
+`open` navigates the current page within the existing browser context. Headers,
+cookies, and other state are preserved across navigations. There is no separate
+`goto` command — `open` always reuses the same context. If you need a fresh
+context, use `plwr stop` followed by `plwr start` and `plwr open`.
+
+```bash
+plwr open "https://example.com"
+plwr reload
+plwr url
+```
+
+### Waiting
+
+```bash
+plwr wait .my-element
+plwr wait-not .loading-spinner -T 10000
+```
+
+### Interaction
+
+All interaction commands (`click`, `fill`, `hover`, `check`, etc.) auto-wait
+for the element to appear and become actionable before performing the action,
+up to the timeout (`-T`, default 5000ms). You rarely need an explicit
+`plwr wait` before an interaction — just use the interaction directly:
+
+```bash
+plwr click '#submit-btn'                 # waits for button, then clicks
+plwr fill '#name-input' 'Alice' -T 10000 # waits up to 10s, then fills
+```
+
+```bash
+plwr click '#submit-btn'
+plwr fill '#name-input' 'Alice'
+plwr press Enter
+plwr press Control+c
+plwr dblclick '.editable-cell'   # double-click
+plwr hover '.dropdown-trigger'   # hover (for tooltips, menus)
+plwr focus '#search'             # focus an element
+plwr blur '#email'               # unfocus an element
+plwr scroll '.footer'            # scroll element into view
+```
+
+Supported keys for `press`: `a`–`z`, `A`–`Z`, `0`–`9`, `Backspace`, `Tab`,
+`Enter`, `Escape`, `Space`, `Delete`, `Insert`, `ArrowUp`, `ArrowDown`,
+`ArrowLeft`, `ArrowRight`, `Home`, `End`, `PageUp`, `PageDown`, `F1`–`F12`,
+`Control`, `Shift`, `Alt`, `Meta`, and any US keyboard character
+(`` !@#$%^&*()_+-=[]{}\\|;:'",./<>?`~ ``). Chords use `+`: `Control+c`,
+`Shift+Enter`, `Meta+a`.
+
+### Checkboxes and radios
+
+```bash
+plwr check '#agree-terms'        # check a checkbox or radio
+plwr uncheck '#newsletter'       # uncheck a checkbox
+```
+
+### Select dropdowns
+
+```bash
+plwr select '#country' us               # select by value
+plwr select '#country' --label 'Canada' # select by visible text
+plwr select '#colors' red green blue    # multi-select
+```
+
+### Querying
+
+Like interaction commands, `text`, `attr`, `inner-html`, and `input-value`
+auto-wait for the element to appear before reading its value.
+
+```bash
+plwr text h1                     # print textContent
+plwr inner-html '.content'       # print innerHTML (preserves tags)
+plwr attr a href                 # print attribute value
+plwr input-value '#email'        # print value of input/textarea/select
+plwr count '.list-item'          # print number of matches
+plwr exists '.sidebar'           # exit 0 if found, 1 if not
+```
+
+### Headers
+
+Set extra HTTP headers sent with every request. Headers persist across
+navigations within the same session. Can be set before or after `open`.
+
+```bash
+plwr header CF-Access-Client-Id "$CLIENT_ID"
+plwr header CF-Access-Client-Secret "$CLIENT_SECRET"
+plwr open "$WORKER_URL"          # headers sent automatically
+plwr header --clear              # remove all extra headers
+```
+
+### Cookies
+
+```bash
+plwr cookie session_id abc123    # set on current page's URL
+plwr cookie token xyz --url https://example.com
+plwr cookie --list               # list all cookies as JSON
+plwr cookie --clear              # remove all cookies
+```
+
+### Viewport
+
+```bash
+plwr viewport 1280 720          # desktop
+plwr viewport 375 667           # iPhone SE
+```
+
+### File uploads
+
+```bash
+plwr input-files 'input[type=file]' photo.png
+plwr input-files '#upload' a.txt b.txt c.txt   # multiple files
+plwr input-files '#upload'                      # clear selection
+```
+
+### JavaScript
+
+```bash
+plwr eval "document.title"
+plwr eval "({a: 1, b: [2, 3]})"   # returns pretty-printed JSON
+```
+
+### DOM tree
+
+```bash
+plwr tree              # full page tree as JSON
+plwr tree '.sidebar'   # subtree rooted at selector
+```
+
+### Screenshots
+
+```bash
+plwr screenshot
+plwr screenshot --selector '.chart' --path chart.png
+```
+
+### Video
+
+```bash
+plwr video-start                 # start recording
+# ... do stuff ...
+plwr video-stop recording.mp4   # stop and convert to mp4
+plwr video-stop recording.webm  # stop, keep as webm (no ffmpeg needed)
+```
+
+### Sessions
+
+Run multiple independent browser sessions in parallel:
+
+```bash
+plwr -S session-a start
+plwr -S session-b start
+plwr -S session-a open https://example.com
+plwr -S session-b open https://other.com
+plwr -S session-a text h1   # Example Domain
+plwr -S session-b text h1   # other.com's h1
+plwr -S session-a stop
+plwr -S session-b stop
+```
+
+## Selectors
+
+Playwright uses its own selector engine that extends CSS. Most standard CSS
+selectors work directly, but some advanced pseudo-classes need a `css=` prefix
+to bypass Playwright's parser.
+
+### Basics
+
+```bash
+plwr click '#submit-btn'                   # by id
+plwr click '.btn.primary'                  # compound class
+plwr click 'button'                        # by tag
+plwr count 'input[type=email]'             # attribute match
+plwr count 'input[type=text]'              # no quotes needed
+```
+
+### Combinators
+
+```bash
+plwr count '#list > li'                    # child
+plwr count 'h1 + p'                        # adjacent sibling
+plwr count 'h1 ~ p'                        # general sibling
+plwr text '.card p'                        # descendant
+```
+
+### Attribute selectors
+
+Unquoted attribute values work directly. For quoted values, use the `css=`
+prefix (see [css= prefix](#css-prefix) below).
+
+```bash
+plwr count 'a[data-external]'             # has attribute
+plwr count 'a[href^=/]'                   # starts with
+plwr count 'a[href$=.pdf]'                # ends with
+plwr count 'a[href*=example]'             # contains
+plwr count '[data-testid=login-form]'      # exact match (no quotes)
+```
+
+### Pseudo-classes that work without prefix
+
+```bash
+plwr click 'li:first-child'
+plwr click 'li:last-child'
+plwr text '#list li:nth-child(2)'          # second item
+plwr count '#list li:nth-child(odd)'       # 1st, 3rd, ...
+plwr count 'li:not(.done)'
+plwr count '.card:has(img)'
+plwr count 'div:empty'
+plwr count 'input:checked'
+plwr count 'input:disabled'
+plwr count 'input:enabled'
+plwr count 'input:required'
+```
+
+### Playwright extensions
+
+These are Playwright-specific and don't exist in standard CSS:
+
+```bash
+plwr click ':has-text("Sign in")'          # contains text
+plwr click 'text=Sign in'                  # text shorthand
+plwr click 'li.item >> nth=0'             # first match (0-based)
+plwr click 'li.item >> nth=-1'            # last match
+plwr text ':nth-match(li.item, 2)'         # alternative to nth=
+plwr count 'button:visible'               # only visible elements
+plwr text 'tr:has-text("Bob") >> td.name'  # chain with >>
+```
+
+The `>>` operator chains selectors — each segment is scoped to the previous
+match. You can mix CSS and Playwright engines:
+
+```bash
+plwr text '#data-table >> tr:has-text("Alice") >> td.status'
+```
+
+### css= prefix
+
+Playwright's selector parser auto-detects whether a string is CSS, XPath, or a
+Playwright selector. Some valid CSS pseudo-classes confuse the auto-detection
+because Playwright tries to interpret parenthesized arguments or quoted strings
+as its own syntax. Prefixing with `css=` forces native CSS evaluation.
+
+**Need `css=` prefix:**
+
+| Selector | Example |
+|----------|---------|
+| `:last-of-type` | `css=.list span:last-of-type` |
+| `:first-of-type` | `css=.list p:first-of-type` |
+| `:nth-of-type()` | `css=span:nth-of-type(2)` |
+| `:nth-last-child()` | `css=li:nth-last-child(1)` |
+| `:is()` | `css=:is(.card, .sidebar)` |
+| `:where()` | `css=:where(.card, .sidebar) > p` |
+| Quoted `[attr="val"]` | `css=[data-testid="login-form"]` |
+
+```bash
+plwr text 'css=.mixed span:last-of-type'
+plwr text 'css=li:nth-of-type(2)'
+plwr count 'css=:is(.card, .sidebar)'
+plwr text 'css=[data-testid="login-form"] button'
+```
+
+**Work without prefix** (Playwright recognizes these natively):
+
+`:nth-child()`, `:first-child`, `:last-child`, `:not()`, `:has()`, `:empty`,
+`:checked`, `:disabled`, `:enabled`, `:required`, `:visible`, `:has-text()`,
+`text=`, `>> nth=N`.
+
+### Strict mode
+
+Playwright locators are strict by default — if a selector matches multiple
+elements, commands like `text`, `click`, and `attr` will fail. Use `>> nth=N`
+or `:nth-match()` to pick one:
+
+```bash
+plwr text 'li.item'                        # fails if >1 match
+plwr text 'li.item >> nth=0'              # first match
+plwr text ':nth-match(li.item, 2)'         # second match (1-based)
+plwr count 'li.item'                       # count always works
+plwr exists 'li.item'                      # exists always works
+```
+
+### Shell quoting
+
+Watch out for shell metacharacters in selectors. The `$` in `$=` will be
+interpreted by bash if not single-quoted:
+
+```bash
+plwr count "a[href$=.pdf]"                # ✗ bash eats the $
+plwr count 'a[href$=.pdf]'                # �� single quotes
+```
+
+## Example: cctr e2e test
+
+Before (with raw `playwright-cli run-code`):
+
+```
+===
+send a message
+===
+./pw --session=e2e run-code "async page => {
+  const input = await page.waitForSelector('.chat-input', { timeout: 2000 });
+  await input.fill('Hello agent');
+  await page.keyboard.press('Enter');
+  await page.waitForFunction(() => {
+    const msgs = document.querySelectorAll('[data-role=assistant]');
+    return Array.from(msgs).some(m => m.textContent.includes('Hi'));
+  }, { timeout: 5000 });
+}"
+---
+```
+
+After (with `plwr`):
+
+```
+===
+send a message
+===
+plwr fill '.chat-input' 'Hello agent'
+plwr press Enter
+---
+
+===
+agent responds
+===
+plwr wait '[data-role=assistant]:has-text("Hi")' -T 10000
+---
+```
+</eval-result-132753989906>}
+
+# USER
+
+add `wait-any` and `wait-all` commands that take multiple selectors
+
+# THINKING
+
+Signature: EqMCCkYICxgCKkBImhJluGila2wzMl51Bev1lO9ahC/bWHB0DQqCkTuUpCRzl7q+m6KVMpYzZRfTDpOdT5dPCxCWf86LKB7tpuvnEgwxaN+GpMK2EoQVHMIaDBpA6J8S3T3B0KiRSSIwzJXrFf03S9Y/SM/nnWQyQWGYI23QT7IS5xFgAOSHfygTTW6J5+r9GWWcZEdnV0lnKooBQxwic7DIIZ3fd0AlfEPZk0iy2VDAqz50IRSjCqPo+1vUsBPr5rfF7PY+JBuqNvNIClqw9YEc5ChfwjZMEjoO84pwWK0M+XIAMFcOEPw0z/L2jmtnRHUre1mfucwj8xncM7ceytFwxewOl10nDEmbPe+1Nw0Sh9GcTOx/klO9RhSyK/VsQG4CiYzCGAE=
+
+Let me start by understanding the codebase structure and how existing commands like `wait` and `wait-not` are implemented.
+
+# TOOL USE
+
+Name: skill
+ID: toolu_01HZfwHZRraA3LuS92U37b9a
+
+## name
+
+<tool.toolu_01HZfwHZRraA3LuS92U37b9a>
+leta
+</tool.toolu_01HZfwHZRraA3LuS92U37b9a>
+
+# TOOL RESULT
+
+ID: toolu_01HZfwHZRraA3LuS92U37b9a
+
+<tool.toolu_01HZfwHZRraA3LuS92U37b9a>
+## Skill: leta
+
+# Leta - LSP Enabled Tools for Agents
+
+Leta provides fast semantic code navigation using Language Server Protocol. Unlike text-based search tools, Leta understands code structure and can find symbol definitions, references, implementations, and more.
+
+## ⚠️ STOP AND THINK - Default to leta
+
+After loading this skill, **leta should be your DEFAULT tool for code exploration**, not ripgrep-like tools or file reading.
+
+**Before you act, check this list:**
+
+| If you're about to... | STOP! Instead use... |
+|----------------------|---------------------|
+| Use `read-file` to view a function/class you know the name of | `leta show <symbol_name>` |
+| Use `read-file` with specific start and end line ranges in order to view a specific function | `leta show <symbol_name>` |
+| Use `read-file` to "browse" or "understand" a file | `leta grep ".*" "path/to/file" -k function,method` to list functions, or `leta show <symbol>` |
+| Use ripgrep-like tools to find where a function is defined | `leta grep "<function_name>" -k function,method` |
+| Use ripgrep-like tools to find usages/references of a symbol | `leta refs <symbol_name>` |
+| Use ripgrep-like tools to see where a function is imported/wired up | `leta refs <symbol_name>` |
+| Use ripgrep-like tools to find code related to a concept (e.g. "billing") | `leta grep "<concept>" -k function,method` |
+| Use `list-directory` to explore project structure | `leta files` |
+| Manually search for interface implementations | `leta implementations <interface>` |
+| Grep for function calls to trace code flow | `leta calls --to/--from <function>` |
+| Read a function's implementation to understand what it depends on | `leta calls --from <function>` first for overview |
+| Read multiple files to understand how functions connect | `leta calls --from <function>` to see the call graph |
+
+**The Golden Rule:** If you know the symbol name, **always** use leta. Only use ripgrep when searching for things that aren't symbols (string literals, comments, config values).
+
+**DON'T fall back to old habits.** If you know a symbol name, use leta.
+
+### ⚠️ Anti-pattern: "Browsing" Files
+
+**Don't** read a whole file just "to understand it" or "see the context." This is a common mistake.
+
+If you're tempted to do this, ask yourself: *What symbol am I actually looking for?* Then use:
+- `leta show <symbol>` if you know the symbol name
+- `leta grep ".*" path/to/file -k function,method` to see what functions exist in a file
+- `leta refs <symbol>` to find where something is used
+
+### ⚠️ Anti-pattern: "I want to see where this is imported/wired up"
+
+When you think "I want to see where this function is imported" or "how is this view wired into URL routes" - that's just finding references! Don't use ripgrep to search for the function name. Use:
+- `leta refs <function_name>` - shows imports, URL configs, everywhere it's used
+
+## When to Use leta vs ripgrep-like tools
+
+**Use leta for:**
+- Finding where a function/class/method is DEFINED
+- Finding all USAGES of a symbol
+- Understanding call hierarchies (what calls what)
+- Finding interface implementations
+- Semantic refactoring (rename symbol across codebase)
+- Exploring project structure with symbol information
+- Viewing a symbol's implementation when you know its name
+
+**Use ripgrep-like tools for:**
+- Searching for **literal strings in comments, docs, or config files** (not code)
+- Multi-word phrase search in non-code content
+- Searching for library/external symbols not defined in your code
+- Pattern matching in string literals or configuration
+- Searching in file types leta doesn't understand (markdown, yaml, etc.)
+
+**Don't use ripgrep-like tools for:**
+- Finding where a function/class is defined → use `leta grep`
+- Finding where a symbol is used → use `leta refs`
+- Finding code related to a concept (e.g. "billing", "auth") → use `leta grep "<concept>" -k function,method`
+
+## Quick Start
+
+Before using leta on a new project, add it as a workspace:
+
+```bash
+leta workspace add /path/to/project
+```
+
+## Core Commands
+
+### `leta show` - View Symbol Definition ⭐ USE THIS INSTEAD OF READ-FILE
+
+**This is the killer feature you should use constantly.** Print the full body of a function, class, or method. ALWAYS use this instead of `read-file` when you know the symbol name.
+
+```bash
+# Show a function
+leta show handle_request
+
+# Show a method on a class
+leta show UserRepository.add_user
+
+# Show with surrounding context
+leta show parse_config -n 5
+
+# Limit output length
+leta show COUNTRY_CODES --head 50
+```
+
+**Symbol formats:**
+- `SymbolName` - Find by name
+- `Parent.Symbol` - Qualified name (Class.method)
+- `path:Symbol` - Filter by file path
+- `path:Parent.Symbol` - Path + qualified name
+
+### `leta grep` - Find Symbol Definitions
+
+Search for symbols matching a regex pattern. Only searches symbol NAMES, not file contents. Use this instead of ripgrep-like tools when looking for where something is defined.
+
+```bash
+leta grep PATTERN [PATH_REGEX] [OPTIONS]
+```
+
+The optional PATH_REGEX argument filters files by matching a regex against the relative file path.
+
+```bash
+# Find all functions/methods starting with "test"
+leta grep "^test" -k function,method
+
+# Find a class and show its documentation
+leta grep "UserRepository" -k class -d
+
+# Find all methods in a specific file
+leta grep ".*" "server\.py" -k method
+
+# Find symbols in Python files only
+leta grep "validate" '\.py$' -k function
+
+# Find symbols in a specific directory
+leta grep "User" "models/"
+
+# Find symbols in test files
+leta grep "test" "test/"
+
+# Find public Go functions (capitalized)
+leta grep "^[A-Z]" '\.go$' -k function -C
+```
+
+**Options:**
+- `-k, --kind TEXT` - Filter by kind: class, function, method, variable, constant, interface, struct, enum, property, field, constructor, module, namespace, package, typeparameter
+- `-d, --docs` - Include documentation/docstrings
+- `-x, --exclude TEXT` - Exclude files matching regex (repeatable)
+- `-C, --case-sensitive` - Case-sensitive matching. Note that `leta grep` is case-insensitive by default
+- `--head N` - Maximum results to return (default: 200)
+
+### `leta files` - Project Overview
+
+Show source file tree with line counts. Good starting point for exploring a project. **Always prefer `leta files` over `list-directory`-like tools** since it prints not just the filenames, but a full tree of files (excluding `.git`, `__pycache__`, etc.), and their sizes and line counts. If you believe this command will output too many tokens, you can pipe it through `| head -n1000` for example.
+
+```bash
+# Overview of entire project
+leta files
+
+# Only show src/ directory
+leta files src/
+
+# Exclude test directories (regex pattern)
+leta files -x test -x vendor
+
+# Only show Python files
+leta files -f '\.py$'
+```
+
+### `leta refs` - Find All References ⭐ USE THIS INSTEAD OF RIPGREP FOR USAGES
+
+**This is the correct way to find where a symbol is used.** Don't use ripgrep to search for a function name - use `leta refs` instead. It understands code structure and won't give you false positives from comments or similarly-named symbols.
+
+```bash
+# Find all usages of a function
+leta refs validate_email
+
+# Find with context lines
+leta refs UserRepository.save -n 2
+
+# Find where a class is instantiated or referenced
+leta refs UserRepository
+```
+
+### `leta calls` - Call Hierarchy ⭐ USE THIS TO UNDERSTAND FUNCTION DEPENDENCIES
+
+**Before reading a function's implementation, use `calls` to get the architectural overview.** This shows you what a function depends on or what depends on it - much faster than reading code to figure out the call graph.
+
+```bash
+# What does main() call? (understand dependencies before reading code)
+leta calls --from main
+
+# What calls validate_email()? (find all callers)
+leta calls --to validate_email
+
+# Find path from one function to another
+leta calls --from main --to save_to_db
+
+# Include stdlib/dependency calls
+leta calls --from process_request --include-non-workspace
+```
+
+**When to use `calls`:**
+- You found a function and want to understand what it does at a high level → `--from`
+- You want to know where/how a function is used → `--to`
+- You're tracing data flow through a system → combine `--from` and `--to`
+- You want to understand the architecture before diving into implementation details
+
+### `leta implementations` - Find Implementations
+
+Find all implementations of an interface or abstract method.
+
+```bash
+# Find all classes implementing Storage interface
+leta implementations Storage
+
+# Find implementations of a specific method
+leta implementations Validator.validate
+```
+
+### `leta supertypes` / `leta subtypes` - Type Hierarchy
+
+Navigate class inheritance.
+
+```bash
+# What does this class extend/implement?
+leta supertypes MyDatabaseStorage
+
+# What classes extend this one?
+leta subtypes BaseHandler
+```
+
+### `leta declaration` - Find Declaration
+
+Find where a symbol is declared (useful for variables, parameters).
+
+```bash
+leta declaration config_path
+```
+
+## Refactoring Commands
+
+### `leta rename` - Rename Symbol
+
+Rename a symbol across the entire workspace. Updates all references.
+
+```bash
+# Rename a function
+leta rename old_function_name new_function_name
+
+# Rename a method
+leta rename UserRepository.add_user create_user
+```
+
+### `leta mv` - Move File and Update Imports
+
+Move/rename a file and update all import statements.
+
+```bash
+leta mv src/user.ts src/models/user.ts
+```
+
+## Common Workflows
+
+### Exploring Unfamiliar Code
+
+```bash
+# 1. Get project overview
+leta files
+
+# 2. Find main entry points
+leta grep "^main$\|^Main$" -k function,method
+
+# 3. Trace what main calls
+leta calls --from main --max-depth 2
+
+# 4. Find key classes
+leta grep "Repository$\|Service$\|Handler$" -k class -d
+```
+
+### Understanding a Function
+
+```bash
+# 1. Get the high-level overview: what does it call?
+leta calls --from process_request
+
+# 2. Who calls this function?
+leta calls --to process_request
+
+# 3. NOW read the implementation (with context from steps 1-2)
+leta show process_request
+
+# 4. Find all usages/references
+leta refs process_request
+```
+
+### Finding Interface Implementations
+
+```bash
+# 1. Find the interface
+leta grep "Storage" -k interface -d
+
+# 2. Find all implementations
+leta implementations Storage
+
+# 3. Look at a specific implementation
+leta show FileStorage
+```
+
+## Tips
+
+1. **Start with `leta files`** to understand project structure before diving in.
+
+2. **Use `-d` flag** with grep to see documentation - helps understand what symbols do.
+
+3. **Combine with ripgrep-like tools** - use leta for "where is X defined/used?" and ripgrep-like tools for "where does string Y appear?"
+
+4. **Symbol formats are flexible** - if `SymbolName` is ambiguous, qualify it with `path:Symbol` or `Parent.Symbol`.
+
+5. **Check workspace first** - if commands fail, ensure you've run `leta workspace add`.
+
+6. **Don't redirect stderr** (e.g., `2>/dev/null`) - when a symbol is ambiguous, leta outputs disambiguation options to stderr showing how to qualify the symbol name. You need to see this to know how to fix the command.
+</tool.toolu_01HZfwHZRraA3LuS92U37b9a>
+
+# TOOL USE
+
+Name: shell-command
+ID: toolu_014iMHRk5QUFxMHSCobhxgZL
+
+## command
+
+<tool.toolu_014iMHRk5QUFxMHSCobhxgZL>
+leta workspace add /Users/user/plwr 2>&1 | tail -5
+</tool.toolu_014iMHRk5QUFxMHSCobhxgZL>
+
+# TOOL RESULT
+
+ID: toolu_014iMHRk5QUFxMHSCobhxgZL
+
+<tool.toolu_014iMHRk5QUFxMHSCobhxgZL>
+Error: No such file or directory (os error 2)
+
+</tool.toolu_014iMHRk5QUFxMHSCobhxgZL>
+
+# USER
+
+It's in ${:sh pwd<eval-result-132753439831>/Users/ajansson/projects/plwr
+</eval-result-132753439831>}
+
+
+
+# THINKING
+
+Signature: EuMBCkYICxgCKkB8iji4KVKPfuxzc/qrgQJQ2g2QGXiqagmwqMdcm3uZJaz67+Dtr5BaFn4imyfnt0yTJB7OO8yixPbzXrEojM0oEgyHb7nb4PCtmSxfijMaDNwGoqvZXS2D3v5bICIwFhzr/DoKjo1C4300IN3zUhyMCMEsnckkcD2cYH1z2otYR9BAOeSOgZD6a9IEJVwuKkvSEzWQHng/4WfGsAy6BlgKaJAw+2VanXE0yW7oifrvZ44IOorD/1P+zpIS/oINy9snRMGZepqIWmcgtI10bpre0sfvPX4YZzK1cT0YAQ==
+
+Let me add the workspace and explore the project structure.
+
+# TOOL USE
+
+Name: shell-command
+ID: toolu_01QHfhXXUNoiGvHq7YpppBbR
+
+## command
+
+<tool.toolu_01QHfhXXUNoiGvHq7YpppBbR>
+leta workspace add /Users/ajansson/projects/plwr 2>&1 | tail -5
+</tool.toolu_01QHfhXXUNoiGvHq7YpppBbR>
+
+# TOOL RESULT
+
+ID: toolu_01QHfhXXUNoiGvHq7YpppBbR
+
+<tool.toolu_01QHfhXXUNoiGvHq7YpppBbR>
+Workspace already added: /Users/ajansson/projects/plwr
+
+</tool.toolu_01QHfhXXUNoiGvHq7YpppBbR>
+
+# TOOL USE
+
+Name: shell-command
+ID: toolu_01STUJN6XPvzPH7ZfoWDviq6
+
+## command
+
+<tool.toolu_01STUJN6XPvzPH7ZfoWDviq6>
+leta files /Users/ajansson/projects/plwr
+</tool.toolu_01STUJN6XPvzPH7ZfoWDviq6>
+
+# TOOL RESULT
+
+ID: toolu_01STUJN6XPvzPH7ZfoWDviq6
+
+<tool.toolu_01STUJN6XPvzPH7ZfoWDviq6>
+.git (excluded)
+.github/
+  workflows/
+    ci.yml (9.1KB, 280 lines)
+.gitignore (34B, 3 lines)
+.plwr-video/
+  5411a0e6fe105e183a6a614578ed4c94.webm (1.1KB, 0 lines)
+  9668253e2ca90ca3d951abc70a9e6c8a.webm (1.1KB, 0 lines)
+Cargo.toml (637B, 27 lines)
+Cross.toml (56B, 2 lines)
+README.md (11.0KB, 384 lines)
+playwright-rs-local/
+  .cargo-ok (7B, 0 lines)
+  .cargo_vcs_info.json (111B, 5 lines)
+  Cargo.toml (8.3KB, 440 lines)
+  Cargo.toml.orig (1.5KB, 60 lines)
+  README.md (7.2KB, 209 lines)
+  benches/
+    browser_operations.rs (3.7KB, 121 lines)
+    guid_operations.rs (3.6KB, 112 lines)
+    page_operations.rs (6.9KB, 250 lines)
+  build.rs (8.4KB, 250 lines)
+  examples/
+    actions.rs (1.3KB, 46 lines)
+    assertions.rs (4.1KB, 133 lines)
+    basic.rs (892B, 32 lines)
+    browser_lifecycle.rs (1.6KB, 49 lines)
+    downloads_dialogs.rs (5.8KB, 182 lines)
+    evaluate_typed.rs (6.1KB, 196 lines)
+    keyboard_mouse.rs (1.9KB, 65 lines)
+    launch_options.rs (3.3KB, 94 lines)
+    locators.rs (1.5KB, 48 lines)
+    manual_pause.rs (1.4KB, 43 lines)
+    persistent_context.rs (7.0KB, 207 lines)
+    responsive_testing.rs (2.4KB, 73 lines)
+    routing.rs (7.5KB, 226 lines)
+    screenshots.rs (2.4KB, 67 lines)
+    state_assertions.rs (6.7KB, 198 lines)
+    websocket.rs (2.4KB, 78 lines)
+  src/
+    api/
+      connect_options.rs (1.2KB, 39 lines)
+      launch_options.rs (11.5KB, 368 lines)
+      mod.rs (373B, 10 lines)
+    assertions.rs (24.4KB, 671 lines)
+    error.rs (4.6KB, 135 lines)
+    lib.rs (6.7KB, 218 lines)
+    protocol/
+      action_options.rs (17.0KB, 643 lines)
+      android.rs (2.1KB, 94 lines)
+      api_request_context.rs (2.2KB, 94 lines)
+      artifact.rs (2.5KB, 103 lines)
+      browser.rs (12.9KB, 409 lines)
+      browser_context.rs (38.5KB, 1148 lines)
+      browser_type.rs (20.1KB, 584 lines)
+      browser_type_windows_fix.rs (2.3KB, 59 lines)
+      click.rs (10.5KB, 390 lines)
+      dialog.rs (5.5KB, 199 lines)
+      download.rs (5.5KB, 170 lines)
+      electron.rs (2.1KB, 94 lines)
+      element_handle.rs (4.6KB, 163 lines)
+      evaluate_conversion.rs (38.4KB, 1203 lines)
+      file_payload.rs (3.5KB, 127 lines)
+      frame.rs (43.1KB, 1358 lines)
+      keyboard.rs (1.9KB, 64 lines)
+      local_utils.rs (2.1KB, 94 lines)
+      locator.rs (16.2KB, 455 lines)
+      mod.rs (2.5KB, 79 lines)
+      mouse.rs (2.3KB, 80 lines)
+      page.rs (52.6KB, 1595 lines)
+      playwright.rs (12.5KB, 365 lines)
+      request.rs (3.9KB, 143 lines)
+      response.rs (2.7KB, 106 lines)
+      root.rs (6.3KB, 202 lines)
+      route.rs (14.7KB, 475 lines)
+      screenshot.rs (7.6KB, 286 lines)
+      select_option.rs (3.0KB, 110 lines)
+      tracing.rs (2.1KB, 94 lines)
+      web_socket.rs (7.4KB, 256 lines)
+    server/
+      channel.rs (5.2KB, 173 lines)
+      channel_owner.rs (13.2KB, 395 lines)
+      connection.rs (19.6KB, 611 lines)
+      driver.rs (10.1KB, 321 lines)
+      mod.rs (694B, 23 lines)
+      object_factory.rs (10.5KB, 311 lines)
+      playwright_server.rs (8.8KB, 258 lines)
+      transport/
+        mod.rs (1.1KB, 34 lines)
+        pipe.rs (5.3KB, 192 lines)
+        websocket.rs (6.4KB, 181 lines)
+  tests/
+    action_options_test.rs (8.5KB, 276 lines)
+    actions_test.rs (7.8KB, 264 lines)
+    add_init_script_test.rs (9.6KB, 350 lines)
+    add_style_tag_test.rs (10.6KB, 394 lines)
+    assertions_test.rs (8.4KB, 285 lines)
+    browser_context_integration.rs (1.6KB, 62 lines)
+    browser_context_options_test.rs (23.8KB, 771 lines)
+    browser_context_pages_test.rs (7.4KB, 237 lines)
+    browser_context_serialization_test.rs (2.1KB, 70 lines)
+    browser_creation.rs (2.8KB, 80 lines)
+    browser_install_error_test.rs (3.6KB, 107 lines)
+    browser_launch_integration.rs (7.0KB, 213 lines)
+    browser_type_connect_test.rs (8.2KB, 232 lines)
+    checkbox_test.rs (9.0KB, 316 lines)
+    click_options_test.rs (10.6KB, 349 lines)
+    common/
+      mod.rs (477B, 16 lines)
+    connection_integration.rs (9.0KB, 253 lines)
+    downloads_dialogs_test.rs (15.1KB, 504 lines)
+    element_handle_test.rs (7.5KB, 264 lines)
+    evaluate_test.rs (10.2KB, 363 lines)
+    file_payload_test.rs (1.4KB, 48 lines)
+    initialization_integration.rs (6.7KB, 185 lines)
+    keyboard_mouse_test.rs (9.1KB, 303 lines)
+    launch_persistent_context_test.rs (9.9KB, 290 lines)
+    locator_test.rs (7.4KB, 239 lines)
+    navigation_errors_test.rs (6.6KB, 209 lines)
+    network_route_comprehensive_test.rs (7.9KB, 291 lines)
+    network_route_cross_browser_test.rs (9.8KB, 342 lines)
+    network_route_pattern_test.rs (7.7KB, 257 lines)
+    network_route_test_simple.rs (2.6KB, 92 lines)
+    page_content_test.rs (6.7KB, 238 lines)
+    page_integration.rs (3.3KB, 122 lines)
+    page_navigation_test.rs (7.8KB, 237 lines)
+    page_set_viewport_size_test.rs (8.1KB, 284 lines)
+    page_url_hash_navigation_test.rs (7.5KB, 245 lines)
+    pause_test.rs (868B, 27 lines)
+    playwright_launch.rs (4.6KB, 126 lines)
+    playwright_version_test.rs (1.6KB, 49 lines)
+    remote_connection_test.rs (9.6KB, 327 lines)
+    route_continue_overrides_test.rs (8.2KB, 258 lines)
+    route_main_document_test.rs (12.0KB, 395 lines)
+    screenshot_options_test.rs (7.2KB, 231 lines)
+    screenshot_test.rs (6.4KB, 221 lines)
+    select_upload_test.rs (10.1KB, 295 lines)
+    set_checked_test.rs (9.6KB, 325 lines)
+    stability_error_quality_test.rs (13.9KB, 385 lines)
+    stability_memory_test.rs (12.5KB, 373 lines)
+    stability_resource_cleanup_test.rs (14.9KB, 476 lines)
+    stability_shutdown_recovery_test.rs (17.0KB, 527 lines)
+    state_assertions_test.rs (11.8KB, 405 lines)
+    storage_state_test.rs (2.3KB, 72 lines)
+    test_server.rs (15.5KB, 561 lines)
+    text_assertions_test.rs (9.0KB, 293 lines)
+    transport_chunked_reading.rs (9.0KB, 287 lines)
+    transport_integration.rs (5.8KB, 166 lines)
+    transport_websocket_test.rs (2.1KB, 73 lines)
+    windows_cleanup_test.rs (4.6KB, 148 lines)
+plwr.greger (502.5KB, 10902 lines)
+script/
+  install (2.8KB, 105 lines)
+src/
+  client.rs (3.0KB, 104 lines)
+  daemon.rs (23.2KB, 651 lines)
+  main.rs (18.8KB, 556 lines)
+  protocol.rs (3.4KB, 184 lines)
+  pw_ext.rs (5.4KB, 168 lines)
+target (excluded)
+test/
+  e2e/
+    _setup.txt (764B, 21 lines)
+    _teardown.txt (295B, 12 lines)
+    check.txt (2.1KB, 138 lines)
+    complex-selectors.txt (4.5KB, 338 lines)
+    cookie.txt (958B, 67 lines)
+    dblclick.txt (484B, 33 lines)
+    errors.txt (5.9KB, 311 lines)
+    eval.txt (923B, 69 lines)
+    fixture/
+      form.html (3.2KB, 90 lines)
+      index.html (188B, 10 lines)
+      selectors.html (2.3KB, 84 lines)
+      tree.html (179B, 10 lines)
+    focus-blur.txt (1.2KB, 80 lines)
+    header.txt (2.1KB, 130 lines)
+    hover.txt (528B, 33 lines)
+    inner-html.txt (618B, 41 lines)
+    input-files.txt (1.2KB, 65 lines)
+    input-value.txt (935B, 73 lines)
+    interaction.txt (443B, 38 lines)
+    navigation.txt (306B, 26 lines)
+    screenshot.txt (733B, 38 lines)
+    scroll.txt (893B, 46 lines)
+    select.txt (1.3KB, 98 lines)
+    selectors.txt (838B, 67 lines)
+    tree.txt (594B, 45 lines)
+    video.txt (1.9KB, 104 lines)
+    viewport.txt (501B, 32 lines)
+    wait-visibility.txt (1.2KB, 82 lines)
+todo.md (78B, 1 lines)
+wait-any.greger (13.2KB, 434 lines)
+
+</tool.toolu_01STUJN6XPvzPH7ZfoWDviq6>
+
+# TOOL USE
+
+Name: shell-command
+ID: toolu_01WuUJ7FypRc8qNeRE9fBAqV
+
+## command
+
+<tool.toolu_01WuUJ7FypRc8qNeRE9fBAqV>
+leta show wait /Users/ajansson/projects/plwr 2>&1
+</tool.toolu_01WuUJ7FypRc8qNeRE9fBAqV>
+
+# TOOL RESULT
+
+ID: toolu_01WuUJ7FypRc8qNeRE9fBAqV
+
+<tool.toolu_01WuUJ7FypRc8qNeRE9fBAqV>
+error: unexpected argument '/Users/ajansson/projects/plwr' found
+
+Usage: leta show [OPTIONS] <SYMBOL>
+
+For more information, try '--help'.
+Command failed with exit code 2
+</tool.toolu_01WuUJ7FypRc8qNeRE9fBAqV>
+
+# TOOL USE
+
+Name: shell-command
+ID: toolu_01LfAs9WCTggpBsuodunYadH
+
+## command
+
+<tool.toolu_01LfAs9WCTggpBsuodunYadH>
+cd /Users/ajansson/projects/plwr && leta grep "wait" -k function,method 2>&1
+</tool.toolu_01LfAs9WCTggpBsuodunYadH>
+
+## working-directory
+
+<tool.toolu_01LfAs9WCTggpBsuodunYadH>
+/Users/ajansson/projects/plwr
+</tool.toolu_01LfAs9WCTggpBsuodunYadH>
+
+# TOOL RESULT
+
+ID: toolu_01LfAs9WCTggpBsuodunYadH
+
+<tool.toolu_01LfAs9WCTggpBsuodunYadH>
+playwright-rs-local/src/protocol/click.rs:221 [Method] no_wait_after (fn(mut self, no_wait_after: bool) -> Self) in impl ClickOptionsBuilder
+playwright-rs-local/src/protocol/page.rs:1452 [Method] wait_until (fn(mut self, wait_until: WaitUntil) -> Self) in impl GotoOptions
+playwright-rs-local/src/server/connection.rs:473 [Method] wait_for_object (fn(&self, guid: &str) -> Result<Arc<dyn ChannelOwner>>) in impl Connection
+playwright-rs-local/tests/navigation_errors_test.rs:101 [Function] test_wait_until_options (fn())
+src/daemon.rs:586 [Function] wait_for_visible (fn(loc: &Locator, selector: &str, timeout: u64) -> Result<()>)
+
+</tool.toolu_01LfAs9WCTggpBsuodunYadH>
+
+# TOOL USE
+
+Name: read-file
+ID: toolu_01Xpw48EwMCeFpxoZus6bErR
+
+## path
+
+<tool.toolu_01Xpw48EwMCeFpxoZus6bErR>
+/Users/ajansson/projects/plwr/src/main.rs
+</tool.toolu_01Xpw48EwMCeFpxoZus6bErR>
+
+# TOOL RESULT
+
+ID: toolu_01Xpw48EwMCeFpxoZus6bErR
+
+<tool.toolu_01Xpw48EwMCeFpxoZus6bErR>
+mod client;
+mod daemon;
+mod protocol;
+mod pw_ext;
+
+use crate::protocol::Command;
+use clap::{Parser, Subcommand};
+use std::path::PathBuf;
+use std::process::ExitCode;
+
+#[derive(Parser)]
+#[command(
+    name = "plwr",
+    about = "Playwright CLI for browser automation using CSS selectors",
+    after_long_help = EXAMPLES,
+    after_help = "Use --help for examples",
+    disable_help_subcommand = true,
+    version,
+)]
+struct Cli {
+    /// Session name for parallel browser instances
+    #[arg(
+        short = 'S',
+        long,
+        global = true,
+        env = "PLWR_SESSION",
+        default_value = "default"
+    )]
+    session: String,
+
+    /// Timeout in milliseconds for wait/click/fill operations
+    #[arg(
+        short = 'T',
+        long,
+        global = true,
+        env = "PLWR_TIMEOUT",
+        default_value_t = 5000
+    )]
+    timeout: u64,
+
+    #[command(subcommand)]
+    command: Cmd,
+}
+
+const EXAMPLES: &str = "\x1b[1;4mExamples:\x1b[0m
+
+  Start the browser and navigate:
+    plwr start                           # start headless browser
+    plwr start --headed                  # start with visible window
+    plwr open https://example.com
+    plwr text h1                         # \"Example Domain\"
+    plwr attr a href                     # \"https://www.iana.org/...\"
+    plwr stop
+
+  Fill a form and submit:
+    plwr fill '#email' 'alice@test.com'
+    plwr fill '#password' 'hunter2'
+    plwr click 'button[type=submit]'
+    plwr wait '.dashboard'               # wait for redirect
+
+  When a selector matches multiple elements:
+    plwr click 'li.item >> nth=0'        # first match
+    plwr click 'li.item >> nth=2'        # third match
+    plwr text ':nth-match(li.item, 2)'   # alternative syntax
+
+  Chain with shell conditionals:
+    plwr exists '.cookie-banner' && plwr click '.accept-cookies'
+
+  Set headers for authenticated requests:
+    plwr header Authorization 'Bearer tok_xxx'
+    plwr open https://api.example.com/dashboard
+
+  Manage cookies:
+    plwr cookie session_id abc123
+    plwr cookie --list                   # show all as JSON
+    plwr cookie --clear
+
+  Run JavaScript:
+    plwr eval 'document.title'
+    plwr eval '({count: document.querySelectorAll(\"li\").length})'
+
+  Inspect the DOM:
+    plwr tree '.sidebar'                 # JSON tree of element
+    plwr count '.search-result'          # number of matches
+
+  Screenshot and video:
+    plwr screenshot --selector '.chart' --path chart.png
+    plwr video-start
+    plwr click '#run-demo'
+    plwr video-stop demo.mp4
+
+  Adjust viewport for responsive testing:
+    plwr viewport 375 667               # iPhone SE
+    plwr screenshot --path mobile.png
+    plwr viewport 1280 720              # desktop
+
+  Keyboard input:
+    plwr press Enter
+    plwr press Control+a                 # select all
+    plwr press Meta+c                    # copy (macOS)
+
+  Sessions — each session is an independent browser with its own
+  cookies, headers, and page state:
+    plwr -S admin start
+    plwr -S user start --headed
+    plwr -S admin open https://app.com/admin
+    plwr -S user open https://app.com/login
+    plwr -S user fill '#email' 'user@test.com'
+    plwr -S admin text '.active-users'   # check admin view
+    plwr -S admin stop
+    plwr -S user stop
+
+  Custom timeout:
+    plwr wait '.slow-element' -T 30000   # wait up to 30s
+
+\x1b[1;4mSelector reference:\x1b[0m
+
+  Playwright extends CSS selectors with extra features.
+
+  CSS selectors (all standard CSS works):
+    plwr click '#submit-btn'             # by id
+    plwr click '.btn.primary'            # compound class
+    plwr count 'input[type=email]'       # attribute match
+    plwr count 'input:checked'           # pseudo-class
+    plwr count 'input:disabled'          # form state
+    plwr count 'input:required'          # form validation
+    plwr count 'div:empty'              # empty elements
+    plwr click 'li:first-child'          # positional
+    plwr click 'li:last-child'           # positional
+    plwr count '#list > li'              # child combinator
+    plwr count 'h1 + p'                  # adjacent sibling
+    plwr count 'h1 ~ p'                  # general sibling
+    plwr count 'a[href^=/]'              # starts with
+    plwr count 'a[href$=.pdf]'           # ends with
+    plwr count 'a[href*=example]'        # contains
+    plwr count 'a[download]'             # has attribute
+    plwr click 'li:not(.done)'           # negation
+    plwr click '.card:has(img)'          # has descendant
+
+  Playwright extensions:
+    plwr click ':has-text(\"Sign in\")'    # contains text
+    plwr click 'text=Sign in'            # text shorthand
+    plwr click 'li.item >> nth=0'        # pick nth match
+    plwr click ':visible'                # only visible
+    plwr text 'tr:has-text(\"Bob\") >> td.status'
+                                         # chain with >>
+
+  Some CSS pseudo-classes need the css= prefix to avoid
+  Playwright's selector parser misinterpreting them:
+    plwr text 'css=span:last-of-type'         # ✓ works
+    plwr text 'span:last-of-type'             # ✗ misinterpreted
+    plwr text 'css=li:nth-of-type(2)'         # ✓ works
+    plwr text 'css=:is(.card, .sidebar)'      # ✓ works
+    plwr text 'css=[data-id=\"login\"]'         # ✓ quoted attrs
+
+  The css= prefix is needed for: :last-of-type, :first-of-type,
+  :nth-of-type(), :nth-last-child(), :is(), :where(),
+  and quoted attribute values [attr=\"val\"].
+
+  These work without the prefix: :nth-child(), :first-child,
+  :last-child, :not(), :has(), :empty, :checked, :disabled,
+  :enabled, :required, :visible, :has-text().
+
+\x1b[1;4mEnvironment variables:\x1b[0m
+
+  PLAYWRIGHT_HEADED    Show browser window (set to any value)
+  PLWR_SESSION         Default session name (default: \"default\")
+  PLWR_TIMEOUT         Default timeout in ms (default: 5000)";
+
+#[derive(Subcommand)]
+enum Cmd {
+    /// Start the browser session
+    Start {
+        /// Show the browser window
+        #[arg(long)]
+        headed: bool,
+    },
+    /// Stop the browser
+    Stop,
+
+    /// Navigate to a URL
+    Open { url: String },
+    /// Reload the current page
+    Reload,
+    /// Print the current page URL
+    Url,
+
+    /// Wait for a CSS selector to appear
+    Wait { selector: String },
+    /// Wait for a CSS selector to disappear
+    WaitNot { selector: String },
+
+    /// Click an element matching a CSS selector
+    Click { selector: String },
+    /// Fill text into an input matching a CSS selector
+    Fill { selector: String, text: String },
+
+    /// Press a keyboard key or chord (e.g. Enter, Escape, Control+c)
+    Press { key: String },
+
+    /// Exit 0 if selector exists, exit 1 if not (for && chaining)
+    Exists { selector: String },
+
+    /// Print the textContent of the first matching element
+    Text { selector: String },
+    /// Print the value of an attribute on the first matching element
+    Attr { selector: String, name: String },
+
+    /// Print the number of elements matching a CSS selector
+    Count { selector: String },
+
+    /// Set a cookie (use --list to show all, --clear to remove all)
+    Cookie {
+        /// Cookie name (omit for --list or --clear)
+        name: Option<String>,
+        /// Cookie value
+        value: Option<String>,
+        /// URL the cookie applies to (defaults to current page URL)
+        #[arg(long)]
+        url: Option<String>,
+        /// List all cookies as JSON
+        #[arg(long)]
+        list: bool,
+        /// Clear all cookies
+        #[arg(long)]
+        clear: bool,
+    },
+
+    /// Set the browser viewport size
+    Viewport {
+        /// Width in pixels
+        width: u32,
+        /// Height in pixels
+        height: u32,
+    },
+
+    /// Set an extra HTTP header sent with every request (use --clear to remove all)
+    Header {
+        /// Header name (omit to clear all headers)
+        name: Option<String>,
+        /// Header value
+        value: Option<String>,
+        /// Clear all extra headers
+        #[arg(long)]
+        clear: bool,
+    },
+
+    /// Set files on a file input element (e.g. for upload)
+    InputFiles {
+        /// CSS selector for the file input
+        selector: String,
+        /// File paths to set (omit to clear)
+        #[arg(trailing_var_arg = true)]
+        paths: Vec<String>,
+    },
+
+    /// Select option(s) in a <select> element by value
+    Select {
+        /// CSS selector for the <select> element
+        selector: String,
+        /// Option values to select
+        #[arg(required = true)]
+        values: Vec<String>,
+        /// Match by visible label text instead of value attribute
+        #[arg(long)]
+        label: bool,
+    },
+
+    /// Hover over an element matching a CSS selector
+    Hover { selector: String },
+
+    /// Check a checkbox or radio button
+    Check { selector: String },
+    /// Uncheck a checkbox
+    Uncheck { selector: String },
+
+    /// Double-click an element matching a CSS selector
+    Dblclick { selector: String },
+
+    /// Focus an element matching a CSS selector
+    Focus { selector: String },
+    /// Blur (unfocus) an element matching a CSS selector
+    Blur { selector: String },
+
+    /// Print the innerHTML of the first matching element
+    InnerHtml { selector: String },
+
+    /// Print the value of an input, textarea, or select element
+    InputValue { selector: String },
+
+    /// Scroll an element into view
+    Scroll { selector: String },
+
+    /// Evaluate arbitrary JavaScript in page context, print the result
+    Eval { js: String },
+
+    /// Take a screenshot (optionally of a specific element)
+    Screenshot {
+        #[arg(long)]
+        selector: Option<String>,
+        #[arg(long, default_value = "screenshot.png")]
+        path: String,
+    },
+
+    /// Dump the DOM tree as JSON (optionally rooted at a selector)
+    Tree {
+        /// CSS selector to use as root
+        selector: Option<String>,
+    },
+
+    /// Start video recording
+    VideoStart {
+        /// Directory to store raw video files
+        #[arg(long, default_value = ".plwr-video")]
+        dir: String,
+    },
+    /// Stop video recording and save the file
+    VideoStop {
+        /// Output file path (.mp4, .webm, .gif, etc.). Omit to leave raw .webm in video dir.
+        output: Option<String>,
+    },
+
+    /// Internal: run the browser daemon (not for direct use)
+    #[command(hide = true)]
+    Daemon,
+}
+
+fn socket_path(session: &str) -> PathBuf {
+    let dir = std::env::temp_dir().join("plwr");
+    std::fs::create_dir_all(&dir).ok();
+    dir.join(format!("{}.sock", session))
+}
+
+#[tokio::main]
+async fn main() -> ExitCode {
+    let cli = Cli::parse();
+    let sock = socket_path(&cli.session);
+
+    match cli.command {
+        Cmd::Daemon => {
+            let headed = std::env::var("PLAYWRIGHT_HEADED").is_ok_and(|v| !v.is_empty());
+            match daemon::run(&sock, headed).await {
+                Ok(()) => ExitCode::SUCCESS,
+                Err(e) => {
+                    std::fs::remove_file(&sock).ok();
+                    eprintln!("{}", e);
+                    ExitCode::FAILURE
+                }
+            }
+        }
+
+        Cmd::Start { headed } => {
+            let headed = headed || std::env::var("PLAYWRIGHT_HEADED").is_ok_and(|v| !v.is_empty());
+            match client::ensure_started(&sock, headed).await {
+                Ok(()) => {
+                    println!("Started session '{}'", cli.session);
+                    ExitCode::SUCCESS
+                }
+                Err(e) => {
+                    eprintln!("{}", e);
+                    ExitCode::FAILURE
+                }
+            }
+        }
+
+        Cmd::Stop => match client::send_if_running(&sock, Command::Stop).await {
+            Ok(Some(_)) => {
+                println!("Stopped session '{}'", cli.session);
+                ExitCode::SUCCESS
+            }
+            Ok(None) => {
+                println!("No session '{}' running", cli.session);
+                ExitCode::SUCCESS
+            }
+            Err(e) => {
+                eprintln!("{}", e);
+                ExitCode::FAILURE
+            }
+        },
+
+        cmd => {
+            let command = match cmd {
+                Cmd::Daemon | Cmd::Stop | Cmd::Start { .. } => unreachable!(),
+                Cmd::Open { url } => Command::Open { url, timeout: cli.timeout },
+                Cmd::Reload => Command::Reload,
+                Cmd::Url => Command::Url,
+                Cmd::Wait { selector } => Command::Wait {
+                    selector,
+                    timeout: cli.timeout,
+                },
+                Cmd::WaitNot { selector } => Command::WaitNot {
+                    selector,
+                    timeout: cli.timeout,
+                },
+                Cmd::Click { selector } => Command::Click {
+                    selector,
+                    timeout: cli.timeout,
+                },
+                Cmd::Fill { selector, text } => Command::Fill {
+                    selector,
+                    text,
+                    timeout: cli.timeout,
+                },
+                Cmd::Press { key } => Command::Press { key },
+                Cmd::Exists { selector } => Command::Exists { selector },
+                Cmd::Cookie { list: true, .. } => Command::CookieList,
+                Cmd::Cookie { clear: true, .. } => Command::CookieClear,
+                Cmd::Cookie {
+                    name: Some(name),
+                    value: Some(value),
+                    url,
+                    ..
+                } => {
+                    let url = url.unwrap_or_default();
+                    Command::Cookie { name, value, url }
+                }
+                Cmd::Cookie {
+                    name: Some(name),
+                    value: None,
+                    ..
+                } => {
+                    eprintln!("Usage: plwr cookie <name> <value> [--url <url>], plwr cookie --list, or plwr cookie --clear");
+                    eprintln!("Missing value for cookie '{}'", name);
+                    return ExitCode::FAILURE;
+                }
+                Cmd::Cookie { .. } => {
+                    eprintln!("Usage: plwr cookie <name> <value> [--url <url>], plwr cookie --list, or plwr cookie --clear");
+                    return ExitCode::FAILURE;
+                }
+                Cmd::Viewport { width, height } => Command::Viewport { width, height },
+                Cmd::Header { clear: true, .. } => Command::HeaderClear,
+                Cmd::Header {
+                    name: Some(name),
+                    value: Some(value),
+                    ..
+                } => Command::Header { name, value },
+                Cmd::Header {
+                    name: Some(name),
+                    value: None,
+                    ..
+                } => {
+                    eprintln!("Usage: plwr header <name> <value> or plwr header --clear");
+                    eprintln!("Missing value for header '{}'", name);
+                    return ExitCode::FAILURE;
+                }
+                Cmd::Header { name: None, .. } => {
+                    eprintln!("Usage: plwr header <name> <value> or plwr header --clear");
+                    return ExitCode::FAILURE;
+                }
+                Cmd::Text { selector } => Command::Text {
+                    selector,
+                    timeout: cli.timeout,
+                },
+                Cmd::Attr { selector, name } => Command::Attr {
+                    selector,
+                    name,
+                    timeout: cli.timeout,
+                },
+                Cmd::Count { selector } => Command::Count { selector },
+                Cmd::InputFiles { selector, paths } => Command::InputFiles {
+                    selector,
+                    paths,
+                    timeout: cli.timeout,
+                },
+                Cmd::Select {
+                    selector,
+                    values,
+                    label,
+                } => Command::Select {
+                    selector,
+                    values,
+                    by_label: label,
+                    timeout: cli.timeout,
+                },
+                Cmd::Hover { selector } => Command::Hover {
+                    selector,
+                    timeout: cli.timeout,
+                },
+                Cmd::Check { selector } => Command::Check {
+                    selector,
+                    timeout: cli.timeout,
+                },
+                Cmd::Uncheck { selector } => Command::Uncheck {
+                    selector,
+                    timeout: cli.timeout,
+                },
+                Cmd::Dblclick { selector } => Command::Dblclick {
+                    selector,
+                    timeout: cli.timeout,
+                },
+                Cmd::Focus { selector } => Command::Focus {
+                    selector,
+                    timeout: cli.timeout,
+                },
+                Cmd::Blur { selector } => Command::Blur {
+                    selector,
+                    timeout: cli.timeout,
+                },
+                Cmd::InnerHtml { selector } => Command::InnerHtml {
+                    selector,
+                    timeout: cli.timeout,
+                },
+                Cmd::InputValue { selector } => Command::InputValue {
+                    selector,
+                    timeout: cli.timeout,
+                },
+                Cmd::Scroll { selector } => Command::ScrollIntoView {
+                    selector,
+                    timeout: cli.timeout,
+                },
+                Cmd::Eval { js } => Command::Eval { js },
+                Cmd::Screenshot { selector, path } => Command::Screenshot {
+                    selector,
+                    path,
+                    timeout: cli.timeout,
+                },
+                Cmd::Tree { selector } => Command::Tree {
+                    selector,
+                    timeout: cli.timeout,
+                },
+                Cmd::VideoStart { dir } => Command::VideoStart { dir },
+                Cmd::VideoStop { output } => Command::VideoStop { output },
+
+            };
+
+            match client::send(&sock, command).await {
+                Ok(resp) => {
+                    if resp.ok {
+                        if let Some(value) = resp.value {
+                            match value {
+                                serde_json::Value::String(s) => println!("{}", s),
+                                serde_json::Value::Bool(b) => {
+                                    if !b {
+                                        return ExitCode::FAILURE;
+                                    }
+                                }
+                                serde_json::Value::Null => {}
+                                other => {
+                                    println!("{}", serde_json::to_string_pretty(&other).unwrap())
+                                }
+                            }
+                        }
+                        ExitCode::SUCCESS
+                    } else {
+                        eprintln!("{}", resp.error.unwrap_or_else(|| "Unknown error".into()));
+                        ExitCode::FAILURE
+                    }
+                }
+                Err(e) => {
+                    eprintln!("{}", e);
+                    ExitCode::FAILURE
+                }
+            }
+        }
+    }
+}
+</tool.toolu_01Xpw48EwMCeFpxoZus6bErR>
+
+# TOOL USE
+
+Name: read-file
+ID: toolu_01LQchUS9teRf3BTysrqwFVw
+
+## path
+
+<tool.toolu_01LQchUS9teRf3BTysrqwFVw>
+/Users/ajansson/projects/plwr/src/protocol.rs
+</tool.toolu_01LQchUS9teRf3BTysrqwFVw>
+
+# TOOL RESULT
+
+ID: toolu_01LQchUS9teRf3BTysrqwFVw
+
+<tool.toolu_01LQchUS9teRf3BTysrqwFVw>
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Request {
+    pub command: Command,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(tag = "type", rename_all = "snake_case")]
+pub enum Command {
+    Open {
+        url: String,
+        timeout: u64,
+    },
+    Reload,
+    Url,
+    Wait {
+        selector: String,
+        timeout: u64,
+    },
+    WaitNot {
+        selector: String,
+        timeout: u64,
+    },
+    Click {
+        selector: String,
+        timeout: u64,
+    },
+    Fill {
+        selector: String,
+        text: String,
+        timeout: u64,
+    },
+    Press {
+        key: String,
+    },
+    Exists {
+        selector: String,
+    },
+    Text {
+        selector: String,
+        timeout: u64,
+    },
+    Attr {
+        selector: String,
+        name: String,
+        timeout: u64,
+    },
+    Count {
+        selector: String,
+    },
+    Eval {
+        js: String,
+    },
+    Screenshot {
+        selector: Option<String>,
+        path: String,
+        timeout: u64,
+    },
+    Tree {
+        selector: Option<String>,
+        timeout: u64,
+    },
+    Header {
+        name: String,
+        value: String,
+    },
+    HeaderClear,
+    Cookie {
+        name: String,
+        value: String,
+        url: String,
+    },
+    CookieList,
+    CookieClear,
+    Viewport {
+        width: u32,
+        height: u32,
+    },
+    InputFiles {
+        selector: String,
+        paths: Vec<String>,
+        timeout: u64,
+    },
+    Select {
+        selector: String,
+        values: Vec<String>,
+        by_label: bool,
+        timeout: u64,
+    },
+    Hover {
+        selector: String,
+        timeout: u64,
+    },
+    Check {
+        selector: String,
+        timeout: u64,
+    },
+    Uncheck {
+        selector: String,
+        timeout: u64,
+    },
+    Dblclick {
+        selector: String,
+        timeout: u64,
+    },
+    Focus {
+        selector: String,
+        timeout: u64,
+    },
+    Blur {
+        selector: String,
+        timeout: u64,
+    },
+    InnerHtml {
+        selector: String,
+        timeout: u64,
+    },
+    InputValue {
+        selector: String,
+        timeout: u64,
+    },
+    ScrollIntoView {
+        selector: String,
+        timeout: u64,
+    },
+    VideoStart {
+        dir: String,
+    },
+    VideoStop {
+        output: Option<String>,
+    },
+    Stop,
+}
+
+impl Command {
+    pub fn requires_page(&self) -> bool {
+        !matches!(
+            self,
+            Command::Open { .. }
+                | Command::Stop
+                | Command::Header { .. }
+                | Command::HeaderClear
+                | Command::Viewport { .. }
+                | Command::VideoStart { .. }
+                | Command::VideoStop { .. }
+        )
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Response {
+    pub ok: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub value: Option<serde_json::Value>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub error: Option<String>,
+}
+
+impl Response {
+    pub fn ok_empty() -> Self {
+        Self {
+            ok: true,
+            value: None,
+            error: None,
+        }
+    }
+
+    pub fn ok_value(value: serde_json::Value) -> Self {
+        Self {
+            ok: true,
+            value: Some(value),
+            error: None,
+        }
+    }
+
+    pub fn err(msg: String) -> Self {
+        Self {
+            ok: false,
+            value: None,
+            error: Some(msg),
+        }
+    }
+}
+</tool.toolu_01LQchUS9teRf3BTysrqwFVw>
+
+# TOOL USE
+
+Name: read-file
+ID: toolu_01998frDvETCSByjDY9LpgGd
+
+## path
+
+<tool.toolu_01998frDvETCSByjDY9LpgGd>
+/Users/ajansson/projects/plwr/src/daemon.rs
+</tool.toolu_01998frDvETCSByjDY9LpgGd>
+
+# TOOL RESULT
+
+ID: toolu_01998frDvETCSByjDY9LpgGd
+
+<tool.toolu_01998frDvETCSByjDY9LpgGd>
+use crate::protocol::{Command, Request, Response};
+use crate::pw_ext;
+use anyhow::Result;
+use playwright_rs::{
+    CheckOptions, ClickOptions, FillOptions, HoverOptions, LaunchOptions, Locator, Page,
+    Playwright, SelectOption, SelectOptions,
+};
+use std::collections::HashMap;
+use std::path::Path;
+use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
+use tokio::net::UnixListener;
+
+const READY_SIGNAL: &str = "### ready";
+const ERROR_PREFIX: &str = "### error ";
+const CHANNEL_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(30);
+
+struct State {
+    _playwright: Playwright,
+    _browser: playwright_rs::Browser,
+    page: Page,
+    page_opened: bool,
+    headers: HashMap<String, String>,
+    video_artifact_guid: Option<String>,
+}
+
+pub async fn run(socket_path: &Path, headed: bool) -> Result<()> {
+    // Ignore SIGPIPE — stdout is a pipe from the parent process that
+    // closes after reading the ready signal. Any later stdout write
+    // (e.g. from Playwright internals) must not kill us.
+    unsafe {
+        libc::signal(libc::SIGPIPE, libc::SIG_IGN);
+    }
+
+    if socket_path.exists() {
+        std::fs::remove_file(socket_path)?;
+    }
+
+    let playwright = match Playwright::launch().await {
+        Ok(p) => p,
+        Err(e) => {
+            println!("{}{}", ERROR_PREFIX, e);
+            return Err(e.into());
+        }
+    };
+    let browser = match playwright
+        .chromium()
+        .launch_with_options(LaunchOptions {
+            headless: Some(!headed),
+            ..Default::default()
+        })
+        .await
+    {
+        Ok(b) => b,
+        Err(e) => {
+            println!("{}{}", ERROR_PREFIX, e);
+            return Err(e.into());
+        }
+    };
+    let page = match browser.new_page().await {
+        Ok(p) => p,
+        Err(e) => {
+            println!("{}{}", ERROR_PREFIX, e);
+            return Err(e.into());
+        }
+    };
+    let listener = match UnixListener::bind(socket_path) {
+        Ok(l) => l,
+        Err(e) => {
+            println!("{}{}", ERROR_PREFIX, e);
+            return Err(e.into());
+        }
+    };
+
+    println!("{}", READY_SIGNAL);
+
+    let mut state = State {
+        _playwright: playwright,
+        _browser: browser,
+        page,
+        page_opened: false,
+        headers: HashMap::new(),
+        video_artifact_guid: None,
+    };
+
+    loop {
+        let (stream, _) = listener.accept().await?;
+
+        let resp = async {
+            let (reader, mut writer) = stream.into_split();
+            let mut reader = BufReader::new(reader);
+            let mut line = String::new();
+            reader.read_line(&mut line).await?;
+
+            let req: Request = serde_json::from_str(&line)?;
+            let is_stop = matches!(req.command, Command::Stop);
+            let resp = if !state.page_opened && req.command.requires_page() {
+                Response::err("No page open. Use 'plwr open <url>' first.".to_string())
+            } else {
+                handle_command(&mut state, req.command)
+                    .await
+                    .unwrap_or_else(|e| Response::err(clean_error(e)))
+            };
+
+            let mut buf = serde_json::to_vec(&resp)?;
+            buf.push(b'\n');
+            writer.write_all(&buf).await?;
+
+            Ok::<bool, anyhow::Error>(is_stop)
+        }
+        .await;
+
+        match resp {
+            Ok(true) => break,
+            Ok(false) => {}
+            Err(e) => eprintln!("connection error: {}", e),
+        }
+    }
+
+    if socket_path.exists() {
+        std::fs::remove_file(socket_path)?;
+    }
+
+    Ok(())
+}
+
+async fn handle_command(state: &mut State, command: Command) -> Result<Response> {
+    // Handle commands that mutate state before borrowing the page
+    match command {
+        Command::Open { url, timeout } => {
+            state.page.goto(&url, Some(playwright_rs::GotoOptions {
+                timeout: Some(std::time::Duration::from_millis(timeout)),
+                wait_until: None,
+            })).await?;
+            state.page_opened = true;
+            return Ok(Response::ok_empty());
+        }
+        Command::Header { name, value } => {
+            state.headers.insert(name, value);
+            let ctx = &state.page.context()?;
+            pw_ext::set_extra_http_headers(&ctx, state.headers.clone()).await?;
+            return Ok(Response::ok_empty());
+        }
+        Command::HeaderClear => {
+            state.headers.clear();
+            let ctx = &state.page.context()?;
+            pw_ext::set_extra_http_headers(&ctx, HashMap::new()).await?;
+            return Ok(Response::ok_empty());
+        }
+        Command::Cookie { name, value, url } => {
+            let ctx = state.page.context()?;
+            let url = if url.is_empty() {
+                state.page.url()
+            } else {
+                url
+            };
+            pw_ext::add_cookie(&ctx, name, value, url).await?;
+            return Ok(Response::ok_empty());
+        }
+        Command::CookieList => {
+            let ctx = &state.page.context()?;
+            let cookies = pw_ext::get_cookies(&ctx).await?;
+            let json: Vec<serde_json::Value> = cookies
+                .iter()
+                .map(|c| {
+                    serde_json::json!({
+                        "name": c.name,
+                        "value": c.value,
+                        "domain": c.domain,
+                        "path": c.path,
+                        "expires": c.expires,
+                        "httpOnly": c.http_only,
+                        "secure": c.secure,
+                        "sameSite": c.same_site,
+                    })
+                })
+                .collect();
+            return Ok(Response::ok_value(serde_json::Value::Array(json)));
+        }
+        Command::CookieClear => {
+            let ctx = &state.page.context()?;
+            pw_ext::clear_cookies(&ctx).await?;
+            return Ok(Response::ok_empty());
+        }
+        Command::Viewport { width, height } => {
+            state
+                .page
+                .set_viewport_size(playwright_rs::Viewport { width, height })
+                .await?;
+            return Ok(Response::ok_empty());
+        }
+        _ => {}
+    }
+
+    let page = &state.page;
+
+    match command {
+        Command::Stop => Ok(Response::ok_empty()),
+
+        Command::Reload => {
+            page.reload(None).await?;
+            Ok(Response::ok_empty())
+        }
+
+        Command::Url => Ok(Response::ok_value(serde_json::Value::String(page.url()))),
+
+        Command::Wait { selector, timeout } => {
+            let loc = page.locator(&selector).await;
+            wait_for_visible(&loc, &selector, timeout).await?;
+            Ok(Response::ok_empty())
+        }
+
+        Command::WaitNot { selector, timeout } => {
+            let loc = page.locator(&selector).await;
+            let start = std::time::Instant::now();
+            loop {
+                let n = loc.count().await?;
+                if n == 0 {
+                    return Ok(Response::ok_empty());
+                }
+                if start.elapsed().as_millis() as u64 > timeout {
+                    anyhow::bail!("Timeout waiting for '{}' to disappear", selector);
+                }
+                tokio::time::sleep(std::time::Duration::from_millis(100)).await;
+            }
+        }
+
+        Command::Click { selector, timeout } => {
+            let loc = page.locator(&selector).await;
+            loc.click(Some(ClickOptions {
+                timeout: Some(timeout as f64),
+                ..Default::default()
+            }))
+            .await?;
+            Ok(Response::ok_empty())
+        }
+
+        Command::Fill {
+            selector,
+            text,
+            timeout,
+        } => {
+            let loc = page.locator(&selector).await;
+            loc.fill(
+                &text,
+                Some(FillOptions {
+                    timeout: Some(timeout as f64),
+                    ..Default::default()
+                }),
+            )
+            .await?;
+            Ok(Response::ok_empty())
+        }
+
+        Command::Press { key } => match page.keyboard().press(&key, None).await {
+            Ok(()) => Ok(Response::ok_empty()),
+            Err(e) => {
+                let msg = clean_error(anyhow::anyhow!(e));
+                if msg.contains("Unknown key") {
+                    Ok(Response::err(format!(
+                        "{msg}\n\n\
+                            Valid keys: a-z A-Z 0-9, \
+                            Backspace Tab Enter Escape Space Delete Insert, \
+                            ArrowUp ArrowDown ArrowLeft ArrowRight Home End PageUp PageDown, \
+                            F1-F12, Control Shift Alt Meta, \
+                            any US keyboard character: !@#$%^&*()_+-=[]{{}}\\|;':\",./<>?`~\n\
+                            Chords: Control+c, Shift+Enter, Alt+Tab, Meta+a"
+                    )))
+                } else {
+                    Ok(Response::err(msg))
+                }
+            }
+        },
+
+        Command::Exists { selector } => {
+            let loc = page.locator(&selector).await;
+            let n = tokio::time::timeout(CHANNEL_TIMEOUT, loc.count())
+                .await
+                .map_err(|_| {
+                    anyhow::anyhow!(
+                        "Timeout waiting for Playwright response. [selector: {}]",
+                        selector
+                    )
+                })??;
+            Ok(Response::ok_value(serde_json::Value::Bool(n > 0)))
+        }
+
+        Command::Text { selector, timeout } => {
+            let loc = page.locator(&selector).await;
+            wait_for_visible(&loc, &selector, timeout).await?;
+            let text = loc.text_content().await?.unwrap_or_default();
+            Ok(Response::ok_value(serde_json::Value::String(text)))
+        }
+
+        Command::Attr {
+            selector,
+            name,
+            timeout,
+        } => {
+            let loc = page.locator(&selector).await;
+            wait_for_visible(&loc, &selector, timeout).await?;
+            match loc.get_attribute(&name).await? {
+                Some(val) => Ok(Response::ok_value(serde_json::Value::String(val))),
+                None => Ok(Response::ok_value(serde_json::Value::Null)),
+            }
+        }
+
+        Command::Count { selector } => {
+            let loc = page.locator(&selector).await;
+            let n = tokio::time::timeout(CHANNEL_TIMEOUT, loc.count())
+                .await
+                .map_err(|_| {
+                    anyhow::anyhow!(
+                        "Timeout waiting for Playwright response. [selector: {}]",
+                        selector
+                    )
+                })??;
+            Ok(Response::ok_value(serde_json::json!(n)))
+        }
+
+        Command::InputFiles {
+            selector, paths, ..
+        } => {
+            let loc = page.locator(&selector).await;
+            if paths.is_empty() {
+                loc.set_input_files_multiple(&[], None).await?;
+            } else {
+                let pathbufs: Vec<std::path::PathBuf> =
+                    paths.iter().map(std::path::PathBuf::from).collect();
+                let refs: Vec<&std::path::PathBuf> = pathbufs.iter().collect();
+                loc.set_input_files_multiple(&refs, None).await?;
+            }
+            Ok(Response::ok_empty())
+        }
+
+        Command::Select {
+            selector,
+            values,
+            by_label,
+            timeout,
+        } => {
+            let loc = page.locator(&selector).await;
+            let opts = Some(SelectOptions {
+                timeout: Some(timeout as f64),
+                ..Default::default()
+            });
+            let select_values: Vec<SelectOption> = values
+                .into_iter()
+                .map(|v| {
+                    if by_label {
+                        SelectOption::Label(v)
+                    } else {
+                        SelectOption::Value(v)
+                    }
+                })
+                .collect();
+            if select_values.len() == 1 {
+                loc.select_option(select_values.into_iter().next().unwrap(), opts)
+                    .await?;
+            } else {
+                loc.select_option_multiple(&select_values, opts).await?;
+            }
+            Ok(Response::ok_empty())
+        }
+
+        Command::Hover { selector, timeout } => {
+            let loc = page.locator(&selector).await;
+            loc.hover(Some(HoverOptions {
+                timeout: Some(timeout as f64),
+                ..Default::default()
+            }))
+            .await?;
+            Ok(Response::ok_empty())
+        }
+
+        Command::Check { selector, timeout } => {
+            let loc = page.locator(&selector).await;
+            loc.check(Some(CheckOptions {
+                timeout: Some(timeout as f64),
+                ..Default::default()
+            }))
+            .await?;
+            Ok(Response::ok_empty())
+        }
+
+        Command::Uncheck { selector, timeout } => {
+            let loc = page.locator(&selector).await;
+            loc.uncheck(Some(CheckOptions {
+                timeout: Some(timeout as f64),
+                ..Default::default()
+            }))
+            .await?;
+            Ok(Response::ok_empty())
+        }
+
+        Command::Dblclick { selector, timeout } => {
+            let loc = page.locator(&selector).await;
+            loc.dblclick(Some(ClickOptions {
+                timeout: Some(timeout as f64),
+                ..Default::default()
+            }))
+            .await?;
+            Ok(Response::ok_empty())
+        }
+
+        Command::Focus { selector, timeout } => {
+            let loc = page.locator(&selector).await;
+            wait_for_visible(&loc, &selector, timeout).await?;
+            loc.click(Some(ClickOptions {
+                trial: Some(true),
+                timeout: Some(timeout as f64),
+                ..Default::default()
+            }))
+            .await?;
+            pw_ext::locator_focus(page, &selector).await?;
+            Ok(Response::ok_empty())
+        }
+
+        Command::Blur { selector, timeout } => {
+            let loc = page.locator(&selector).await;
+            wait_for_visible(&loc, &selector, timeout).await?;
+            pw_ext::locator_blur(page, &selector).await?;
+            Ok(Response::ok_empty())
+        }
+
+        Command::InnerHtml { selector, timeout } => {
+            let loc = page.locator(&selector).await;
+            wait_for_visible(&loc, &selector, timeout).await?;
+            let html = loc.inner_html().await?;
+            Ok(Response::ok_value(serde_json::Value::String(html)))
+        }
+
+        Command::InputValue { selector, timeout } => {
+            let loc = page.locator(&selector).await;
+            wait_for_visible(&loc, &selector, timeout).await?;
+            let val = loc.input_value(None).await?;
+            Ok(Response::ok_value(serde_json::Value::String(val)))
+        }
+
+        Command::ScrollIntoView { selector, timeout } => {
+            let loc = page.locator(&selector).await;
+            wait_for_visible(&loc, &selector, timeout).await?;
+            pw_ext::locator_scroll_into_view(page, &selector).await?;
+            Ok(Response::ok_empty())
+        }
+
+        Command::Eval { js } => {
+            let wrapper = format!(
+                "() => {{ const __r = ({}); return typeof __r === 'object' ? JSON.stringify(__r) : __r; }}",
+                js
+            );
+            let val = pw_ext::page_evaluate_value(page, &wrapper).await?;
+            match serde_json::from_str::<serde_json::Value>(&val) {
+                Ok(serde_json::Value::String(s)) => {
+                    match serde_json::from_str::<serde_json::Value>(&s) {
+                        Ok(v @ serde_json::Value::Object(_))
+                        | Ok(v @ serde_json::Value::Array(_)) => Ok(Response::ok_value(v)),
+                        _ => Ok(Response::ok_value(serde_json::Value::String(s))),
+                    }
+                }
+                Ok(v) => Ok(Response::ok_value(v)),
+                Err(_) => Ok(Response::ok_value(serde_json::Value::String(val))),
+            }
+        }
+
+        Command::Screenshot { selector, path, .. } => {
+            let bytes = match &selector {
+                Some(sel) => {
+                    let loc = page.locator(sel).await;
+                    loc.screenshot(None).await?
+                }
+                None => page.screenshot(None).await?,
+            };
+            std::fs::write(&path, &bytes)?;
+            Ok(Response::ok_value(serde_json::Value::String(format!(
+                "Saved {} bytes to {}",
+                bytes.len(),
+                path
+            ))))
+        }
+
+        Command::Tree { selector, .. } => {
+            let walk_js = r#"el => {
+                function walk(el) {
+                    const node = { tag: el.tagName ? el.tagName.toLowerCase() : '#text' };
+                    if (el.id) node.id = el.id;
+                    if (el.className && typeof el.className === 'string' && el.className.trim())
+                        node.class = el.className.trim().split(/\s+/);
+                    if (el.attributes) {
+                        const attrs = {};
+                        for (const a of el.attributes) {
+                            if (a.name !== 'id' && a.name !== 'class' && !a.name.startsWith('data-plwr'))
+                                attrs[a.name] = a.value;
+                        }
+                        if (Object.keys(attrs).length > 0) node.attrs = attrs;
+                    }
+                    const text = Array.from(el.childNodes)
+                        .filter(n => n.nodeType === 3)
+                        .map(n => n.textContent.trim())
+                        .filter(t => t)
+                        .join(' ');
+                    if (text) node.text = text;
+                    const children = Array.from(el.children).map(walk);
+                    if (children.length > 0) node.children = children;
+                    return node;
+                }
+                return JSON.stringify(walk(el));
+            }"#;
+            let sel = selector.as_deref().unwrap_or("html");
+            let val = pw_ext::locator_eval_on_selector(page, sel, walk_js).await?;
+            let json_str: String = serde_json::from_str(&val).unwrap_or(val);
+            let tree: serde_json::Value = serde_json::from_str(&json_str)?;
+            Ok(Response::ok_value(tree))
+        }
+
+        Command::Open { .. }
+        | Command::Header { .. }
+        | Command::HeaderClear
+        | Command::Cookie { .. }
+        | Command::CookieList
+        | Command::CookieClear
+        | Command::Viewport { .. } => unreachable!(),
+
+        Command::VideoStart { dir } => {
+            std::fs::create_dir_all(&dir)?;
+            let guid = pw_ext::page_video_start(&state.page).await?;
+            state.video_artifact_guid = Some(guid);
+            Ok(Response::ok_value(serde_json::Value::String(format!(
+                "Video recording started (dir: {})", dir
+            ))))
+        }
+
+        Command::VideoStop { output } => {
+            if let Some(guid) = state.video_artifact_guid.take() {
+                match output {
+                    Some(output) => {
+                        let webm_path = if output.ends_with(".webm") {
+                            output.clone()
+                        } else {
+                            format!("{}.webm", output.trim_end_matches(|c: char| c == '.'))
+                        };
+                        pw_ext::page_video_stop_and_save(
+                            &state.page,
+                            &guid,
+                            &webm_path,
+                        )
+                        .await?;
+
+                        if output.ends_with(".webm") {
+                            Ok(Response::ok_value(serde_json::Value::String(format!(
+                                "Saved recording to {}",
+                                output
+                            ))))
+                        } else {
+                            let status = std::process::Command::new("ffmpeg")
+                                .args(["-y", "-i"])
+                                .arg(&webm_path)
+                                .arg(&output)
+                                .stdout(std::process::Stdio::null())
+                                .stderr(std::process::Stdio::null())
+                                .status()?;
+                            std::fs::remove_file(&webm_path).ok();
+                            if status.success() {
+                                Ok(Response::ok_value(serde_json::Value::String(format!(
+                                    "Saved recording to {}",
+                                    output
+                                ))))
+                            } else {
+                                Ok(Response::err(format!("ffmpeg exited with {}", status)))
+                            }
+                        }
+                    }
+                    None => {
+                        pw_ext::page_video_stop(&state.page).await?;
+                        Ok(Response::ok_value(serde_json::Value::String(
+                            "Video stopped.".to_string()
+                        )))
+                    }
+                }
+            } else {
+                Ok(Response::err("No video recording in progress".to_string()))
+            }
+        }
+    }
+}
+
+async fn wait_for_visible(loc: &Locator, selector: &str, timeout: u64) -> Result<()> {
+    let start = std::time::Instant::now();
+    loop {
+        let n = loc.count().await?;
+        if n > 0 && loc.first().is_visible().await? {
+            return Ok(());
+        }
+        if start.elapsed().as_millis() as u64 > timeout {
+            anyhow::bail!("Timeout {}ms exceeded. [selector: {}]", timeout, selector);
+        }
+        tokio::time::sleep(std::time::Duration::from_millis(50)).await;
+    }
+}
+
+fn clean_error(e: anyhow::Error) -> String {
+    let msg = e.to_string();
+
+    // Extract [selector: ...] suffix before stripping (it may be at the very end,
+    // after stack traces that we're about to remove)
+    let selector_suffix = msg
+        .rfind("[selector: ")
+        .map(|i| &msg[i..])
+        .and_then(|s| s.find(']').map(|j| &s[..=j]))
+        .unwrap_or("");
+
+    // Strip stack traces: everything after " \n " (Playwright appends " \n stack")
+    let msg = msg.split(" \n ").next().unwrap_or(&msg);
+    // Also strip lines starting with "    at " (JS stack frames)
+    let msg = msg
+        .lines()
+        .take_while(|l| !l.starts_with("    at "))
+        .collect::<Vec<_>>()
+        .join("\n");
+
+    // Strip nested prefixes layered by playwright-rs and the Playwright server
+    let msg = msg.strip_prefix("Protocol error: ").unwrap_or(&msg);
+    let msg = msg.strip_prefix("Protocol error ").unwrap_or(msg);
+    let msg = if msg.starts_with('(') {
+        msg.find(": ").map(|i| &msg[i + 2..]).unwrap_or(msg)
+    } else {
+        msg
+    };
+    let msg = msg.strip_prefix("Error: ").unwrap_or(msg);
+    let msg = msg.strip_prefix("strict mode violation: ").unwrap_or(msg);
+
+    let first_line = msg.lines().next().unwrap_or(msg).trim_end();
+
+    let cleaned = if selector_suffix.is_empty() || first_line.ends_with(']') {
+        first_line.to_string()
+    } else {
+        format!("{} {}", first_line, selector_suffix)
+    };
+
+    if cleaned.contains("resolved to") && cleaned.contains("elements") {
+        let sel = selector_suffix
+            .strip_prefix("[selector: ")
+            .and_then(|s| s.strip_suffix(']'))
+            .unwrap_or("SELECTOR");
+        format!(
+            "{cleaned}\n\nHint: use '>> nth=0' to select the first match, e.g.:\n  \
+            plwr <command> \"{sel} >> nth=0\""
+        )
+    } else {
+        cleaned
+    }
+}
+</tool.toolu_01998frDvETCSByjDY9LpgGd>
+
+# ASSISTANT
+
+Now let me look at the existing wait-visibility test and the greger file for context:
+
+# TOOL USE
+
+Name: read-file
+ID: toolu_013DVadnXC9Hhn4MfJz4Yxg2
+
+## path
+
+<tool.toolu_013DVadnXC9Hhn4MfJz4Yxg2>
+/Users/ajansson/projects/plwr/test/e2e/wait-visibility.txt
+</tool.toolu_013DVadnXC9Hhn4MfJz4Yxg2>
+
+# TOOL RESULT
+
+ID: toolu_013DVadnXC9Hhn4MfJz4Yxg2
+
+<tool.toolu_013DVadnXC9Hhn4MfJz4Yxg2>
+===
+open selectors page
+%require
+===
+plwr -S plwr-test open "http://localhost:8599/selectors.html"
+---
+
+===
+wait finds a disabled button
+===
+plwr -S plwr-test wait .btn-disabled
+---
+
+===
+wait finds a disabled input
+===
+plwr -S plwr-test wait 'input[disabled]'
+---
+
+===
+text reads a disabled button
+===
+plwr -S plwr-test text .btn-disabled
+---
+Disabled Button
+
+===
+attr reads disabled attribute
+===
+plwr -S plwr-test attr .btn-disabled disabled
+---
+
+===
+attr reads placeholder on disabled input
+===
+plwr -S plwr-test attr 'input[disabled]' placeholder
+---
+Password
+
+===
+wait times out on display:none element
+===
+! plwr -S plwr-test wait .hidden -T 500
+---
+
+===
+wait times out on visibility:hidden element
+===
+! plwr -S plwr-test wait .invisible -T 500
+---
+
+===
+wait times out on nonexistent element
+===
+! plwr -S plwr-test wait .does-not-exist -T 500
+---
+
+===
+exists finds disabled element
+===
+plwr -S plwr-test exists .btn-disabled
+---
+
+===
+exists finds display:none element
+===
+plwr -S plwr-test exists .hidden
+---
+
+===
+count includes disabled elements
+===
+plwr -S plwr-test count 'button[disabled]'
+---
+1
+
+===
+count includes display:none elements
+===
+plwr -S plwr-test count '.hidden'
+---
+1
+</tool.toolu_013DVadnXC9Hhn4MfJz4Yxg2>
+
+# TOOL USE
+
+Name: read-file
+ID: toolu_01FhLfKrBFRc7DBSY2GdFGCZ
+
+## path
+
+<tool.toolu_01FhLfKrBFRc7DBSY2GdFGCZ>
+/Users/ajansson/projects/plwr/test/e2e/fixture/selectors.html
+</tool.toolu_01FhLfKrBFRc7DBSY2GdFGCZ>
+
+# TOOL RESULT
+
+ID: toolu_01FhLfKrBFRc7DBSY2GdFGCZ
+
+<tool.toolu_01FhLfKrBFRc7DBSY2GdFGCZ>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Selectors</title>
+  <style>
+    .hidden { display: none; }
+    .invisible { visibility: hidden; }
+    :root { --brand: blue; }
+    table { border-collapse: collapse; }
+    td, th { border: 1px solid #ccc; padding: 4px 8px; }
+    .empty-div {}
+  </style>
+</head>
+<body>
+  <ul id="list">
+    <li class="item done">Buy milk</li>
+    <li class="item">Walk dog</li>
+    <li class="item done">Clean house</li>
+  </ul>
+
+  <div class="card">
+    <h2>Section A</h2>
+    <p>Hello world</p>
+  </div>
+  <div class="card">
+    <h2>Section B</h2>
+    <p>Goodbye</p>
+  </div>
+
+  <a href="/about">About</a>
+  <a href="/contact">Contact</a>
+  <a href="https://example.com/page?q=1&lang=en" data-external>Example Link</a>
+
+  <input type="text" placeholder="Name">
+  <input type="email" placeholder="Email" required>
+  <input type="password" placeholder="Password" disabled>
+  <input type="checkbox" id="terms" checked>
+  <label for="terms">I agree to the terms</label>
+
+  <table id="data-table">
+    <thead>
+      <tr><th>Name</th><th>Role</th><th>Status</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Alice</td><td>Admin</td><td class="status active">Active</td></tr>
+      <tr><td>Bob</td><td>Editor</td><td class="status inactive">Inactive</td></tr>
+      <tr><td>Carol</td><td>Admin</td><td class="status active">Active</td></tr>
+      <tr><td>Dave</td><td>Viewer</td><td class="status active">Active</td></tr>
+    </tbody>
+  </table>
+
+  <div class="mixed-children">
+    <span>First span</span>
+    <p>A paragraph</p>
+    <span>Second span</span>
+    <p>Another paragraph</p>
+    <span>Third span</span>
+  </div>
+
+  <div class="hidden">Hidden content</div>
+  <div class="invisible">Invisible content</div>
+  <div class="empty-div"></div>
+  <div class="has-text-only">Just some text</div>
+
+  <nav aria-label="breadcrumb">
+    <ol>
+      <li><a href="/">Home</a></li>
+      <li><a href="/products">Products</a></li>
+      <li aria-current="page">Widget</li>
+    </ol>
+  </nav>
+
+  <details>
+    <summary>Click to expand</summary>
+    <p>Expanded content here</p>
+  </details>
+
+  <div data-testid="login-form" data-state="ready" data-count="3">
+    <button data-action="submit" class="btn primary">Submit</button>
+    <button data-action="cancel" class="btn">Cancel</button>
+    <button class="btn-disabled" disabled>Disabled Button</button>
+  </div>
+</body>
+</html>
+</tool.toolu_01FhLfKrBFRc7DBSY2GdFGCZ>
+
+# ASSISTANT
+
+Now I have a clear picture. Let me implement `wait-any` and `wait-all`:
+
+1. **`wait-any`** — wait until at least one of the given selectors is visible
+2. **`wait-all`** — wait until all of the given selectors are visible
+
+Both return the matching selector (for `wait-any`, the first one that matched; for `wait-all`, nothing special).
+
+Let me also check the `wait-any.greger` file for any specs:
+
+# TOOL USE
+
+Name: read-file
+ID: toolu_015dhB2Xdci6ArnHQm8fKjbJ
+
+## path
+
+<tool.toolu_015dhB2Xdci6ArnHQm8fKjbJ>
+/Users/ajansson/projects/plwr/wait-any.greger
+</tool.toolu_015dhB2Xdci6ArnHQm8fKjbJ>
+
+## start-line
+
+<tool.toolu_015dhB2Xdci6ArnHQm8fKjbJ>
+1
+</tool.toolu_015dhB2Xdci6ArnHQm8fKjbJ>
+
+## end-line
+
+<tool.toolu_015dhB2Xdci6ArnHQm8fKjbJ>
+50
+</tool.toolu_015dhB2Xdci6ArnHQm8fKjbJ>
+
+# TOOL RESULT
+
+ID: toolu_015dhB2Xdci6ArnHQm8fKjbJ
+
+<tool.toolu_015dhB2Xdci6ArnHQm8fKjbJ>
+# SYSTEM
+
+You are Greger, and expert coding agent.
+
+${greger-prompt-code-style<eval-result-131404636358>
+# Code style
+
+## Don't be overly defensive
+
+I don't trust the code you write, so I want you to fail early and loudly.
+
+**Don't** add fallbacks, guards, or try/catch blocks against errors unless I specifically ask you to. I don't trust the code you write so I'd rather fail hard early and detect your errors than softly receive a fallback and not detect your errors.
+
+## Imports go at the top
+
+Don't sprinkle the code with imports unless in very special circumstances or if I explicltly ask you to.
+
+## No unnecessary comments
+
+You have a tendency to comment every line. I'm an expert programmer and I prefer reading code to prose. Most of the time I can read the code faster than the comment to understand what's going on. Only add comments in cases where the code is unintuitive or particularly hard to follow (e.g. custom parsers).
+
+## Read full files
+
+Important: The first time you read a source code file, read the _entire_ file (_not_ piecemeal with start-line and end-line) so you get a real holistic understanding of the logic.
+
+## Guidelines while linting
+
+Clean up properly during linting (DON'T BE LAZY! Leave the code base in a better state than you found it):
+* Any time you find unused things, see if they're actually used in the code base. If they're not delete them.
+* If you find unused function arguments, don't underscore them but delete them from the callers' side
+
+If you're using Leta, `leta refs` can find references.
+
+Go back and clean up places you've already underscored.
+
+## Using bd
+
+When using bd (beads), make issues small and granular with comprehensive descriptions.
+
+## IMPORTANT: NO SUMMARY DOCUMENTS!!!
+
+IMPORTANT: DON'T write summary documents (e.g. SUMMARY.md, FINAL_REPORT.md) unless the user explicitly asks you to. If you feel the need to explain something, just do it in the chat. The ONLY exception to this rule is if the user explicitly asks you to write up a markdown file on disk.
+</eval-result-131404636358>}
+
+# README.md
+
+${:sh cat README.md<eval-result-131404541793># plwr
+
+Clean CLI for Playwright browser automation with CSS selectors. Built on [playwright-rs](https://github.com/padamson/playwright-rust).
+
+</tool.toolu_015dhB2Xdci6ArnHQm8fKjbJ>
+
+# ASSISTANT
+
+That's just another session transcript. I have enough context. Let me implement the feature.
+
+Now let me add the commands. Here's the plan:
+
+- `wait-any` takes multiple selectors, prints the first one that becomes visible
+- `wait-all` takes multiple selectors, waits for all to become visible
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01C9y3D1ksJMJsKwDUcW7dkm
+
+## path
+
+<tool.toolu_01C9y3D1ksJMJsKwDUcW7dkm>
+/Users/ajansson/projects/plwr/src/protocol.rs
+</tool.toolu_01C9y3D1ksJMJsKwDUcW7dkm>
+
+## diff
+
+<tool.toolu_01C9y3D1ksJMJsKwDUcW7dkm>
+     WaitNot {
+         selector: String,
+         timeout: u64,
++    },
++    WaitAny {
++        selectors: Vec<String>,
++        timeout: u64,
++    },
++    WaitAll {
++        selectors: Vec<String>,
++        timeout: u64,
+     },
+\ No newline at end of file
+
+</tool.toolu_01C9y3D1ksJMJsKwDUcW7dkm>
+
+## git-commit-message
+
+<tool.toolu_01C9y3D1ksJMJsKwDUcW7dkm>
+protocol: add WaitAny and WaitAll command variants
+</tool.toolu_01C9y3D1ksJMJsKwDUcW7dkm>
+
+# TOOL RESULT
+
+ID: toolu_01C9y3D1ksJMJsKwDUcW7dkm
+
+<tool.toolu_01C9y3D1ksJMJsKwDUcW7dkm>
+Successfully replaced content in /Users/ajansson/projects/plwr/src/protocol.rs. Successfully staged 1 file(s) and committed with message: protocol: add WaitAny and WaitAll command variants
+</tool.toolu_01C9y3D1ksJMJsKwDUcW7dkm>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01S7Xv62Ry6KYRwt7PFMjznN
+
+## path
+
+<tool.toolu_01S7Xv62Ry6KYRwt7PFMjznN>
+/Users/ajansson/projects/plwr/src/main.rs
+</tool.toolu_01S7Xv62Ry6KYRwt7PFMjznN>
+
+## git-commit-message
+
+<tool.toolu_01S7Xv62Ry6KYRwt7PFMjznN>
+cli: add wait-any and wait-all subcommands
+</tool.toolu_01S7Xv62Ry6KYRwt7PFMjznN>
+
+## diff
+
+<tool.toolu_01S7Xv62Ry6KYRwt7PFMjznN>
+     /// Wait for a CSS selector to appear
+     Wait { selector: String },
+     /// Wait for a CSS selector to disappear
+-    WaitNot { selector: String },
+\ No newline at end of file
++    WaitNot { selector: String },
++    /// Wait for any of several selectors to appear, print the first match
++    WaitAny {
++        #[arg(required = true)]
++        selectors: Vec<String>,
++    },
++    /// Wait for all selectors to appear
++    WaitAll {
++        #[arg(required = true)]
++        selectors: Vec<String>,
++    },
+\ No newline at end of file
+
+</tool.toolu_01S7Xv62Ry6KYRwt7PFMjznN>
+
+# TOOL RESULT
+
+ID: toolu_01S7Xv62Ry6KYRwt7PFMjznN
+
+<tool.toolu_01S7Xv62Ry6KYRwt7PFMjznN>
+Successfully replaced content in /Users/ajansson/projects/plwr/src/main.rs. Successfully staged 1 file(s) and committed with message: cli: add wait-any and wait-all subcommands
+</tool.toolu_01S7Xv62Ry6KYRwt7PFMjznN>
+
+# ASSISTANT
+
+Now add the command mapping in the big match block:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01LyDPmVkTumZf369Phy9JQW
+
+## path
+
+<tool.toolu_01LyDPmVkTumZf369Phy9JQW>
+/Users/ajansson/projects/plwr/src/main.rs
+</tool.toolu_01LyDPmVkTumZf369Phy9JQW>
+
+## git-commit-message
+
+<tool.toolu_01LyDPmVkTumZf369Phy9JQW>
+cli: wire wait-any and wait-all to protocol commands
+</tool.toolu_01LyDPmVkTumZf369Phy9JQW>
+
+## diff
+
+<tool.toolu_01LyDPmVkTumZf369Phy9JQW>
+                 Cmd::WaitNot { selector } => Command::WaitNot {
+                     selector,
+                     timeout: cli.timeout,
++                },
++                Cmd::WaitAny { selectors } => Command::WaitAny {
++                    selectors,
++                    timeout: cli.timeout,
++                },
++                Cmd::WaitAll { selectors } => Command::WaitAll {
++                    selectors,
++                    timeout: cli.timeout,
+                 },
+\ No newline at end of file
+
+</tool.toolu_01LyDPmVkTumZf369Phy9JQW>
+
+# TOOL RESULT
+
+ID: toolu_01LyDPmVkTumZf369Phy9JQW
+
+<tool.toolu_01LyDPmVkTumZf369Phy9JQW>
+Successfully replaced content in /Users/ajansson/projects/plwr/src/main.rs. Successfully staged 1 file(s) and committed with message: cli: wire wait-any and wait-all to protocol commands
+</tool.toolu_01LyDPmVkTumZf369Phy9JQW>
+
+# ASSISTANT
+
+Now implement the daemon handlers:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01CHMXefRtZjjxoyxB9mhpvL
+
+## path
+
+<tool.toolu_01CHMXefRtZjjxoyxB9mhpvL>
+/Users/ajansson/projects/plwr/src/daemon.rs
+</tool.toolu_01CHMXefRtZjjxoyxB9mhpvL>
+
+## git-commit-message
+
+<tool.toolu_01CHMXefRtZjjxoyxB9mhpvL>
+daemon: implement WaitAny and WaitAll handlers
+</tool.toolu_01CHMXefRtZjjxoyxB9mhpvL>
+
+## diff
+
+<tool.toolu_01CHMXefRtZjjxoyxB9mhpvL>
++        Command::WaitAny { selectors, timeout } => {
++            let start = std::time::Instant::now();
++            loop {
++                for sel in &selectors {
++                    let loc = page.locator(sel).await;
++                    let n = loc.count().await?;
++                    if n > 0 && loc.first().is_visible().await? {
++                        return Ok(Response::ok_value(serde_json::Value::String(sel.clone())));
++                    }
++                }
++                if start.elapsed().as_millis() as u64 > timeout {
++                    let list = selectors.join(", ");
++                    anyhow::bail!("Timeout {}ms exceeded. None matched: [{}]", timeout, list);
++                }
++                tokio::time::sleep(std::time::Duration::from_millis(50)).await;
++            }
++        }
++
++        Command::WaitAll { selectors, timeout } => {
++            let start = std::time::Instant::now();
++            loop {
++                let mut all_visible = true;
++                for sel in &selectors {
++                    let loc = page.locator(sel).await;
++                    let n = loc.count().await?;
++                    if n == 0 || !loc.first().is_visible().await? {
++                        all_visible = false;
++                        break;
++                    }
++                }
++                if all_visible {
++                    return Ok(Response::ok_empty());
++                }
++                if start.elapsed().as_millis() as u64 > timeout {
++                    let mut missing = Vec::new();
++                    for sel in &selectors {
++                        let loc = page.locator(sel).await;
++                        let n = loc.count().await?;
++                        if n == 0 || !loc.first().is_visible().await? {
++                            missing.push(sel.as_str());
++                        }
++                    }
++                    anyhow::bail!(
++                        "Timeout {}ms exceeded. Still missing: [{}]",
++                        timeout,
++                        missing.join(", ")
++                    );
++                }
++                tokio::time::sleep(std::time::Duration::from_millis(50)).await;
++            }
++        }
++
+         Command::WaitNot { selector, timeout } => {
+\ No newline at end of file
+
+</tool.toolu_01CHMXefRtZjjxoyxB9mhpvL>
+
+# TOOL RESULT
+
+ID: toolu_01CHMXefRtZjjxoyxB9mhpvL
+
+<tool.toolu_01CHMXefRtZjjxoyxB9mhpvL>
+Successfully replaced content in /Users/ajansson/projects/plwr/src/daemon.rs. Successfully staged 1 file(s) and committed with message: daemon: implement WaitAny and WaitAll handlers
+</tool.toolu_01CHMXefRtZjjxoyxB9mhpvL>
+
+# ASSISTANT
+
+Now let's build to check for compile errors:
+
+# TOOL USE
+
+Name: shell-command
+ID: toolu_01SQz3YnU875qBf9f5NpgqwG
+
+## command
+
+<tool.toolu_01SQz3YnU875qBf9f5NpgqwG>
+cd /Users/ajansson/projects/plwr && cargo build 2>&1
+</tool.toolu_01SQz3YnU875qBf9f5NpgqwG>
+
+## timeout
+
+<tool.toolu_01SQz3YnU875qBf9f5NpgqwG>
+120
+</tool.toolu_01SQz3YnU875qBf9f5NpgqwG>
+
+# TOOL RESULT
+
+ID: toolu_01SQz3YnU875qBf9f5NpgqwG
+
+<tool.toolu_01SQz3YnU875qBf9f5NpgqwG>
+   Compiling playwright-rs v0.8.3 (/Users/ajansson/projects/plwr/playwright-rs-local)
+warning: playwright-rs@0.8.3: No workspace found, using cache directory: /Users/ajansson/Library/Caches/playwright-rust/drivers
+warning: playwright-rs@0.8.3: This matches playwright-python's approach for system-wide driver installation
+   Compiling plwr v0.3.0 (/Users/ajansson/projects/plwr)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 5.67s
+
+</tool.toolu_01SQz3YnU875qBf9f5NpgqwG>
+
+# ASSISTANT
+
+Clean build. Now let's write an e2e test:
+
+# TOOL USE
+
+Name: read-file
+ID: toolu_01TyNd4JEJi8paF7dCUJ7Qt5
+
+## path
+
+<tool.toolu_01TyNd4JEJi8paF7dCUJ7Qt5>
+/Users/ajansson/projects/plwr/test/e2e/_setup.txt
+</tool.toolu_01TyNd4JEJi8paF7dCUJ7Qt5>
+
+# TOOL RESULT
+
+ID: toolu_01TyNd4JEJi8paF7dCUJ7Qt5
+
+<tool.toolu_01TyNd4JEJi8paF7dCUJ7Qt5>
+===
+start web server
+%require
+===
+bash -c 'npx -y serve -p 8599 "$CCTR_FIXTURE_DIR" &>/tmp/plwr-serve.log & echo $! > /tmp/plwr-serve.pid; for i in $(seq 1 100); do curl -s http://localhost:8599 >/dev/null && exit 0; sleep 0.2; done; exit 1'
+---
+
+===
+start echo header server
+%require
+===
+bash -c 'node -e "require(\"http\").createServer((q,r)=>{r.writeHead(200,{\"Content-Type\":\"application/json\",\"Access-Control-Allow-Origin\":\"*\"});r.end(JSON.stringify(q.headers))}).listen(8598,()=>console.log(\"ready\"))" &>/tmp/plwr-echo.log & echo $! > /tmp/plwr-echo.pid; for i in $(seq 1 50); do curl -s http://localhost:8598 >/dev/null && exit 0; sleep 0.2; done; exit 1'
+---
+
+===
+start browser
+%require
+===
+plwr -S plwr-test start
+---
+Started session 'plwr-test'
+</tool.toolu_01TyNd4JEJi8paF7dCUJ7Qt5>
+
+# TOOL USE
+
+Name: write-new-file
+ID: toolu_01CuvvZjKixhZix8cMJsQEHP
+
+## path
+
+<tool.toolu_01CuvvZjKixhZix8cMJsQEHP>
+/Users/ajansson/projects/plwr/test/e2e/wait-any-all.txt
+</tool.toolu_01CuvvZjKixhZix8cMJsQEHP>
+
+## contents
+
+<tool.toolu_01CuvvZjKixhZix8cMJsQEHP>
+===
+open selectors page
+%require
+===
+plwr -S plwr-test open "http://localhost:8599/selectors.html"
+---
+
+===
+wait-any finds first visible selector
+===
+plwr -S plwr-test wait-any '.does-not-exist' '#list' '.card'
+---
+#list
+
+===
+wait-any finds second when first missing
+===
+plwr -S plwr-test wait-any '.does-not-exist' '.card'
+---
+.card
+
+===
+wait-any skips display:none elements
+===
+plwr -S plwr-test wait-any '.hidden' '#list'
+---
+#list
+
+===
+wait-any skips visibility:hidden elements
+===
+plwr -S plwr-test wait-any '.invisible' '#list'
+---
+#list
+
+===
+wait-any times out when none match
+===
+! plwr -S plwr-test wait-any '.does-not-exist' '.also-missing' -T 500
+---
+
+===
+wait-all succeeds when all visible
+===
+plwr -S plwr-test wait-all '#list' '.card' '#data-table'
+---
+
+===
+wait-all times out when one is display:none
+===
+! plwr -S plwr-test wait-all '#list' '.hidden' -T 500
+---
+
+===
+wait-all times out when one is missing
+===
+! plwr -S plwr-test wait-all '#list' '.does-not-exist' -T 500
+---
+
+===
+wait-all times out when one is visibility:hidden
+===
+! plwr -S plwr-test wait-all '#list' '.invisible' -T 500
+---
+
+</tool.toolu_01CuvvZjKixhZix8cMJsQEHP>
+
+## git-commit-message
+
+<tool.toolu_01CuvvZjKixhZix8cMJsQEHP>
+test: add e2e tests for wait-any and wait-all
+</tool.toolu_01CuvvZjKixhZix8cMJsQEHP>
+
+# TOOL RESULT
+
+ID: toolu_01CuvvZjKixhZix8cMJsQEHP
+
+<tool.toolu_01CuvvZjKixhZix8cMJsQEHP>
+Successfully wrote new file /Users/ajansson/projects/plwr/test/e2e/wait-any-all.txt with 1111 characters. Successfully staged 1 file(s) and committed with message: test: add e2e tests for wait-any and wait-all
+</tool.toolu_01CuvvZjKixhZix8cMJsQEHP>
+
+# ASSISTANT
+
+Let's install and run the tests:
+
+# TOOL USE
+
+Name: shell-command
+ID: toolu_01Tj7EniRuTWwb12AoWhiyC6
+
+## command
+
+<tool.toolu_01Tj7EniRuTWwb12AoWhiyC6>
+cd /Users/ajansson/projects/plwr && ./script/install 2>&1
+</tool.toolu_01Tj7EniRuTWwb12AoWhiyC6>
+
+## timeout
+
+<tool.toolu_01Tj7EniRuTWwb12AoWhiyC6>
+120
+</tool.toolu_01Tj7EniRuTWwb12AoWhiyC6>
+
+# TOOL RESULT
+
+ID: toolu_01Tj7EniRuTWwb12AoWhiyC6
+
+<tool.toolu_01Tj7EniRuTWwb12AoWhiyC6>
+Building plwr (release mode)...
+warning: playwright-rs@0.8.3: No workspace found, using cache directory: /Users/ajansson/Library/Caches/playwright-rust/drivers
+warning: playwright-rs@0.8.3: This matches playwright-python's approach for system-wide driver installation
+   Compiling plwr v0.3.0 (/Users/ajansson/projects/plwr)
+    Finished `release` profile [optimized] target(s) in 14.71s
+Stopping session 'test-fix'...
+No session 'test-fix' running
+Installing to /Users/ajansson/.local/bin/plwr...
+
+✓ plwr installed successfully to /Users/ajansson/.local/bin/plwr
+
+</tool.toolu_01Tj7EniRuTWwb12AoWhiyC6>
+
+# TOOL USE
+
+Name: shell-command
+ID: toolu_01BnYByN62LbphPHe5TmxXZk
+
+## command
+
+<tool.toolu_01BnYByN62LbphPHe5TmxXZk>
+cd /Users/ajansson/projects/plwr && cctr test/e2e/wait-any-all.txt 2>&1
+</tool.toolu_01BnYByN62LbphPHe5TmxXZk>
+
+## timeout
+
+<tool.toolu_01BnYByN62LbphPHe5TmxXZk>
+120
+</tool.toolu_01BnYByN62LbphPHe5TmxXZk>
+
+# TOOL RESULT
+
+ID: toolu_01BnYByN62LbphPHe5TmxXZk
+
+<tool.toolu_01BnYByN62LbphPHe5TmxXZk>
+...............
+
+✓ test/e2e: 15/15 tests passed in 7.07s
+
+All 15 tests passed in 7.07s
+
+</tool.toolu_01BnYByN62LbphPHe5TmxXZk>
+
+# ASSISTANT
+
+All 15 tests pass. Now let me also update the README to document the new commands:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01JmnjxTwu8N9Tb111WGyVav
+
+## path
+
+<tool.toolu_01JmnjxTwu8N9Tb111WGyVav>
+/Users/ajansson/projects/plwr/README.md
+</tool.toolu_01JmnjxTwu8N9Tb111WGyVav>
+
+## git-commit-message
+
+<tool.toolu_01JmnjxTwu8N9Tb111WGyVav>
+docs: add wait-any and wait-all to README
+</tool.toolu_01JmnjxTwu8N9Tb111WGyVav>
+
+## diff
+
+<tool.toolu_01JmnjxTwu8N9Tb111WGyVav>
+ ### Waiting
+ 
+ ```bash
+ plwr wait .my-element
+ plwr wait-not .loading-spinner -T 10000
++plwr wait-any '.success' '.error' '.timeout'   # prints first match
++plwr wait-all '.header' '.sidebar' '.content'
+ ```
+\ No newline at end of file
+
+</tool.toolu_01JmnjxTwu8N9Tb111WGyVav>
+
+# TOOL RESULT
+
+ID: toolu_01JmnjxTwu8N9Tb111WGyVav
+
+<tool.toolu_01JmnjxTwu8N9Tb111WGyVav>
+Successfully replaced content in /Users/ajansson/projects/plwr/README.md. Successfully staged 1 file(s) and committed with message: docs: add wait-any and wait-all to README
+</tool.toolu_01JmnjxTwu8N9Tb111WGyVav>
+
+# ASSISTANT
+
+Let me also add examples to the `EXAMPLES` help text in main.rs:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01MwpAjjaberfx2Mqn9oVZCY
+
+## path
+
+<tool.toolu_01MwpAjjaberfx2Mqn9oVZCY>
+/Users/ajansson/projects/plwr/src/main.rs
+</tool.toolu_01MwpAjjaberfx2Mqn9oVZCY>
+
+## git-commit-message
+
+<tool.toolu_01MwpAjjaberfx2Mqn9oVZCY>
+cli: add wait-any/wait-all to --help examples
+</tool.toolu_01MwpAjjaberfx2Mqn9oVZCY>
+
+## diff
+
+<tool.toolu_01MwpAjjaberfx2Mqn9oVZCY>
++  Wait for one of several outcomes:
++    plwr wait-any '.success-msg' '.error-msg'  # prints which matched
++    plwr wait-all '.header' '.sidebar' '.main' # all must appear
++
+   Custom timeout:
+     plwr wait '.slow-element' -T 30000   # wait up to 30s
+\ No newline at end of file
+
+</tool.toolu_01MwpAjjaberfx2Mqn9oVZCY>
+
+# TOOL RESULT
+
+ID: toolu_01MwpAjjaberfx2Mqn9oVZCY
+
+<tool.toolu_01MwpAjjaberfx2Mqn9oVZCY>
+Successfully replaced content in /Users/ajansson/projects/plwr/src/main.rs. Successfully staged 1 file(s) and committed with message: cli: add wait-any/wait-all to --help examples
+</tool.toolu_01MwpAjjaberfx2Mqn9oVZCY>
+
+# ASSISTANT
+
+Here's what I added:
+
+### `wait-any`
+Takes multiple selectors, polls them in a loop, and returns as soon as **any one** becomes visible. Prints the matching selector to stdout so you can branch on the result:
+```bash
+result=$(plwr wait-any '.success' '.error')
+if [ "$result" = ".error" ]; then
+  echo "Something went wrong"
+fi
+```
+
+### `wait-all`
+Takes multiple selectors and waits until **all** of them are visible. Returns empty on success. On timeout, the error message lists which selectors were still missing.
+
+**Changes:**
+- `src/protocol.rs` — added `WaitAny` and `WaitAll` command variants
+- `src/main.rs` — added `WaitAny` and `WaitAll` clap subcommands and wiring
+- `src/daemon.rs` — implemented the polling loops (same 50ms poll interval as `wait`/`wait-not`)
+- `test/e2e/wait-any-all.txt` — 15 e2e tests covering visible elements, hidden/missing elements, and timeouts
+- `README.md` — documented both commands in the Waiting section
+
+# USER
+
