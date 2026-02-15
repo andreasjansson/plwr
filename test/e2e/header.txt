@@ -104,7 +104,7 @@ plwr -S plwr-test header X-Video-Test video-header-value
 ===
 start video recording
 ===
-plwr -S plwr-test video-start --dir /tmp/plwr-test-header-video
+plwr -S plwr-test video-start
 ---
 {{ output }}
 ---

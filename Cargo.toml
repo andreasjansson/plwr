@@ -16,6 +16,7 @@ anyhow = "1"
 libc = "0.2"
 
 openssl = { version = "0.10", features = ["vendored"], optional = true }
+dirs = "6.0.0"
 
 [features]
 vendored-openssl = ["openssl"]
