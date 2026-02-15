@@ -132,9 +132,7 @@ pub enum Command {
         selector: String,
         timeout: u64,
     },
-    VideoStart {
-        dir: String,
-    },
+    VideoStart,
     VideoStop {
         output: Option<String>,
     },
