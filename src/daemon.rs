@@ -581,13 +581,12 @@ async fn handle_command(state: &mut State, command: Command) -> Result<Response>
         | Command::CookieClear
         | Command::Viewport { .. } => unreachable!(),
 
-        Command::VideoStart { dir } => {
-            std::fs::create_dir_all(&dir)?;
+        Command::VideoStart { .. } => {
             let guid = pw_ext::page_video_start(&state.page).await?;
             state.video_artifact_guid = Some(guid);
-            Ok(Response::ok_value(serde_json::Value::String(format!(
-                "Video recording started (dir: {})", dir
-            ))))
+            Ok(Response::ok_value(serde_json::Value::String(
+                "Video recording started".to_string()
+            )))
         }
 
         Command::VideoStop { output } => {
