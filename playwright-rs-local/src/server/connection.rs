@@ -598,7 +598,6 @@ fn parse_protocol_error(payload: ErrorPayload) -> Error {
         return Error::BrowserNotInstalled {
             browser_name: browser_name.to_string(),
             message: message.clone(),
-            playwright_version: crate::PLAYWRIGHT_VERSION.to_string(),
         };
     }
 
