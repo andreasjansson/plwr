@@ -12,7 +12,7 @@ Clean CLI for Playwright browser automation with CSS selectors. Built on [playwr
 Requires Playwright browsers:
 
 ```bash
-npx playwright@1.56.1 install chromium
+npx playwright install chromium
 ```
 
 For video conversion to non-webm formats, install [ffmpeg](https://ffmpeg.org/).
@@ -45,9 +45,10 @@ which override the environment variables.
 Use `--headed` (or the `PLAYWRIGHT_HEADED` env var) to show the browser window.
 
 ```bash
-plwr start                   # headless
-plwr start --headed           # visible browser window
-plwr stop                    # shut down
+plwr start                             # headless
+plwr start --headed                     # visible browser window
+plwr start --video recording.mp4       # record video of session
+plwr stop                              # shut down (saves video if recording)
 ```
 
 Commands that interact with page content (`text`, `click`, `wait`, `eval`,
@@ -72,6 +73,8 @@ plwr url
 ```bash
 plwr wait .my-element
 plwr wait-not .loading-spinner -T 10000
+plwr wait-any '.success' '.error' '.timeout'   # prints first match
+plwr wait-all '.header' '.sidebar' '.content'
 ```
 
 ### Interaction
@@ -193,11 +196,14 @@ plwr screenshot --selector '.chart' --path chart.png
 
 ### Video
 
+Record a session by passing `--video` to `start`. The video is saved when
+`stop` is called. Non-webm formats (e.g. `.mp4`) require [ffmpeg](https://ffmpeg.org/).
+
 ```bash
-plwr video-start                 # start recording
+plwr start --video recording.mp4   # start with video recording
+plwr open https://example.com
 # ... do stuff ...
-plwr video-stop recording.mp4   # stop and convert to mp4
-plwr video-stop recording.webm  # stop, keep as webm (no ffmpeg needed)
+plwr stop                          # saves recording.mp4
 ```
 
 ### Sessions

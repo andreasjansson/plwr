@@ -149,13 +149,6 @@ screenshot fails with invalid path
 No such file or directory (os error 2)
 
 ===
-video-stop fails when not recording
-===
-! plwr -S plwr-test video-stop /tmp/plwr-never.webm
----
-No video recording in progress
-
-===
 header requires name and value
 ===
 ! plwr -S plwr-test header X-Foo

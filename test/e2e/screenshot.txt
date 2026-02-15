@@ -34,5 +34,11 @@ where
 ===
 element screenshot is smaller than full page
 ===
-bash -c 'full=$(wc -c < /tmp/plwr-test-full.png); elem=$(wc -c < /tmp/plwr-test-h1.png); echo "$elem $full"; test "$elem" -lt "$full"'
+full=$(wc -c < /tmp/plwr-test-full.png | tr -d " ")
+elem=$(wc -c < /tmp/plwr-test-h1.png | tr -d " ")
+echo "$elem $full"
 ---
+{{ elem_size:number }} {{ full_size:number }}
+---
+where
+* elem_size < full_size

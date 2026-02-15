@@ -10,6 +10,7 @@ pub struct Request {
 pub enum Command {
     Open {
         url: String,
+        timeout: u64,
     },
     Reload,
     Url,
@@ -19,6 +20,14 @@ pub enum Command {
     },
     WaitNot {
         selector: String,
+        timeout: u64,
+    },
+    WaitAny {
+        selectors: Vec<String>,
+        timeout: u64,
+    },
+    WaitAll {
+        selectors: Vec<String>,
         timeout: u64,
     },
     Click {
@@ -123,12 +132,6 @@ pub enum Command {
         selector: String,
         timeout: u64,
     },
-    VideoStart {
-        dir: String,
-    },
-    VideoStop {
-        output: Option<String>,
-    },
     Stop,
 }
 
@@ -141,8 +144,6 @@ impl Command {
                 | Command::Header { .. }
                 | Command::HeaderClear
                 | Command::Viewport { .. }
-                | Command::VideoStart { .. }
-                | Command::VideoStop { .. }
         )
     }
 }

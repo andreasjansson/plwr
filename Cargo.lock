@@ -1261,10 +1261,11 @@ dependencies = [
 
 [[package]]
 name = "plwr"
-version = "0.3.0"
+version = "0.7.0"
 dependencies = [
  "anyhow",
  "clap",
+ "dirs",
  "libc",
  "openssl",
  "playwright-rs",
