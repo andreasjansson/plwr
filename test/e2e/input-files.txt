@@ -15,7 +15,8 @@ plwr -S plwr-test wait '#upload'
 ===
 set a single file
 ===
-bash -c 'echo "test content" > /tmp/plwr-test-upload.txt && plwr -S plwr-test input-files "#upload" /tmp/plwr-test-upload.txt'
+echo "test content" > /tmp/plwr-test-upload.txt
+plwr -S plwr-test input-files "#upload" /tmp/plwr-test-upload.txt
 ---
 
 ===
@@ -28,7 +29,9 @@ plwr-test-upload.txt
 ===
 set multiple files
 ===
-bash -c 'echo "a" > /tmp/plwr-upload-a.txt && echo "b" > /tmp/plwr-upload-b.txt && plwr -S plwr-test input-files "#upload" /tmp/plwr-upload-a.txt /tmp/plwr-upload-b.txt'
+echo "a" > /tmp/plwr-upload-a.txt
+echo "b" > /tmp/plwr-upload-b.txt
+plwr -S plwr-test input-files "#upload" /tmp/plwr-upload-a.txt /tmp/plwr-upload-b.txt
 ---
 
 ===
@@ -54,7 +57,8 @@ plwr -S plwr-test eval "document.getElementById('upload').files.length"
 ===
 set file on hidden input (display: none)
 ===
-bash -c 'echo "hidden" > /tmp/plwr-test-hidden.txt && plwr -S plwr-test input-files "#hidden-upload" /tmp/plwr-test-hidden.txt'
+echo "hidden" > /tmp/plwr-test-hidden.txt
+plwr -S plwr-test input-files "#hidden-upload" /tmp/plwr-test-hidden.txt
 ---
 
 ===

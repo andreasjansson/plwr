@@ -110,6 +110,10 @@ const EXAMPLES: &str = "\x1b[1;4mExamples:\x1b[0m
     plwr -S admin stop
     plwr -S user stop
 
+  Wait for one of several outcomes:
+    plwr wait-any '.success-msg' '.error-msg'  # prints which matched
+    plwr wait-all '.header' '.sidebar' '.main' # all must appear
+
   Custom timeout:
     plwr wait '.slow-element' -T 30000   # wait up to 30s
 
@@ -174,6 +178,9 @@ enum Cmd {
         /// Show the browser window
         #[arg(long)]
         headed: bool,
+        /// Record video of the session, saved to this path on stop (.webm, .mp4, etc.)
+        #[arg(long)]
+        video: Option<String>,
     },
     /// Stop the browser
     Stop,
@@ -189,6 +196,16 @@ enum Cmd {
     Wait { selector: String },
     /// Wait for a CSS selector to disappear
     WaitNot { selector: String },
+    /// Wait for any of several selectors to appear, print the first match
+    WaitAny {
+        #[arg(required = true)]
+        selectors: Vec<String>,
+    },
+    /// Wait for all selectors to appear
+    WaitAll {
+        #[arg(required = true)]
+        selectors: Vec<String>,
+    },
 
     /// Click an element matching a CSS selector
     Click { selector: String },
@@ -308,25 +325,15 @@ enum Cmd {
         selector: Option<String>,
     },
 
-    /// Start video recording
-    VideoStart {
-        /// Directory to store raw video files
-        #[arg(long, default_value = ".plwr-video")]
-        dir: String,
-    },
-    /// Stop video recording and save the file
-    VideoStop {
-        /// Output file path (.mp4, .webm, .gif, etc.). Omit to leave raw .webm in video dir.
-        output: Option<String>,
-    },
-
     /// Internal: run the browser daemon (not for direct use)
     #[command(hide = true)]
     Daemon,
 }
 
 fn socket_path(session: &str) -> PathBuf {
-    let dir = std::env::temp_dir().join("plwr");
+    let dir = dirs::cache_dir()
+        .unwrap_or_else(|| PathBuf::from("/tmp"))
+        .join("plwr");
     std::fs::create_dir_all(&dir).ok();
     dir.join(format!("{}.sock", session))
 }
@@ -349,9 +356,9 @@ async fn main() -> ExitCode {
             }
         }
 
-        Cmd::Start { headed } => {
+        Cmd::Start { headed, video } => {
             let headed = headed || std::env::var("PLAYWRIGHT_HEADED").is_ok_and(|v| !v.is_empty());
-            match client::ensure_started(&sock, headed).await {
+            match client::ensure_started(&sock, headed, video.as_deref()).await {
                 Ok(()) => {
                     println!("Started session '{}'", cli.session);
                     ExitCode::SUCCESS
@@ -381,7 +388,10 @@ async fn main() -> ExitCode {
         cmd => {
             let command = match cmd {
                 Cmd::Daemon | Cmd::Stop | Cmd::Start { .. } => unreachable!(),
-                Cmd::Open { url } => Command::Open { url },
+                Cmd::Open { url } => Command::Open {
+                    url,
+                    timeout: cli.timeout,
+                },
                 Cmd::Reload => Command::Reload,
                 Cmd::Url => Command::Url,
                 Cmd::Wait { selector } => Command::Wait {
@@ -390,6 +400,14 @@ async fn main() -> ExitCode {
                 },
                 Cmd::WaitNot { selector } => Command::WaitNot {
                     selector,
+                    timeout: cli.timeout,
+                },
+                Cmd::WaitAny { selectors } => Command::WaitAny {
+                    selectors,
+                    timeout: cli.timeout,
+                },
+                Cmd::WaitAll { selectors } => Command::WaitAll {
+                    selectors,
                     timeout: cli.timeout,
                 },
                 Cmd::Click { selector } => Command::Click {
@@ -518,9 +536,6 @@ async fn main() -> ExitCode {
                     selector,
                     timeout: cli.timeout,
                 },
-                Cmd::VideoStart { dir } => Command::VideoStart { dir },
-                Cmd::VideoStop { output } => Command::VideoStop { output },
-
             };
 
             match client::send(&sock, command).await {

@@ -8,5 +8,8 @@ Stopped session 'plwr-test'
 ===
 stop web server
 ===
-bash -c 'kill $(cat /tmp/plwr-serve.pid) 2>/dev/null; rm -f /tmp/plwr-serve.pid /tmp/plwr-serve.log; kill $(cat /tmp/plwr-echo.pid) 2>/dev/null; rm -f /tmp/plwr-echo.pid /tmp/plwr-echo.log'
+kill $(cat /tmp/plwr-serve.pid) 2>/dev/null
+rm -f /tmp/plwr-serve.pid /tmp/plwr-serve.log
+kill $(cat /tmp/plwr-echo.pid) 2>/dev/null
+rm -f /tmp/plwr-echo.pid /tmp/plwr-echo.log
 ---

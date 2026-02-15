@@ -54,16 +54,21 @@ jobs:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
-      - name: Install Playwright
-        run: |
-          npm install -g playwright@1.56.1
-          npx playwright@1.56.1 install --with-deps chromium
       - name: Install cctr
         uses: taiki-e/install-action@v2
         with:
           tool: cctr
       - name: Build
         run: cargo build --release
+      - name: Install Playwright browsers
+        run: |
+          if [ "$(uname)" = "Darwin" ]; then
+            CACHE_DIR="$HOME/Library/Caches/playwright-rust/drivers"
+          else
+            CACHE_DIR="$HOME/.cache/playwright-rust/drivers"
+          fi
+          DRIVER_CLI=$(find "$CACHE_DIR" -name cli.js -path '*/package/*' | head -1)
+          node "$DRIVER_CLI" install --with-deps chromium
       - name: Add to PATH
         run: echo "$PWD/target/release" >> $GITHUB_PATH
       - name: Run e2e tests
@@ -186,12 +191,9 @@ jobs:
           ```bash
           # Via Homebrew (macOS/Linux)
           brew install andreasjansson/tap/plwr
-
-          # Via Cargo
-          cargo install plwr
           ```
 
-          Requires Playwright browsers: `npx playwright@1.56.1 install chromium`
+          Requires Playwright browsers: `npx playwright install chromium`
 
           ## Binaries
 

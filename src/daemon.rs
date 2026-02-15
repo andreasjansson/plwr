@@ -16,12 +16,15 @@ const CHANNEL_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(30);
 
 struct State {
     _playwright: Playwright,
-    browser: playwright_rs::Browser,
     page: Page,
-    original_page: Option<Page>,
     page_opened: bool,
     headers: HashMap<String, String>,
-    video_dir: Option<String>,
+    video: Option<VideoState>,
+}
+
+struct VideoState {
+    output_path: String,
+    temp_dir: std::path::PathBuf,
 }
 
 pub async fn run(socket_path: &Path, headed: bool) -> Result<()> {
@@ -43,6 +46,8 @@ pub async fn run(socket_path: &Path, headed: bool) -> Result<()> {
             return Err(e.into());
         }
     };
+    let video_output = std::env::var("PLWR_VIDEO").ok();
+
     let browser = match playwright
         .chromium()
         .launch_with_options(LaunchOptions {
@@ -57,11 +62,53 @@ pub async fn run(socket_path: &Path, headed: bool) -> Result<()> {
             return Err(e.into());
         }
     };
-    let page = match browser.new_page().await {
-        Ok(p) => p,
-        Err(e) => {
-            println!("{}{}", ERROR_PREFIX, e);
-            return Err(e.into());
+
+    let video = if let Some(ref output_path) = video_output {
+        let cache = dirs::cache_dir()
+            .unwrap_or_else(|| std::path::PathBuf::from("/tmp"))
+            .join("plwr")
+            .join("video");
+        std::fs::create_dir_all(&cache)?;
+        let temp_dir = tempfile::tempdir_in(&cache)?.keep();
+        Some(VideoState {
+            output_path: output_path.clone(),
+            temp_dir,
+        })
+    } else {
+        None
+    };
+
+    let page = if let Some(ref vs) = video {
+        let ctx = match browser
+            .new_context_with_options(BrowserContextOptions {
+                record_video: Some(RecordVideo {
+                    dir: vs.temp_dir.to_string_lossy().to_string(),
+                    size: None,
+                }),
+                ..Default::default()
+            })
+            .await
+        {
+            Ok(c) => c,
+            Err(e) => {
+                println!("{}{}", ERROR_PREFIX, e);
+                return Err(e.into());
+            }
+        };
+        match ctx.new_page().await {
+            Ok(p) => p,
+            Err(e) => {
+                println!("{}{}", ERROR_PREFIX, e);
+                return Err(e.into());
+            }
+        }
+    } else {
+        match browser.new_page().await {
+            Ok(p) => p,
+            Err(e) => {
+                println!("{}{}", ERROR_PREFIX, e);
+                return Err(e.into());
+            }
         }
     };
     let listener = match UnixListener::bind(socket_path) {
@@ -76,12 +123,10 @@ pub async fn run(socket_path: &Path, headed: bool) -> Result<()> {
 
     let mut state = State {
         _playwright: playwright,
-        browser,
         page,
-        original_page: None,
         page_opened: false,
         headers: HashMap::new(),
-        video_dir: None,
+        video,
     };
 
     loop {
@@ -128,21 +173,30 @@ pub async fn run(socket_path: &Path, headed: bool) -> Result<()> {
 async fn handle_command(state: &mut State, command: Command) -> Result<Response> {
     // Handle commands that mutate state before borrowing the page
     match command {
-        Command::Open { url } => {
-            state.page.goto(&url, None).await?;
+        Command::Open { url, timeout } => {
+            state
+                .page
+                .goto(
+                    &url,
+                    Some(playwright_rs::GotoOptions {
+                        timeout: Some(std::time::Duration::from_millis(timeout)),
+                        wait_until: None,
+                    }),
+                )
+                .await?;
             state.page_opened = true;
             return Ok(Response::ok_empty());
         }
         Command::Header { name, value } => {
             state.headers.insert(name, value);
             let ctx = &state.page.context()?;
-            pw_ext::set_extra_http_headers(&ctx, state.headers.clone()).await?;
+            pw_ext::set_extra_http_headers(ctx, state.headers.clone()).await?;
             return Ok(Response::ok_empty());
         }
         Command::HeaderClear => {
             state.headers.clear();
             let ctx = &state.page.context()?;
-            pw_ext::set_extra_http_headers(&ctx, HashMap::new()).await?;
+            pw_ext::set_extra_http_headers(ctx, HashMap::new()).await?;
             return Ok(Response::ok_empty());
         }
         Command::Cookie { name, value, url } => {
@@ -157,7 +211,7 @@ async fn handle_command(state: &mut State, command: Command) -> Result<Response>
         }
         Command::CookieList => {
             let ctx = &state.page.context()?;
-            let cookies = pw_ext::get_cookies(&ctx).await?;
+            let cookies = pw_ext::get_cookies(ctx).await?;
             let json: Vec<serde_json::Value> = cookies
                 .iter()
                 .map(|c| {
@@ -177,7 +231,7 @@ async fn handle_command(state: &mut State, command: Command) -> Result<Response>
         }
         Command::CookieClear => {
             let ctx = &state.page.context()?;
-            pw_ext::clear_cookies(&ctx).await?;
+            pw_ext::clear_cookies(ctx).await?;
             return Ok(Response::ok_empty());
         }
         Command::Viewport { width, height } => {
@@ -193,7 +247,39 @@ async fn handle_command(state: &mut State, command: Command) -> Result<Response>
     let page = &state.page;
 
     match command {
-        Command::Stop => Ok(Response::ok_empty()),
+        Command::Stop => {
+            if let Some(vs) = state.video.take() {
+                let ctx = state.page.context()?;
+                state.page.close().await?;
+                ctx.close().await?;
+                tokio::time::sleep(std::time::Duration::from_millis(500)).await;
+
+                let webm = std::fs::read_dir(&vs.temp_dir)?
+                    .filter_map(|e| e.ok())
+                    .find(|e| e.path().extension().is_some_and(|ext| ext == "webm"))
+                    .map(|e| e.path());
+
+                if let Some(webm) = webm {
+                    if vs.output_path.ends_with(".webm") {
+                        std::fs::copy(&webm, &vs.output_path)?;
+                    } else {
+                        let status = std::process::Command::new("ffmpeg")
+                            .args(["-y", "-i"])
+                            .arg(&webm)
+                            .arg(&vs.output_path)
+                            .stdout(std::process::Stdio::null())
+                            .stderr(std::process::Stdio::null())
+                            .status()?;
+                        if !status.success() {
+                            std::fs::remove_dir_all(&vs.temp_dir).ok();
+                            return Ok(Response::err(format!("ffmpeg exited with {}", status)));
+                        }
+                    }
+                }
+                std::fs::remove_dir_all(&vs.temp_dir).ok();
+            }
+            Ok(Response::ok_empty())
+        }
 
         Command::Reload => {
             page.reload(None).await?;
@@ -208,11 +294,75 @@ async fn handle_command(state: &mut State, command: Command) -> Result<Response>
             Ok(Response::ok_empty())
         }
 
+        Command::WaitAny { selectors, timeout } => {
+            let start = std::time::Instant::now();
+            loop {
+                for sel in &selectors {
+                    let loc = page.locator(sel).await;
+                    let n = match loc.count().await {
+                        Ok(n) => n,
+                        Err(_) => continue,
+                    };
+                    if n > 0 {
+                        let visible = loc.first().is_visible().await.unwrap_or(false);
+                        if visible {
+                            return Ok(Response::ok_value(serde_json::Value::String(sel.clone())));
+                        }
+                    }
+                }
+                if start.elapsed().as_millis() as u64 > timeout {
+                    let list = selectors.join(", ");
+                    anyhow::bail!("Timeout {}ms exceeded. None matched: [{}]", timeout, list);
+                }
+                tokio::time::sleep(std::time::Duration::from_millis(50)).await;
+            }
+        }
+
+        Command::WaitAll { selectors, timeout } => {
+            let start = std::time::Instant::now();
+            loop {
+                let mut all_visible = true;
+                for sel in &selectors {
+                    let loc = page.locator(sel).await;
+                    let n = match loc.count().await {
+                        Ok(n) => n,
+                        Err(_) => {
+                            all_visible = false;
+                            break;
+                        }
+                    };
+                    if n == 0 || !loc.first().is_visible().await.unwrap_or(false) {
+                        all_visible = false;
+                        break;
+                    }
+                }
+                if all_visible {
+                    return Ok(Response::ok_empty());
+                }
+                if start.elapsed().as_millis() as u64 > timeout {
+                    let mut missing = Vec::new();
+                    for sel in &selectors {
+                        let loc = page.locator(sel).await;
+                        let n = loc.count().await?;
+                        if n == 0 || !loc.first().is_visible().await? {
+                            missing.push(sel.as_str());
+                        }
+                    }
+                    anyhow::bail!(
+                        "Timeout {}ms exceeded. Still missing: [{}]",
+                        timeout,
+                        missing.join(", ")
+                    );
+                }
+                tokio::time::sleep(std::time::Duration::from_millis(50)).await;
+            }
+        }
+
         Command::WaitNot { selector, timeout } => {
             let loc = page.locator(&selector).await;
             let start = std::time::Instant::now();
             loop {
-                let n = loc.count().await?;
+                let n = loc.count().await.unwrap_or(0);
                 if n == 0 {
                     return Ok(Response::ok_empty());
                 }
@@ -518,109 +668,14 @@ async fn handle_command(state: &mut State, command: Command) -> Result<Response>
         | Command::CookieList
         | Command::CookieClear
         | Command::Viewport { .. } => unreachable!(),
-
-        Command::VideoStart { dir } => {
-            std::fs::create_dir_all(&dir)?;
-
-            let ctx = state
-                .browser
-                .new_context_with_options(BrowserContextOptions {
-                    record_video: Some(RecordVideo {
-                        dir: dir.clone(),
-                        size: None,
-                    }),
-                    ..Default::default()
-                })
-                .await?;
-
-            if !state.headers.is_empty() {
-                pw_ext::set_extra_http_headers(&ctx, state.headers.clone()).await?;
-            }
-
-            let vpage = ctx.new_page().await?;
-
-            let url = state.page.url();
-            if url != "about:blank" && state.page_opened {
-                vpage.goto(&url, None).await?;
-            }
-
-            let old_page = std::mem::replace(&mut state.page, vpage);
-            state.original_page = Some(old_page);
-            state.video_dir = Some(dir.clone());
-
-            Ok(Response::ok_value(serde_json::Value::String(format!(
-                "Video recording started (dir: {})", dir
-            ))))
-        }
-
-        Command::VideoStop { output } => {
-            if let Some(dir) = state.video_dir.take() {
-                let video_page = if let Some(orig) = state.original_page.take() {
-                    let url = state.page.url();
-                    let video_page = std::mem::replace(&mut state.page, orig);
-                    if url != "about:blank" {
-                        state.page.goto(&url, None).await?;
-                    }
-                    video_page
-                } else {
-                    anyhow::bail!("No original page to restore");
-                };
-
-                let ctx = video_page.context()?;
-                ctx.close().await?;
-
-                let webm = std::fs::read_dir(&dir)?
-                    .filter_map(|e| e.ok())
-                    .find(|e| e.path().extension().is_some_and(|ext| ext == "webm"))
-                    .map(|e| e.path());
-
-                match (webm, output) {
-                    (Some(webm_path), None) => {
-                        Ok(Response::ok_value(serde_json::Value::String(format!(
-                            "Video stopped. Recording at {}",
-                            webm_path.display()
-                        ))))
-                    }
-                    (Some(webm_path), Some(output)) => {
-                        if output.ends_with(".webm") {
-                            std::fs::rename(&webm_path, &output)?;
-                            Ok(Response::ok_value(serde_json::Value::String(format!(
-                                "Saved recording to {}",
-                                output
-                            ))))
-                        } else {
-                            let status = std::process::Command::new("ffmpeg")
-                                .args(["-y", "-i"])
-                                .arg(&webm_path)
-                                .arg(&output)
-                                .stdout(std::process::Stdio::null())
-                                .stderr(std::process::Stdio::null())
-                                .status()?;
-                            if status.success() {
-                                std::fs::remove_file(&webm_path).ok();
-                                Ok(Response::ok_value(serde_json::Value::String(format!(
-                                    "Saved recording to {}",
-                                    output
-                                ))))
-                            } else {
-                                Ok(Response::err(format!("ffmpeg exited with {}", status)))
-                            }
-                        }
-                    }
-                    (None, _) => Ok(Response::err("No video file found".to_string())),
-                }
-            } else {
-                Ok(Response::err("No video recording in progress".to_string()))
-            }
-        }
     }
 }
 
 async fn wait_for_visible(loc: &Locator, selector: &str, timeout: u64) -> Result<()> {
     let start = std::time::Instant::now();
     loop {
-        let n = loc.count().await?;
-        if n > 0 && loc.first().is_visible().await? {
+        let n = loc.count().await.unwrap_or_default();
+        if n > 0 && loc.first().is_visible().await.unwrap_or(false) {
             return Ok(());
         }
         if start.elapsed().as_millis() as u64 > timeout {
