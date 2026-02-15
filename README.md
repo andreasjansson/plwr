@@ -12,10 +12,19 @@ plwr stop                      # Stopped session 'default'
 
 ## Install
 
+### Homebrew
+
 ```bash
-brew install andreasjansson/tap/plwr   # macOS/Linux
-cargo install plwr                      # from crates.io
+brew install andreasjansson/tap/plwr
 ```
+
+### Crates.io
+
+```bash
+cargo install plwr
+```
+
+### Dependencies
 
 Requires Playwright browsers:
 
