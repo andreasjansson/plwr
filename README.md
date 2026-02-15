@@ -5,8 +5,8 @@ Clean CLI for Playwright browser automation with CSS selectors. Built on [playwr
 ## Install
 
 ```bash
-./script/install              # installs to ~/.local/bin
-./script/install -d ~/bin     # custom directory
+brew install andreasjansson/tap/plwr   # macOS/Linux
+cargo install plwr                      # from crates.io
 ```
 
 Requires Playwright browsers:
