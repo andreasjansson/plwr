@@ -62,8 +62,8 @@ jobs:
         run: cargo build --release
       - name: Install Playwright browsers
         run: |
-          DRIVER_DIR=$(find target/release/build -path '*/playwright-rs-*/out/playwright-*/package' -type d | head -1)
-          node "$DRIVER_DIR/cli.js" install --with-deps chromium
+          DRIVER_CLI=$(find ~/.cache/playwright-rust/drivers -name cli.js -path '*/package/*' | head -1)
+          node "$DRIVER_CLI" install --with-deps chromium
       - name: Add to PATH
         run: echo "$PWD/target/release" >> $GITHUB_PATH
       - name: Run e2e tests
