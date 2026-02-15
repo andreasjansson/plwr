@@ -274,7 +274,7 @@ async fn handle_command(state: &mut State, command: Command) -> Result<Response>
             let loc = page.locator(&selector).await;
             let start = std::time::Instant::now();
             loop {
-                let n = loc.count().await?;
+                let n = loc.count().await.unwrap_or(0);
                 if n == 0 {
                     return Ok(Response::ok_empty());
                 }
