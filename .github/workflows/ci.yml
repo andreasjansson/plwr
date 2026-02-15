@@ -186,7 +186,7 @@ jobs:
           brew install andreasjansson/tap/plwr
           ```
 
-          Requires Playwright browsers: `npx playwright install chromium`
+          Requires Playwright: `npm install -g playwright && npx playwright install chromium`
 
           ## Binaries
 
