@@ -1,7 +1,7 @@
 [package]
 name = "plwr"
 description = "Clean CLI for Playwright browser automation with CSS selectors"
-version = "0.5.0"
+version = "0.6.0"
 edition = "2021"
 authors = ["Andreas Jansson"]
 license = "MIT"
