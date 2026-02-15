@@ -34,7 +34,6 @@ pub enum Error {
     /// To resolve this, install browsers using the versioned install command to ensure compatibility.
     #[error(
         "Browser '{browser_name}' is not installed.\n\n\
-        {message}\n\n\
         To install, run:\n  \
         npx playwright install {browser_name}"
     )]
