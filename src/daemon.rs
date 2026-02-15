@@ -127,23 +127,29 @@ async fn handle_command(state: &mut State, command: Command) -> Result<Response>
     // Handle commands that mutate state before borrowing the page
     match command {
         Command::Open { url, timeout } => {
-            state.page.goto(&url, Some(playwright_rs::GotoOptions {
-                timeout: Some(std::time::Duration::from_millis(timeout)),
-                wait_until: None,
-            })).await?;
+            state
+                .page
+                .goto(
+                    &url,
+                    Some(playwright_rs::GotoOptions {
+                        timeout: Some(std::time::Duration::from_millis(timeout)),
+                        wait_until: None,
+                    }),
+                )
+                .await?;
             state.page_opened = true;
             return Ok(Response::ok_empty());
         }
         Command::Header { name, value } => {
             state.headers.insert(name, value);
             let ctx = &state.page.context()?;
-            pw_ext::set_extra_http_headers(&ctx, state.headers.clone()).await?;
+            pw_ext::set_extra_http_headers(ctx, state.headers.clone()).await?;
             return Ok(Response::ok_empty());
         }
         Command::HeaderClear => {
             state.headers.clear();
             let ctx = &state.page.context()?;
-            pw_ext::set_extra_http_headers(&ctx, HashMap::new()).await?;
+            pw_ext::set_extra_http_headers(ctx, HashMap::new()).await?;
             return Ok(Response::ok_empty());
         }
         Command::Cookie { name, value, url } => {
@@ -158,7 +164,7 @@ async fn handle_command(state: &mut State, command: Command) -> Result<Response>
         }
         Command::CookieList => {
             let ctx = &state.page.context()?;
-            let cookies = pw_ext::get_cookies(&ctx).await?;
+            let cookies = pw_ext::get_cookies(ctx).await?;
             let json: Vec<serde_json::Value> = cookies
                 .iter()
                 .map(|c| {
@@ -178,7 +184,7 @@ async fn handle_command(state: &mut State, command: Command) -> Result<Response>
         }
         Command::CookieClear => {
             let ctx = &state.page.context()?;
-            pw_ext::clear_cookies(&ctx).await?;
+            pw_ext::clear_cookies(ctx).await?;
             return Ok(Response::ok_empty());
         }
         Command::Viewport { width, height } => {
@@ -241,7 +247,10 @@ async fn handle_command(state: &mut State, command: Command) -> Result<Response>
                     let loc = page.locator(sel).await;
                     let n = match loc.count().await {
                         Ok(n) => n,
-                        Err(_) => { all_visible = false; break; }
+                        Err(_) => {
+                            all_visible = false;
+                            break;
+                        }
                     };
                     if n == 0 || !loc.first().is_visible().await.unwrap_or(false) {
                         all_visible = false;
@@ -585,7 +594,7 @@ async fn handle_command(state: &mut State, command: Command) -> Result<Response>
             let guid = pw_ext::page_video_start(&state.page).await?;
             state.video_artifact_guid = Some(guid);
             Ok(Response::ok_value(serde_json::Value::String(
-                "Video recording started".to_string()
+                "Video recording started".to_string(),
             )))
         }
 
@@ -596,14 +605,9 @@ async fn handle_command(state: &mut State, command: Command) -> Result<Response>
                         let webm_path = if output.ends_with(".webm") {
                             output.clone()
                         } else {
-                            format!("{}.webm", output.trim_end_matches(|c: char| c == '.'))
+                            format!("{}.webm", output.trim_end_matches('.'))
                         };
-                        pw_ext::page_video_stop_and_save(
-                            &state.page,
-                            &guid,
-                            &webm_path,
-                        )
-                        .await?;
+                        pw_ext::page_video_stop_and_save(&state.page, &guid, &webm_path).await?;
 
                         if output.ends_with(".webm") {
                             Ok(Response::ok_value(serde_json::Value::String(format!(
@@ -632,7 +636,7 @@ async fn handle_command(state: &mut State, command: Command) -> Result<Response>
                     None => {
                         pw_ext::page_video_stop(&state.page).await?;
                         Ok(Response::ok_value(serde_json::Value::String(
-                            "Video stopped.".to_string()
+                            "Video stopped.".to_string(),
                         )))
                     }
                 }
@@ -646,10 +650,7 @@ async fn handle_command(state: &mut State, command: Command) -> Result<Response>
 async fn wait_for_visible(loc: &Locator, selector: &str, timeout: u64) -> Result<()> {
     let start = std::time::Instant::now();
     loop {
-        let n = match loc.count().await {
-            Ok(n) => n,
-            Err(_) => 0,
-        };
+        let n = loc.count().await.unwrap_or_default();
         if n > 0 && loc.first().is_visible().await.unwrap_or(false) {
             return Ok(());
         }
