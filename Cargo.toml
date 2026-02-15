@@ -5,6 +5,8 @@ version = "0.7.1"
 edition = "2021"
 authors = ["Andreas Jansson"]
 license = "MIT"
+repository = "https://github.com/andreasjansson/plwr"
+homepage = "https://github.com/andreasjansson/plwr"
 
 [dependencies]
 clap = { version = "4", features = ["derive", "env"] }
