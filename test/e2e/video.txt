@@ -10,10 +10,7 @@ start video recording
 ===
 plwr -S plwr-test video-start
 ---
-{{ output }}
----
-where
-* output contains "Video recording started"
+Video recording started
 
 ===
 do something while recording
@@ -45,10 +42,7 @@ start recording before interaction
 ===
 plwr -S plwr-test video-start
 ---
-{{ output }}
----
-where
-* output contains "Video recording started"
+Video recording started
 
 ===
 interact with page during recording (fill, click, navigate)
@@ -82,10 +76,7 @@ start third recording for stop-without-output test
 ===
 plwr -S plwr-test video-start
 ---
-{{ output }}
----
-where
-* output contains "Video recording started"
+Video recording started
 
 ===
 do something while recording
@@ -98,7 +89,4 @@ stop recording without output path
 ===
 plwr -S plwr-test video-stop
 ---
-{{ output }}
----
-where
-* output contains "Video stopped"
+Video stopped.
