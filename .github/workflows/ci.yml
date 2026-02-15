@@ -178,12 +178,9 @@ jobs:
           ```bash
           # Via Homebrew (macOS/Linux)
           brew install andreasjansson/tap/plwr
-
-          # Via Cargo
-          cargo install plwr
           ```
 
-          Requires Playwright browsers: `npx playwright@1.56.1 install chromium`
+          Requires Playwright browsers: `npx playwright install chromium`
 
           ## Binaries
 
