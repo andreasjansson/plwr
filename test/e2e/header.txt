@@ -106,10 +106,7 @@ start video recording
 ===
 plwr -S plwr-test video-start
 ---
-{{ output }}
----
-where
-* output contains "Video recording started"
+Video recording started
 
 ===
 headers persist after video-start
