@@ -35,16 +35,12 @@ pub enum Error {
     #[error(
         "Browser '{browser_name}' is not installed.\n\n\
         {message}\n\n\
-        To install {browser_name}, run:\n  \
-        npx playwright@{playwright_version} install {browser_name}\n\n\
-        Or install all browsers:\n  \
-        npx playwright@{playwright_version} install\n\n\
-        See: https://playwright.dev/docs/browsers"
+        To install, run:\n  \
+        npx playwright install {browser_name}"
     )]
     BrowserNotInstalled {
         browser_name: String,
         message: String,
-        playwright_version: String,
     },
 
     /// Failed to establish connection with the server
