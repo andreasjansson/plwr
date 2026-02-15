@@ -340,7 +340,9 @@ enum Cmd {
 }
 
 fn socket_path(session: &str) -> PathBuf {
-    let dir = std::env::temp_dir().join("plwr");
+    let dir = dirs::cache_dir()
+        .unwrap_or_else(|| PathBuf::from("/tmp"))
+        .join("plwr");
     std::fs::create_dir_all(&dir).ok();
     dir.join(format!("{}.sock", session))
 }
