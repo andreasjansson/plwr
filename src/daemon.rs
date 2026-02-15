@@ -581,7 +581,7 @@ async fn handle_command(state: &mut State, command: Command) -> Result<Response>
         | Command::CookieClear
         | Command::Viewport { .. } => unreachable!(),
 
-        Command::VideoStart { .. } => {
+        Command::VideoStart => {
             let guid = pw_ext::page_video_start(&state.page).await?;
             state.video_artifact_guid = Some(guid);
             Ok(Response::ok_value(serde_json::Value::String(
