@@ -647,8 +647,11 @@ async fn handle_command(state: &mut State, command: Command) -> Result<Response>
 async fn wait_for_visible(loc: &Locator, selector: &str, timeout: u64) -> Result<()> {
     let start = std::time::Instant::now();
     loop {
-        let n = loc.count().await?;
-        if n > 0 && loc.first().is_visible().await? {
+        let n = match loc.count().await {
+            Ok(n) => n,
+            Err(_) => 0,
+        };
+        if n > 0 && loc.first().is_visible().await.unwrap_or(false) {
             return Ok(());
         }
         if start.elapsed().as_millis() as u64 > timeout {
