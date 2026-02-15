@@ -538,7 +538,7 @@ async fn main() -> ExitCode {
                     selector,
                     timeout: cli.timeout,
                 },
-                Cmd::VideoStart { dir } => Command::VideoStart { dir },
+                Cmd::VideoStart => Command::VideoStart,
                 Cmd::VideoStop { output } => Command::VideoStop { output },
 
             };
