@@ -42,7 +42,15 @@ pub async fn run(socket_path: &Path, headed: bool) -> Result<()> {
     let playwright = match Playwright::launch().await {
         Ok(p) => p,
         Err(e) => {
-            println!("{}{}", ERROR_PREFIX, e);
+            let msg = e.to_string();
+            if msg.contains("not found") {
+                println!(
+                    "{}Playwright not found. Install with: npm install -g playwright && npx playwright install chromium",
+                    ERROR_PREFIX
+                );
+            } else {
+                println!("{}{}", ERROR_PREFIX, msg);
+            }
             return Err(e.into());
         }
     };
