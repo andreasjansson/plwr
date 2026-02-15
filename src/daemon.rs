@@ -214,9 +214,15 @@ async fn handle_command(state: &mut State, command: Command) -> Result<Response>
             loop {
                 for sel in &selectors {
                     let loc = page.locator(sel).await;
-                    let n = loc.count().await?;
-                    if n > 0 && loc.first().is_visible().await? {
-                        return Ok(Response::ok_value(serde_json::Value::String(sel.clone())));
+                    let n = match loc.count().await {
+                        Ok(n) => n,
+                        Err(_) => continue,
+                    };
+                    if n > 0 {
+                        let visible = loc.first().is_visible().await.unwrap_or(false);
+                        if visible {
+                            return Ok(Response::ok_value(serde_json::Value::String(sel.clone())));
+                        }
                     }
                 }
                 if start.elapsed().as_millis() as u64 > timeout {
@@ -233,8 +239,11 @@ async fn handle_command(state: &mut State, command: Command) -> Result<Response>
                 let mut all_visible = true;
                 for sel in &selectors {
                     let loc = page.locator(sel).await;
-                    let n = loc.count().await?;
-                    if n == 0 || !loc.first().is_visible().await? {
+                    let n = match loc.count().await {
+                        Ok(n) => n,
+                        Err(_) => { all_visible = false; break; }
+                    };
+                    if n == 0 || !loc.first().is_visible().await.unwrap_or(false) {
                         all_visible = false;
                         break;
                     }
