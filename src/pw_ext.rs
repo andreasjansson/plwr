@@ -81,7 +81,9 @@ pub async fn page_video_start(page: &Page) -> playwright_rs::Result<String> {
         .await?;
     let guid = resp["artifact"]["guid"]
         .as_str()
-        .ok_or_else(|| playwright_rs::Error::ObjectNotFound("artifact guid in videoStart response".into()))?
+        .ok_or_else(|| {
+            playwright_rs::Error::ObjectNotFound("artifact guid in videoStart response".into())
+        })?
         .to_string();
     Ok(guid)
 }
@@ -97,8 +99,13 @@ pub async fn page_video_stop_and_save(
         .await?;
 
     // Use the artifact's saveAs to copy the video to our desired path
-    let artifact_channel = page.connection()
-        .send_message(artifact_guid, "saveAs", serde_json::json!({ "path": save_path }))
+    let artifact_channel = page
+        .connection()
+        .send_message(
+            artifact_guid,
+            "saveAs",
+            serde_json::json!({ "path": save_path }),
+        )
         .await?;
     let _ = artifact_channel;
     Ok(())

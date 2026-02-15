@@ -393,7 +393,10 @@ async fn main() -> ExitCode {
         cmd => {
             let command = match cmd {
                 Cmd::Daemon | Cmd::Stop | Cmd::Start { .. } => unreachable!(),
-                Cmd::Open { url } => Command::Open { url, timeout: cli.timeout },
+                Cmd::Open { url } => Command::Open {
+                    url,
+                    timeout: cli.timeout,
+                },
                 Cmd::Reload => Command::Reload,
                 Cmd::Url => Command::Url,
                 Cmd::Wait { selector } => Command::Wait {
@@ -540,7 +543,6 @@ async fn main() -> ExitCode {
                 },
                 Cmd::VideoStart => Command::VideoStart,
                 Cmd::VideoStop { output } => Command::VideoStop { output },
-
             };
 
             match client::send(&sock, command).await {
