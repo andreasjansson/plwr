@@ -1,6 +1,14 @@
 # plwr
 
-Clean CLI for Playwright browser automation with CSS selectors. Built on [playwright-rs](https://github.com/padamson/playwright-rust).
+Playwright CLI for browser automation using CSS selectors. Built on [playwright-rs](https://github.com/padamson/playwright-rust).
+
+```bash
+plwr start                     # Started session 'default'
+plwr open https://example.com
+plwr text h1                   # Example Domain
+plwr attr a href               # https://iana.org/domains/example
+plwr stop                      # Stopped session 'default'
+```
 
 ## Install
 
