@@ -1,6 +1,7 @@
 use crate::protocol::{Command, Request, Response};
 use anyhow::{bail, Result};
 use std::io::BufRead;
+use std::os::unix::process::CommandExt;
 use std::path::Path;
 use std::process::{Command as StdCommand, Stdio};
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
