@@ -26,10 +26,10 @@ cargo install plwr
 
 ### Dependencies
 
-Requires Playwright browsers:
+Requires Playwright:
 
 ```bash
-npx playwright install chromium
+npm install -g playwright && npx playwright install chromium
 ```
 
 For video conversion to non-webm formats, install [ffmpeg](https://ffmpeg.org/).
