@@ -68,6 +68,14 @@ fn start_daemon(socket_path: &Path, headed: bool) -> Result<()> {
         .stderr(Stdio::null())
         .stdin(Stdio::null());
 
+    // Safety: setsid() is async-signal-safe and has no preconditions
+    unsafe {
+        cmd.pre_exec(|| {
+            libc::setsid();
+            Ok(())
+        });
+    }
+
     if headed {
         cmd.env("PLAYWRIGHT_HEADED", "1");
     }
