@@ -62,7 +62,12 @@ jobs:
         run: cargo build --release
       - name: Install Playwright browsers
         run: |
-          DRIVER_CLI=$(find ~/.cache/playwright-rust/drivers -name cli.js -path '*/package/*' | head -1)
+          if [ "$(uname)" = "Darwin" ]; then
+            CACHE_DIR="$HOME/Library/Caches/playwright-rust/drivers"
+          else
+            CACHE_DIR="$HOME/.cache/playwright-rust/drivers"
+          fi
+          DRIVER_CLI=$(find "$CACHE_DIR" -name cli.js -path '*/package/*' | head -1)
           node "$DRIVER_CLI" install --with-deps chromium
       - name: Add to PATH
         run: echo "$PWD/target/release" >> $GITHUB_PATH
