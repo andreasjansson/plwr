@@ -323,11 +323,7 @@ enum Cmd {
     },
 
     /// Start video recording
-    VideoStart {
-        /// Directory to store raw video files
-        #[arg(long, default_value = ".plwr-video")]
-        dir: String,
-    },
+    VideoStart,
     /// Stop video recording and save the file
     VideoStop {
         /// Output file path (.mp4, .webm, .gif, etc.). Omit to leave raw .webm in video dir.
