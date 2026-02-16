@@ -82,14 +82,19 @@ plwr -S plwr-test computed-style '#style-target' display
 }
 
 ===
-computed-style: all styles returns many CSS properties
+computed-style: all styles returns full computed style object
 ===
 plwr -S plwr-test computed-style '#style-target'
 ---
-{{ styles }}
+{{ styles: json object }}
 ---
 where
-* len(styles) > 100
+* styles.display == "flex"
+* styles.color == "rgb(255, 255, 255)"
+* styles."background-color" == "rgb(255, 0, 0)"
+* styles."flex-direction" == "column"
+* styles.position == "relative"
+* styles.visibility == "visible"
 
 ===
 computed-style: works with complex selectors
