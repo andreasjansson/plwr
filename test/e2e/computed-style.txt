@@ -1,0 +1,113 @@
+===
+navigate to selectors page
+%require
+===
+plwr -S plwr-test open "http://localhost:8599/selectors.html"
+---
+
+===
+computed-style: specific properties
+===
+plwr -S plwr-test computed-style '#style-target' display flex-direction align-items
+---
+{
+  "display": "flex",
+  "flex-direction": "column",
+  "align-items": "center"
+}
+
+===
+computed-style: dimensions and spacing
+===
+plwr -S plwr-test computed-style '#style-target' width padding-top padding-right padding-bottom padding-left margin-top
+---
+{
+  "width": "200px",
+  "padding-top": "10px",
+  "padding-right": "10px",
+  "padding-bottom": "10px",
+  "padding-left": "10px",
+  "margin-top": "20px"
+}
+
+===
+computed-style: colors
+===
+plwr -S plwr-test computed-style '#style-target' background-color color
+---
+{
+  "background-color": "rgb(255, 0, 0)",
+  "color": "rgb(255, 255, 255)"
+}
+
+===
+computed-style: border properties
+===
+plwr -S plwr-test computed-style '#style-target' border-top-width border-top-style border-top-color border-radius
+---
+{
+  "border-top-width": "2px",
+  "border-top-style": "solid",
+  "border-top-color": "rgb(0, 0, 0)",
+  "border-radius": "8px"
+}
+
+===
+computed-style: positioning and visibility
+===
+plwr -S plwr-test computed-style '#style-target' position z-index opacity
+---
+{
+  "position": "relative",
+  "z-index": "10",
+  "opacity": "0.9"
+}
+
+===
+computed-style: font properties
+===
+plwr -S plwr-test computed-style '#style-target' font-size
+---
+{
+  "font-size": "16px"
+}
+
+===
+computed-style: single property
+===
+plwr -S plwr-test computed-style '#style-target' display
+---
+{
+  "display": "flex"
+}
+
+===
+computed-style: all styles returns JSON object
+===
+plwr -S plwr-test computed-style '#style-target'
+---
+{{ styles }}
+---
+where
+* "display" in styles
+* "color" in styles
+* "width" in styles
+* "font-size" in styles
+
+===
+computed-style: works with complex selectors
+===
+plwr -S plwr-test computed-style '.card p' display
+---
+{
+  "display": "block"
+}
+
+===
+computed-style: hidden element
+===
+plwr -S plwr-test computed-style '.hidden' display
+---
+{
+  "display": "none"
+}
