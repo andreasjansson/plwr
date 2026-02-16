@@ -119,16 +119,16 @@ plwr -S plwr-test eval "(() => {
 ---
 [
   {
-    "tag": "P",
-    "display": "block"
+    "display": "block",
+    "tag": "P"
   },
   {
-    "tag": "BODY",
-    "display": "block"
+    "display": "block",
+    "tag": "BODY"
   },
   {
-    "tag": "HTML",
-    "display": "block"
+    "display": "block",
+    "tag": "HTML"
   }
 ]
 
@@ -145,7 +145,7 @@ plwr -S plwr-test eval "(() => {
 ---
 [
   {
-    "text": "Form",
-    "href": "/form.html"
+    "href": "/form.html",
+    "text": "Form"
   }
 ]
