@@ -150,6 +150,7 @@ plwr text h1                     # print textContent
 plwr inner-html '.content'       # print innerHTML (preserves tags)
 plwr attr a href                 # print attribute value
 plwr input-value '#email'        # print value of input/textarea/select
+plwr computed-style '.box' display width  # print computed CSS properties
 plwr count '.list-item'          # print number of matches
 plwr exists '.sidebar'           # exit 0 if found, 1 if not
 ```
