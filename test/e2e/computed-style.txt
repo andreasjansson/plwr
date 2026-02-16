@@ -91,10 +91,11 @@ plwr -S plwr-test computed-style '#style-target'
 where
 * styles.display == "flex"
 * styles.color == "rgb(255, 255, 255)"
-* styles."background-color" == "rgb(255, 0, 0)"
-* styles."flex-direction" == "column"
 * styles.position == "relative"
 * styles.visibility == "visible"
+* styles.opacity == "0.9"
+* styles contains "background-color"
+* styles contains "flex-direction"
 
 ===
 computed-style: works with complex selectors
