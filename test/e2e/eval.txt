@@ -94,9 +94,9 @@ plwr -S plwr-test eval "(() => {
 })()"
 ---
 {
+  "childCount": 1,
   "tag": "H1",
-  "text": "Test Page",
-  "childCount": 1
+  "text": "Test Page"
 }
 
 ===
