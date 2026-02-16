@@ -535,6 +535,14 @@ async fn main() -> ExitCode {
                     selector,
                     timeout: cli.timeout,
                 },
+                Cmd::ComputedStyle {
+                    selector,
+                    properties,
+                } => Command::ComputedStyle {
+                    selector,
+                    properties,
+                    timeout: cli.timeout,
+                },
                 Cmd::Eval { js } => Command::Eval { js },
                 Cmd::Screenshot { selector, path } => Command::Screenshot {
                     selector,
