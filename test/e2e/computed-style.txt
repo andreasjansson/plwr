@@ -11,9 +11,9 @@ computed-style: specific properties
 plwr -S plwr-test computed-style '#style-target' display flex-direction align-items
 ---
 {
+  "align-items": "center",
   "display": "flex",
-  "flex-direction": "column",
-  "align-items": "center"
+  "flex-direction": "column"
 }
 
 ===
@@ -22,12 +22,12 @@ computed-style: dimensions and spacing
 plwr -S plwr-test computed-style '#style-target' width padding-top padding-right padding-bottom padding-left margin-top
 ---
 {
-  "width": "200px",
-  "padding-top": "10px",
-  "padding-right": "10px",
+  "margin-top": "20px",
   "padding-bottom": "10px",
   "padding-left": "10px",
-  "margin-top": "20px"
+  "padding-right": "10px",
+  "padding-top": "10px",
+  "width": "200px"
 }
 
 ===
@@ -46,10 +46,10 @@ computed-style: border properties
 plwr -S plwr-test computed-style '#style-target' border-top-width border-top-style border-top-color border-radius
 ---
 {
-  "border-top-width": "2px",
-  "border-top-style": "solid",
+  "border-radius": "8px",
   "border-top-color": "rgb(0, 0, 0)",
-  "border-radius": "8px"
+  "border-top-style": "solid",
+  "border-top-width": "2px"
 }
 
 ===
@@ -58,9 +58,9 @@ computed-style: positioning and visibility
 plwr -S plwr-test computed-style '#style-target' position z-index opacity
 ---
 {
+  "opacity": "0.9",
   "position": "relative",
-  "z-index": "10",
-  "opacity": "0.9"
+  "z-index": "10"
 }
 
 ===
@@ -82,17 +82,18 @@ plwr -S plwr-test computed-style '#style-target' display
 }
 
 ===
-computed-style: all styles returns JSON object
+computed-style: all styles returns JSON with standard CSS properties
 ===
 plwr -S plwr-test computed-style '#style-target'
 ---
 {{ styles }}
 ---
 where
-* "display" in styles
-* "color" in styles
-* "width" in styles
-* "font-size" in styles
+* strip(styles) startswith "{"
+* styles contains "display"
+* styles contains "color"
+* styles contains "width"
+* styles contains "font-size"
 
 ===
 computed-style: works with complex selectors
@@ -104,7 +105,7 @@ plwr -S plwr-test computed-style '.card p' display
 }
 
 ===
-computed-style: hidden element
+computed-style: hidden element via display:none
 ===
 plwr -S plwr-test computed-style '.hidden' display
 ---
