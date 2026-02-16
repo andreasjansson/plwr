@@ -600,6 +600,48 @@ async fn handle_command(state: &mut State, command: Command) -> Result<Response>
             Ok(Response::ok_empty())
         }
 
+        Command::ComputedStyle {
+            selector,
+            properties,
+            timeout,
+        } => {
+            let loc = page.locator(&selector).await;
+            wait_for_visible(&loc, &selector, timeout).await?;
+
+            let js = if properties.is_empty() {
+                r#"el => {
+                    const cs = getComputedStyle(el);
+                    const result = {};
+                    for (let i = 0; i < cs.length; i++) {
+                        const prop = cs[i];
+                        result[prop] = cs.getPropertyValue(prop);
+                    }
+                    return JSON.stringify(result);
+                }"#
+                .to_string()
+            } else {
+                let props_js: Vec<String> = properties
+                    .iter()
+                    .map(|p| format!("'{}'", p.replace('\'', "\\'")))
+                    .collect();
+                format!(
+                    r#"el => {{
+                    const cs = getComputedStyle(el);
+                    const props = [{}];
+                    const result = {{}};
+                    for (const p of props) {{ result[p] = cs.getPropertyValue(p); }}
+                    return JSON.stringify(result);
+                }}"#,
+                    props_js.join(", ")
+                )
+            };
+
+            let val = pw_ext::locator_eval_on_selector(page, &selector, &js).await?;
+            let json_str: String = serde_json::from_str(&val).unwrap_or(val);
+            let styles: serde_json::Value = serde_json::from_str(&json_str)?;
+            Ok(Response::ok_value(styles))
+        }
+
         Command::Eval { js } => {
             let wrapper = format!(
                 "() => {{ const __r = ({}); return typeof __r === 'object' ? JSON.stringify(__r) : __r; }}",
