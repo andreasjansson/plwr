@@ -190,12 +190,54 @@ plwr input-files '#upload' a.txt b.txt c.txt   # multiple files
 plwr input-files '#upload'                      # clear selection
 ```
 
+### Computed styles
+
+```bash
+plwr computed-style h1                          # all computed styles as JSON
+plwr computed-style '.box' display width color  # specific properties
+```
+
 ### JavaScript
+
+Simple expressions are evaluated directly:
 
 ```bash
 plwr eval "document.title"
 plwr eval "({a: 1, b: [2, 3]})"   # returns pretty-printed JSON
 ```
+
+For multi-statement logic, use an IIFE (immediately invoked function expression):
+
+```bash
+plwr eval "(() => {
+  const rows = document.querySelectorAll('table tr');
+  return Array.from(rows).map(r => r.cells[0]?.textContent);
+})()"
+```
+
+Walk the DOM, gather computed styles, inspect layout:
+
+```bash
+plwr eval "(() => {
+  const el = document.querySelector('.content');
+  let node = el;
+  const chain = [];
+  while (node && chain.length < 6) {
+    const cs = getComputedStyle(node);
+    chain.push({
+      tag: node.tagName,
+      class: node.className,
+      display: cs.display,
+      width: cs.width,
+    });
+    node = node.parentElement;
+  }
+  return chain;
+})()"
+```
+
+Objects and arrays are returned as pretty-printed JSON. Primitives (strings,
+numbers, booleans) are printed as plain text.
 
 ### DOM tree
 
