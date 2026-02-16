@@ -67,3 +67,85 @@ eval returns null
 ===
 plwr -S plwr-test eval "null"
 ---
+
+===
+eval IIFE: multi-statement logic returning an array
+===
+plwr -S plwr-test eval "(() => {
+  const items = document.querySelectorAll('p');
+  return Array.from(items).map(el => el.textContent);
+})()"
+---
+[
+  "First paragraph",
+  "Second paragraph"
+]
+
+===
+eval IIFE: collect DOM info into an object
+===
+plwr -S plwr-test eval "(() => {
+  const h1 = document.querySelector('h1');
+  return {
+    tag: h1.tagName,
+    text: h1.textContent,
+    childCount: h1.childNodes.length
+  };
+})()"
+---
+{
+  "tag": "H1",
+  "text": "Test Page",
+  "childCount": 1
+}
+
+===
+eval IIFE: walk parent chain with computed styles
+===
+plwr -S plwr-test eval "(() => {
+  const el = document.querySelector('p');
+  let node = el;
+  const chain = [];
+  while (node && chain.length < 3) {
+    const cs = getComputedStyle(node);
+    chain.push({
+      tag: node.tagName,
+      display: cs.display
+    });
+    node = node.parentElement;
+  }
+  return chain;
+})()"
+---
+[
+  {
+    "tag": "P",
+    "display": "block"
+  },
+  {
+    "tag": "BODY",
+    "display": "block"
+  },
+  {
+    "tag": "HTML",
+    "display": "block"
+  }
+]
+
+===
+eval IIFE: filter and map table-like data
+===
+plwr -S plwr-test eval "(() => {
+  const links = document.querySelectorAll('a');
+  return Array.from(links).map(a => ({
+    text: a.textContent,
+    href: a.getAttribute('href')
+  }));
+})()"
+---
+[
+  {
+    "text": "Form",
+    "href": "/form.html"
+  }
+]
