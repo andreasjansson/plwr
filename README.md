@@ -1,6 +1,6 @@
 # plwr
 
-Playwright CLI for browser automation using CSS selectors. Built on [playwright-rs](https://github.com/padamson/playwright-rust).
+`plwr` (prounounced [_PLUR_](https://en.wikipedia.org/wiki/PLUR)) is a Playwright CLI for browser automation using CSS selectors. Built on [playwright-rs](https://github.com/padamson/playwright-rust).
 
 ```bash
 plwr start                     # Started session 'default'
