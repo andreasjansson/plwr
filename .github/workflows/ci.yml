@@ -273,3 +273,49 @@ jobs:
           git add Formula/plwr.rb
           git commit -m "Update plwr to ${VERSION}"
           git push
+
+  smoke-test-macos:
+    name: Smoke Test (macOS/Homebrew)
+    runs-on: macos-latest
+    needs: [check-release, homebrew]
+    if: needs.check-release.outputs.should_release == 'true'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install plwr via Homebrew
+        run: brew install andreasjansson/tap/plwr
+      - name: Verify version
+        run: |
+          plwr --version
+          plwr --version | grep -q "${{ needs.check-release.outputs.version }}"
+      - name: Install cctr
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cctr
+      - name: Install Playwright
+        run: npm install -g playwright && npx playwright install --with-deps chromium
+      - name: Run e2e tests
+        run: cctr test/e2e
+
+  smoke-test-linux:
+    name: Smoke Test (Linux/GitHub Release)
+    runs-on: ubuntu-latest
+    needs: [check-release, homebrew]
+    if: needs.check-release.outputs.should_release == 'true'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install plwr from GitHub Release
+        run: |
+          curl -L "https://github.com/andreasjansson/plwr/releases/download/v${{ needs.check-release.outputs.version }}/plwr-v${{ needs.check-release.outputs.version }}-x86_64-unknown-linux-gnu.tar.gz" | tar xz
+          sudo mv plwr /usr/local/bin/
+      - name: Verify version
+        run: |
+          plwr --version
+          plwr --version | grep -q "${{ needs.check-release.outputs.version }}"
+      - name: Install cctr
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cctr
+      - name: Install Playwright
+        run: npm install -g playwright && npx playwright install --with-deps chromium
+      - name: Run e2e tests
+        run: cctr test/e2e
