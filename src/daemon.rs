@@ -603,10 +603,19 @@ async fn handle_command(state: &mut State, command: Command) -> Result<Response>
         Command::ComputedStyle {
             selector,
             properties,
-            ..
+            timeout,
         } => {
             let loc = page.locator(&selector).await;
-            loc.count().await?;
+            let start = std::time::Instant::now();
+            loop {
+                if loc.count().await.unwrap_or(0) > 0 {
+                    break;
+                }
+                if start.elapsed().as_millis() as u64 > timeout {
+                    anyhow::bail!("Timeout {}ms: element not found [{}]", timeout, selector);
+                }
+                tokio::time::sleep(std::time::Duration::from_millis(50)).await;
+            }
 
             let js = if properties.is_empty() {
                 r#"el => {
