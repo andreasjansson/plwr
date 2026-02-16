@@ -603,10 +603,10 @@ async fn handle_command(state: &mut State, command: Command) -> Result<Response>
         Command::ComputedStyle {
             selector,
             properties,
-            timeout,
+            ..
         } => {
             let loc = page.locator(&selector).await;
-            wait_for_visible(&loc, &selector, timeout).await?;
+            loc.count().await?;
 
             let js = if properties.is_empty() {
                 r#"el => {
