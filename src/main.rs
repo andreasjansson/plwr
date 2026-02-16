@@ -308,6 +308,15 @@ enum Cmd {
     /// Scroll an element into view
     Scroll { selector: String },
 
+    /// Print computed CSS styles for an element (all styles if no properties given)
+    ComputedStyle {
+        /// CSS selector for the element
+        selector: String,
+        /// CSS properties to retrieve (e.g. display flex-direction); omit for all
+        #[arg(trailing_var_arg = true)]
+        properties: Vec<String>,
+    },
+
     /// Evaluate arbitrary JavaScript in page context, print the result
     Eval { js: String },
 
