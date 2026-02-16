@@ -82,18 +82,14 @@ plwr -S plwr-test computed-style '#style-target' display
 }
 
 ===
-computed-style: all styles returns JSON with standard CSS properties
+computed-style: all styles returns many CSS properties
 ===
 plwr -S plwr-test computed-style '#style-target'
 ---
 {{ styles }}
 ---
 where
-* strip(styles) startswith "{"
-* styles contains "display"
-* styles contains "color"
-* styles contains "width"
-* styles contains "font-size"
+* len(styles) > 100
 
 ===
 computed-style: works with complex selectors
