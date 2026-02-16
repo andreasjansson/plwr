@@ -132,6 +132,11 @@ pub enum Command {
         selector: String,
         timeout: u64,
     },
+    ComputedStyle {
+        selector: String,
+        properties: Vec<String>,
+        timeout: u64,
+    },
     Stop,
 }
 
