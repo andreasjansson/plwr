@@ -63,8 +63,7 @@ jobs:
       - name: Install Playwright browsers
         run: |
           npm install -g playwright
-          PLAYWRIGHT_CLI=$(node -e "console.log(require.resolve('playwright/cli'))")
-          node "$PLAYWRIGHT_CLI" install --with-deps chromium
+          node "$(npm root -g)/playwright/cli.js" install --with-deps chromium
       - name: Add to PATH
         run: echo "$PWD/target/release" >> $GITHUB_PATH
       - name: Run e2e tests
