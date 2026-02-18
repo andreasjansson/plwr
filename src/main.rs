@@ -558,7 +558,7 @@ async fn main() -> ExitCode {
                     selector,
                     timeout: cli.timeout,
                 },
-                Cmd::Dialog { action, text } => match action.as_str() {
+                Cmd::NextDialog { action, text } => match action.as_str() {
                     "accept" => Command::DialogAccept { prompt_text: text },
                     "dismiss" => Command::DialogDismiss,
                     other => {
