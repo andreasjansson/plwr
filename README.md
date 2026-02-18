@@ -191,6 +191,20 @@ plwr input-files '#upload' a.txt b.txt c.txt   # multiple files
 plwr input-files '#upload'                      # clear selection
 ```
 
+### Console logs
+
+Capture browser console output (log, warn, error, info, debug). Messages
+are automatically captured from page load onward, including messages logged
+before your code runs.
+
+```bash
+plwr console                     # print all captured messages as JSON
+plwr console --clear             # clear the log buffer
+```
+
+Each entry includes `level`, `ts` (timestamp in ms), and `args` (array of
+stringified arguments).
+
 ### Computed styles
 
 ```bash
