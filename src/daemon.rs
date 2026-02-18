@@ -193,6 +193,8 @@ async fn handle_command(state: &mut State, command: Command) -> Result<Response>
                 )
                 .await?;
             state.page_opened = true;
+            // Inject console interceptor to capture log/warn/error/info/debug
+            pw_ext::page_evaluate_value(&state.page, CONSOLE_INTERCEPTOR_JS).await.ok();
             return Ok(Response::ok_empty());
         }
         Command::Header { name, value } => {
