@@ -7,6 +7,7 @@ use playwright_rs::{
 };
 use std::collections::HashMap;
 use std::path::Path;
+use std::sync::{Arc, Mutex};
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use tokio::net::UnixListener;
 
