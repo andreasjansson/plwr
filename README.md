@@ -191,6 +191,30 @@ plwr input-files '#upload' a.txt b.txt c.txt   # multiple files
 plwr input-files '#upload'                      # clear selection
 ```
 
+### Dialogs (alert, confirm, prompt)
+
+Handle native browser dialogs. The `dialog` command registers a one-shot
+handler for the **next** dialog — call it **before** the action that triggers
+the dialog, because dialogs block page execution until handled.
+
+```bash
+plwr dialog accept                # click OK on the next alert or confirm
+plwr dialog dismiss               # click Cancel on the next confirm or prompt
+plwr dialog accept 'Alice'        # type 'Alice' into a prompt, then click OK
+```
+
+Typical flow:
+
+```bash
+plwr dialog accept                # arm the handler
+plwr click '#delete-btn'          # triggers confirm() → auto-accepted
+plwr text '#result'               # page updated after dialog closed
+```
+
+For `prompt()` dialogs, the text argument to `accept` is entered into the
+prompt's input field. If omitted, the prompt is accepted with an empty string.
+`dismiss` clicks Cancel, returning `null` to the page.
+
 ### Console logs
 
 Capture browser console output (log, warn, error, info, debug). Messages
