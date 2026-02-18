@@ -156,6 +156,7 @@ pub async fn run(socket_path: &Path, headed: bool) -> Result<()> {
         page_opened: false,
         headers: HashMap::new(),
         video,
+        console_initialized: false,
     };
 
     loop {
