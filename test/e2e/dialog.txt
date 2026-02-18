@@ -17,7 +17,7 @@ alert closed
 ===
 dialog accept: accepts a confirm
 ===
-plwr -S plwr-test dialog accept
+plwr -S plwr-test next-dialog accept
 plwr -S plwr-test click '#confirm-btn'
 plwr -S plwr-test text '#result'
 ---
