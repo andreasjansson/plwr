@@ -1,0 +1,79 @@
+===
+navigate to console test page
+%require
+===
+plwr -S plwr-test open "http://localhost:8599/console.html"
+---
+
+===
+console: captures all log levels during page load
+===
+plwr -S plwr-test console
+---
+{{ logs: json array }}
+---
+where
+* len(logs) == 5
+* logs[0].level == "log"
+* logs[0].args[0] == "page loaded"
+* logs[1].level == "warn"
+* logs[1].args[0] == "deprecation warning"
+* logs[2].level == "error"
+* logs[2].args[0] == "something broke"
+* logs[3].level == "info"
+* logs[3].args[0] == "version 1.0"
+* logs[4].level == "debug"
+* logs[4].args[0] == "init complete"
+
+===
+console --clear: empties the log buffer
+===
+plwr -S plwr-test console --clear
+plwr -S plwr-test console
+---
+[]
+
+===
+console: captures messages from eval
+===
+plwr -S plwr-test eval "console.log('from eval')"
+plwr -S plwr-test eval "console.error('eval error', 123)"
+plwr -S plwr-test console
+---
+{{ logs: json array }}
+---
+where
+* len(logs) == 2
+* logs[0].level == "log"
+* logs[0].args[0] == "from eval"
+* logs[1].level == "error"
+* logs[1].args[0] == "eval error"
+* logs[1].args[1] == "123"
+
+===
+console: persists across navigations
+===
+plwr -S plwr-test console --clear
+plwr -S plwr-test open "http://localhost:8599/console.html"
+plwr -S plwr-test console
+---
+{{ logs: json array }}
+---
+where
+* len(logs) == 5
+* logs[0].args[0] == "page loaded"
+
+===
+console: objects are serialized as JSON strings
+===
+plwr -S plwr-test console --clear
+plwr -S plwr-test eval "console.log({key: 'value', n: 42})"
+plwr -S plwr-test console
+---
+{{ logs: json array }}
+---
+where
+* len(logs) == 1
+* logs[0].level == "log"
+* logs[0].args[0] contains "key"
+* logs[0].args[0] contains "value"
