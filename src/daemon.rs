@@ -40,6 +40,7 @@ struct State {
     page_opened: bool,
     headers: HashMap<String, String>,
     video: Option<VideoState>,
+    console_initialized: bool,
 }
 
 struct VideoState {
