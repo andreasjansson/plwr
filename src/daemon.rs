@@ -36,6 +36,11 @@ if (!window.__plwr_console) {
 }
 "#;
 
+enum DialogAction {
+    Accept(Option<String>),
+    Dismiss,
+}
+
 struct State {
     _playwright: Playwright,
     page: Page,
@@ -43,6 +48,8 @@ struct State {
     headers: HashMap<String, String>,
     video: Option<VideoState>,
     console_initialized: bool,
+    dialog_action: Arc<Mutex<Option<DialogAction>>>,
+    dialog_installed: bool,
 }
 
 struct VideoState {
