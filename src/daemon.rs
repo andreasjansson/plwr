@@ -795,6 +795,29 @@ async fn handle_command(state: &mut State, command: Command) -> Result<Response>
     }
 }
 
+async fn install_dialog_handler(state: &mut State) -> Result<()> {
+    if state.dialog_installed {
+        return Ok(());
+    }
+    let action_ref = Arc::clone(&state.dialog_action);
+    state
+        .page
+        .on_dialog(move |dialog| {
+            let action_ref = Arc::clone(&action_ref);
+            async move {
+                let action = action_ref.lock().unwrap().take();
+                match action {
+                    Some(DialogAction::Accept(text)) => dialog.accept(text.as_deref()).await,
+                    Some(DialogAction::Dismiss) => dialog.dismiss().await,
+                    None => dialog.dismiss().await,
+                }
+            }
+        })
+        .await?;
+    state.dialog_installed = true;
+    Ok(())
+}
+
 async fn wait_for_visible(loc: &Locator, selector: &str, timeout: u64) -> Result<()> {
     let start = std::time::Instant::now();
     loop {
