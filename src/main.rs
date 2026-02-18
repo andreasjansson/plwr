@@ -542,6 +542,8 @@ async fn main() -> ExitCode {
                     selector,
                     timeout: cli.timeout,
                 },
+                Cmd::Console { clear: true } => Command::ConsoleClear,
+                Cmd::Console { clear: false } => Command::Console,
                 Cmd::ComputedStyle {
                     selector,
                     properties,
