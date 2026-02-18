@@ -688,6 +688,56 @@ async fn handle_command(state: &mut State, command: Command) -> Result<Response>
             Ok(Response::ok_value(styles))
         }
 
+        Command::DialogAccept { prompt_text } => {
+            if !state.dialog_installed {
+                let action_ref = Arc::clone(&state.dialog_action);
+                state
+                    .page
+                    .on_dialog(move |dialog| {
+                        let action_ref = Arc::clone(&action_ref);
+                        async move {
+                            let action = action_ref.lock().unwrap().take();
+                            match action {
+                                Some(DialogAction::Accept(text)) => {
+                                    dialog.accept(text.as_deref()).await
+                                }
+                                Some(DialogAction::Dismiss) => dialog.dismiss().await,
+                                None => dialog.dismiss().await,
+                            }
+                        }
+                    })
+                    .await?;
+                state.dialog_installed = true;
+            }
+            *state.dialog_action.lock().unwrap() = Some(DialogAction::Accept(prompt_text));
+            Ok(Response::ok_empty())
+        }
+
+        Command::DialogDismiss => {
+            if !state.dialog_installed {
+                let action_ref = Arc::clone(&state.dialog_action);
+                state
+                    .page
+                    .on_dialog(move |dialog| {
+                        let action_ref = Arc::clone(&action_ref);
+                        async move {
+                            let action = action_ref.lock().unwrap().take();
+                            match action {
+                                Some(DialogAction::Accept(text)) => {
+                                    dialog.accept(text.as_deref()).await
+                                }
+                                Some(DialogAction::Dismiss) => dialog.dismiss().await,
+                                None => dialog.dismiss().await,
+                            }
+                        }
+                    })
+                    .await?;
+                state.dialog_installed = true;
+            }
+            *state.dialog_action.lock().unwrap() = Some(DialogAction::Dismiss);
+            Ok(Response::ok_empty())
+        }
+
         Command::Console => {
             let val = pw_ext::page_evaluate_value(
                 page,
