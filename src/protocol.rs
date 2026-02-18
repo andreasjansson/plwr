@@ -139,6 +139,10 @@ pub enum Command {
     },
     Console,
     ConsoleClear,
+    DialogAccept {
+        prompt_text: Option<String>,
+    },
+    DialogDismiss,
     Stop,
 }
 
