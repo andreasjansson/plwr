@@ -166,6 +166,8 @@ pub async fn run(socket_path: &Path, headed: bool) -> Result<()> {
         headers: HashMap::new(),
         video,
         console_initialized: false,
+        dialog_action: Arc::new(Mutex::new(None)),
+        dialog_installed: false,
     };
 
     loop {
