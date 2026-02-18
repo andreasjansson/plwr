@@ -317,17 +317,16 @@ enum Cmd {
         properties: Vec<String>,
     },
 
-    /// Handle the next browser dialog (alert/confirm/prompt).
+    /// Pre-register a one-shot handler for the next browser dialog (alert/confirm/prompt).
     ///
-    /// Registers a one-shot handler that fires on the next dialog.
     /// Must be called BEFORE the action that triggers the dialog
     /// (e.g. before `plwr click`), because dialogs block execution.
     ///
     /// Examples:
-    ///   plwr dialog accept           # click OK on alert/confirm
-    ///   plwr dialog dismiss           # click Cancel on confirm
-    ///   plwr dialog accept 'Alice'    # type into prompt, then OK
-    Dialog {
+    ///   plwr next-dialog accept           # click OK on alert/confirm
+    ///   plwr next-dialog dismiss           # click Cancel on confirm
+    ///   plwr next-dialog accept 'Alice'    # type into prompt, then OK
+    NextDialog {
         /// "accept" (click OK) or "dismiss" (click Cancel)
         action: String,
         /// Text to enter in a prompt() dialog before accepting (ignored for alert/confirm)
