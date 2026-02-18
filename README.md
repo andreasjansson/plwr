@@ -423,7 +423,7 @@ interpreted by bash if not single-quoted:
 
 ```bash
 plwr count "a[href$=.pdf]"                # ✗ bash eats the $
-plwr count 'a[href$=.pdf]'                # �� single quotes
+plwr count 'a[href$=.pdf]'                # ✓ single quotes
 ```
 
 ## Example: cctr e2e test
