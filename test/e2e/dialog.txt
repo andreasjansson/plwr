@@ -1,0 +1,60 @@
+===
+navigate to dialog test page
+%require
+===
+plwr -S plwr-test open "http://localhost:8599/dialog.html"
+---
+
+===
+dialog accept: dismisses an alert
+===
+plwr -S plwr-test dialog accept
+plwr -S plwr-test click '#alert-btn'
+plwr -S plwr-test text '#result'
+---
+alert closed
+
+===
+dialog accept: accepts a confirm
+===
+plwr -S plwr-test dialog accept
+plwr -S plwr-test click '#confirm-btn'
+plwr -S plwr-test text '#result'
+---
+confirmed
+
+===
+dialog dismiss: cancels a confirm
+===
+plwr -S plwr-test dialog dismiss
+plwr -S plwr-test click '#confirm-btn'
+plwr -S plwr-test text '#result'
+---
+cancelled
+
+===
+dialog accept with text: fills a prompt
+===
+plwr -S plwr-test dialog accept 'Alice'
+plwr -S plwr-test click '#prompt-btn'
+plwr -S plwr-test text '#result'
+---
+hello Alice
+
+===
+dialog dismiss: cancels a prompt
+===
+plwr -S plwr-test dialog dismiss
+plwr -S plwr-test click '#prompt-btn'
+plwr -S plwr-test text '#result'
+---
+prompt cancelled
+
+===
+dialog accept without text: prompt uses default value
+===
+plwr -S plwr-test dialog accept
+plwr -S plwr-test click '#prompt-btn'
+plwr -S plwr-test text '#result'
+---
+hello default
