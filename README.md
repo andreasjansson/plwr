@@ -193,20 +193,20 @@ plwr input-files '#upload'                      # clear selection
 
 ### Dialogs (alert, confirm, prompt)
 
-Handle native browser dialogs. The `dialog` command registers a one-shot
+Handle native browser dialogs. The `next-dialog` command registers a one-shot
 handler for the **next** dialog — call it **before** the action that triggers
 the dialog, because dialogs block page execution until handled.
 
 ```bash
-plwr dialog accept                # click OK on the next alert or confirm
-plwr dialog dismiss               # click Cancel on the next confirm or prompt
-plwr dialog accept 'Alice'        # type 'Alice' into a prompt, then click OK
+plwr next-dialog accept                # click OK on the next alert or confirm
+plwr next-dialog dismiss               # click Cancel on the next confirm or prompt
+plwr next-dialog accept 'Alice'        # type 'Alice' into a prompt, then click OK
 ```
 
 Typical flow:
 
 ```bash
-plwr dialog accept                # arm the handler
+plwr next-dialog accept           # arm the handler
 plwr click '#delete-btn'          # triggers confirm() → auto-accepted
 plwr text '#result'               # page updated after dialog closed
 ```
