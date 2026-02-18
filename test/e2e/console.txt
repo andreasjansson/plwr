@@ -37,7 +37,19 @@ plwr -S plwr-test console
 console: captures messages from eval
 ===
 plwr -S plwr-test eval "console.log('from eval')"
+---
+undefined
+
+===
+console: captures error messages from eval
+===
 plwr -S plwr-test eval "console.error('eval error', 123)"
+---
+undefined
+
+===
+console: retrieves eval messages
+===
 plwr -S plwr-test console
 ---
 {{ logs: json array }}
