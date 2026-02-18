@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head><title>dialog test</title></head>
+<body>
+  <h1>Dialog Test</h1>
+  <div id="result"></div>
+
+  <button id="alert-btn" onclick="alert('Hello!'); document.getElementById('result').textContent = 'alert closed'">
+    Alert
+  </button>
+
+  <button id="confirm-btn" onclick="
+    var r = confirm('Are you sure?');
+    document.getElementById('result').textContent = r ? 'confirmed' : 'cancelled';
+  ">Confirm</button>
+
+  <button id="prompt-btn" onclick="
+    var name = prompt('Your name?', 'default');
+    document.getElementById('result').textContent = name === null ? 'prompt cancelled' : 'hello ' + name;
+  ">Prompt</button>
+</body>
+</html>
