@@ -673,6 +673,22 @@ async fn handle_command(state: &mut State, command: Command) -> Result<Response>
             Ok(Response::ok_value(styles))
         }
 
+        Command::Console => {
+            let val = pw_ext::page_evaluate_value(
+                page,
+                "() => JSON.stringify(window.__plwr_console || [])",
+            )
+            .await?;
+            let json_str: String = serde_json::from_str(&val).unwrap_or(val);
+            let logs: serde_json::Value = serde_json::from_str(&json_str)?;
+            Ok(Response::ok_value(logs))
+        }
+
+        Command::ConsoleClear => {
+            pw_ext::page_evaluate_value(page, "() => { window.__plwr_console = []; }").await?;
+            Ok(Response::ok_empty())
+        }
+
         Command::Eval { js } => {
             let wrapper = format!(
                 "() => {{ const __r = ({}); return typeof __r === 'object' ? JSON.stringify(__r) : __r; }}",
