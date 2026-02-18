@@ -8,7 +8,7 @@ plwr -S plwr-test open "http://localhost:8599/dialog.html"
 ===
 dialog accept: dismisses an alert
 ===
-plwr -S plwr-test dialog accept
+plwr -S plwr-test next-dialog accept
 plwr -S plwr-test click '#alert-btn'
 plwr -S plwr-test text '#result'
 ---
