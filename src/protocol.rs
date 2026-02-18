@@ -155,6 +155,8 @@ impl Command {
                 | Command::Header { .. }
                 | Command::HeaderClear
                 | Command::Viewport { .. }
+                | Command::DialogAccept { .. }
+                | Command::DialogDismiss
         )
     }
 }
