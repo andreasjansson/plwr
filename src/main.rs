@@ -317,6 +317,14 @@ enum Cmd {
         properties: Vec<String>,
     },
 
+    /// Handle the next browser dialog (alert/confirm/prompt). Must be called before the action that triggers it.
+    Dialog {
+        /// Action: accept or dismiss
+        action: String,
+        /// Text to enter for prompt dialogs (only used with accept)
+        text: Option<String>,
+    },
+
     /// Print captured browser console logs as JSON (automatically captured after open)
     Console {
         /// Clear the console log buffer
