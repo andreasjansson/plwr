@@ -76,10 +76,21 @@ where
 * logs[0].args[0] == "page loaded"
 
 ===
-console: objects are serialized as JSON strings
+console: clear before object test
 ===
 plwr -S plwr-test console --clear
+---
+
+===
+console: log an object via eval
+===
 plwr -S plwr-test eval "console.log({key: 'value', n: 42})"
+---
+undefined
+
+===
+console: objects are serialized as JSON strings
+===
 plwr -S plwr-test console
 ---
 {{ logs: json array }}
