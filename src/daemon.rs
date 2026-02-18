@@ -14,6 +14,26 @@ const READY_SIGNAL: &str = "### ready";
 const ERROR_PREFIX: &str = "### error ";
 const CHANNEL_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(30);
 
+const CONSOLE_INTERCEPTOR_JS: &str = r#"() => {
+    if (window.__plwr_console) return;
+    window.__plwr_console = [];
+    const orig = {};
+    for (const level of ['log', 'warn', 'error', 'info', 'debug']) {
+        orig[level] = console[level];
+        console[level] = (...args) => {
+            window.__plwr_console.push({
+                level,
+                ts: Date.now(),
+                args: args.map(a => {
+                    try { return typeof a === 'object' ? JSON.stringify(a) : String(a); }
+                    catch { return String(a); }
+                })
+            });
+            orig[level].apply(console, args);
+        };
+    }
+}"#;
+
 struct State {
     _playwright: Playwright,
     page: Page,
