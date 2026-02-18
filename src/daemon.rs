@@ -206,10 +206,7 @@ async fn handle_command(state: &mut State, command: Command) -> Result<Response>
     match command {
         Command::Open { url, timeout } => {
             if !state.console_initialized {
-                state
-                    .page
-                    .add_init_script(CONSOLE_INTERCEPTOR_JS)
-                    .await?;
+                state.page.add_init_script(CONSOLE_INTERCEPTOR_JS).await?;
                 state.console_initialized = true;
             }
             state
