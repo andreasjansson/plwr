@@ -317,6 +317,13 @@ enum Cmd {
         properties: Vec<String>,
     },
 
+    /// Print captured browser console logs as JSON (automatically captured after open)
+    Console {
+        /// Clear the console log buffer
+        #[arg(long)]
+        clear: bool,
+    },
+
     /// Evaluate arbitrary JavaScript in page context, print the result
     Eval { js: String },
 
