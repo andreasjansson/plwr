@@ -51,10 +51,10 @@ plwr -S plwr-test text '#result'
 prompt cancelled
 
 ===
-dialog accept without text: prompt uses default value
+dialog accept without text: prompt accepts with empty string
 ===
 plwr -S plwr-test dialog accept
 plwr -S plwr-test click '#prompt-btn'
 plwr -S plwr-test text '#result'
 ---
-hello default
+hello 
