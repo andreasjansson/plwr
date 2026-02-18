@@ -137,6 +137,8 @@ pub enum Command {
         properties: Vec<String>,
         timeout: u64,
     },
+    Console,
+    ConsoleClear,
     Stop,
 }
 
