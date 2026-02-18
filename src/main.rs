@@ -550,6 +550,17 @@ async fn main() -> ExitCode {
                     selector,
                     timeout: cli.timeout,
                 },
+                Cmd::Dialog { action, text } => match action.as_str() {
+                    "accept" => Command::DialogAccept { prompt_text: text },
+                    "dismiss" => Command::DialogDismiss,
+                    other => {
+                        eprintln!(
+                            "Unknown dialog action '{}'. Use 'accept' or 'dismiss'.",
+                            other
+                        );
+                        return ExitCode::FAILURE;
+                    }
+                },
                 Cmd::Console { clear: true } => Command::ConsoleClear,
                 Cmd::Console { clear: false } => Command::Console,
                 Cmd::ComputedStyle {
