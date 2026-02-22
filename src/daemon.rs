@@ -2,6 +2,7 @@ use crate::protocol::{Command, Request, Response};
 use crate::pw_ext;
 use anyhow::Result;
 use playwright_rs::{
+    protocol::click::{KeyboardModifier, MouseButton},
     BrowserContextOptions, CheckOptions, ClickOptions, FillOptions, HoverOptions, LaunchOptions,
     Locator, Page, Playwright, RecordVideo, SelectOption, SelectOptions,
 };
