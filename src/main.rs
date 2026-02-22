@@ -312,7 +312,21 @@ enum Cmd {
     Uncheck { selector: String },
 
     /// Double-click an element matching a CSS selector
-    Dblclick { selector: String },
+    Dblclick {
+        selector: String,
+        /// Hold Alt during double-click
+        #[arg(long)]
+        alt: bool,
+        /// Hold Control during double-click
+        #[arg(long, alias = "ctrl")]
+        control: bool,
+        /// Hold Meta (Cmd on macOS) during double-click
+        #[arg(long)]
+        meta: bool,
+        /// Hold Shift during double-click
+        #[arg(long)]
+        shift: bool,
+    },
 
     /// Focus an element matching a CSS selector
     Focus { selector: String },
