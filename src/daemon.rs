@@ -419,10 +419,17 @@ async fn handle_command(state: &mut State, command: Command) -> Result<Response>
             }
         }
 
-        Command::Click { selector, timeout } => {
+        Command::Click {
+            selector,
+            timeout,
+            modifiers,
+            button,
+        } => {
             let loc = page.locator(&selector).await;
             loc.click(Some(ClickOptions {
                 timeout: Some(timeout as f64),
+                modifiers: parse_modifiers(&modifiers),
+                button: parse_button(button.as_deref()),
                 ..Default::default()
             }))
             .await?;
