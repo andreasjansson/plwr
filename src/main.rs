@@ -600,10 +600,32 @@ async fn main() -> ExitCode {
                     selector,
                     timeout: cli.timeout,
                 },
-                Cmd::Dblclick { selector } => Command::Dblclick {
+                Cmd::Dblclick {
                     selector,
-                    timeout: cli.timeout,
-                },
+                    alt,
+                    control,
+                    meta,
+                    shift,
+                } => {
+                    let mut modifiers = Vec::new();
+                    if alt {
+                        modifiers.push("Alt".to_string());
+                    }
+                    if control {
+                        modifiers.push("Control".to_string());
+                    }
+                    if meta {
+                        modifiers.push("Meta".to_string());
+                    }
+                    if shift {
+                        modifiers.push("Shift".to_string());
+                    }
+                    Command::Dblclick {
+                        selector,
+                        timeout: cli.timeout,
+                        modifiers,
+                    }
+                }
                 Cmd::Focus { selector } => Command::Focus {
                     selector,
                     timeout: cli.timeout,
