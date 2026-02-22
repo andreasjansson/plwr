@@ -37,20 +37,20 @@ plwr -S plwr-test text '#mod-result'
 shift
 
 ===
-control-click
+control-click (on macOS, ctrl+click triggers contextmenu → shows as right)
 ===
 plwr -S plwr-test click '#mod-target' --control
 plwr -S plwr-test text '#mod-result'
 ---
-ctrl
+right
 
 ===
-ctrl alias
+ctrl alias (on macOS, ctrl+click triggers contextmenu → shows as right)
 ===
 plwr -S plwr-test click '#mod-target' --ctrl
 plwr -S plwr-test text '#mod-result'
 ---
-ctrl
+right
 
 ===
 multiple modifiers
