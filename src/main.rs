@@ -476,10 +476,42 @@ async fn main() -> ExitCode {
                     selectors,
                     timeout: cli.timeout,
                 },
-                Cmd::Click { selector } => Command::Click {
+                Cmd::Click {
                     selector,
-                    timeout: cli.timeout,
-                },
+                    right,
+                    middle,
+                    alt,
+                    control,
+                    meta,
+                    shift,
+                } => {
+                    let mut modifiers = Vec::new();
+                    if alt {
+                        modifiers.push("Alt".to_string());
+                    }
+                    if control {
+                        modifiers.push("Control".to_string());
+                    }
+                    if meta {
+                        modifiers.push("Meta".to_string());
+                    }
+                    if shift {
+                        modifiers.push("Shift".to_string());
+                    }
+                    let button = if right {
+                        Some("right".to_string())
+                    } else if middle {
+                        Some("middle".to_string())
+                    } else {
+                        None
+                    };
+                    Command::Click {
+                        selector,
+                        timeout: cli.timeout,
+                        modifiers,
+                        button,
+                    }
+                }
                 Cmd::Fill { selector, text } => Command::Fill {
                     selector,
                     text,
