@@ -208,7 +208,27 @@ enum Cmd {
     },
 
     /// Click an element matching a CSS selector
-    Click { selector: String },
+    Click {
+        selector: String,
+        /// Right-click instead of left-click
+        #[arg(long)]
+        right: bool,
+        /// Middle-click instead of left-click
+        #[arg(long)]
+        middle: bool,
+        /// Hold Alt during click
+        #[arg(long)]
+        alt: bool,
+        /// Hold Control during click
+        #[arg(long, alias = "ctrl")]
+        control: bool,
+        /// Hold Meta (Cmd on macOS) during click
+        #[arg(long)]
+        meta: bool,
+        /// Hold Shift during click
+        #[arg(long)]
+        shift: bool,
+    },
     /// Fill text into an input matching a CSS selector
     Fill { selector: String, text: String },
 
