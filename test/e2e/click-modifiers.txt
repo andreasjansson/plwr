@@ -1,0 +1,77 @@
+===
+open form page
+%require
+===
+plwr -S plwr-test open "http://localhost:8599/form.html"
+---
+
+===
+wait for modifier target to load
+%require
+===
+plwr -S plwr-test wait '#mod-target'
+---
+
+===
+plain click shows none
+===
+plwr -S plwr-test click '#mod-target'
+plwr -S plwr-test text '#mod-result'
+---
+none
+
+===
+alt-click
+===
+plwr -S plwr-test click '#mod-target' --alt
+plwr -S plwr-test text '#mod-result'
+---
+alt
+
+===
+shift-click
+===
+plwr -S plwr-test click '#mod-target' --shift
+plwr -S plwr-test text '#mod-result'
+---
+shift
+
+===
+control-click
+===
+plwr -S plwr-test click '#mod-target' --control
+plwr -S plwr-test text '#mod-result'
+---
+ctrl
+
+===
+ctrl alias
+===
+plwr -S plwr-test click '#mod-target' --ctrl
+plwr -S plwr-test text '#mod-result'
+---
+ctrl
+
+===
+multiple modifiers
+===
+plwr -S plwr-test click '#mod-target' --alt --shift
+plwr -S plwr-test text '#mod-result'
+---
+alt+shift
+
+===
+right-click
+===
+plwr -S plwr-test click '#mod-target' --right
+plwr -S plwr-test text '#mod-result'
+---
+right
+
+===
+middle-click
+===
+plwr -S plwr-test click '#mod-target' --middle
+plwr -S plwr-test text '#mod-result'
+---
+middle
