@@ -594,10 +594,15 @@ async fn handle_command(state: &mut State, command: Command) -> Result<Response>
             Ok(Response::ok_empty())
         }
 
-        Command::Dblclick { selector, timeout } => {
+        Command::Dblclick {
+            selector,
+            timeout,
+            modifiers,
+        } => {
             let loc = page.locator(&selector).await;
             loc.dblclick(Some(ClickOptions {
                 timeout: Some(timeout as f64),
+                modifiers: parse_modifiers(&modifiers),
                 ..Default::default()
             }))
             .await?;
