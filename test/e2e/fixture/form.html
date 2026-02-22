@@ -86,5 +86,28 @@
 
   <!-- innerHTML -->
   <div id="rich-content"><strong>bold</strong> and <em>italic</em></div>
+
+  <!-- Modifier clicks -->
+  <div id="mod-target">Click me</div>
+  <div id="mod-result"></div>
+  <script>
+    document.getElementById('mod-target').addEventListener('click', function(e) {
+      var mods = [];
+      if (e.altKey) mods.push('alt');
+      if (e.ctrlKey) mods.push('ctrl');
+      if (e.metaKey) mods.push('meta');
+      if (e.shiftKey) mods.push('shift');
+      document.getElementById('mod-result').textContent = mods.join('+') || 'none';
+    });
+    document.getElementById('mod-target').addEventListener('auxclick', function(e) {
+      if (e.button === 1) {
+        document.getElementById('mod-result').textContent = 'middle';
+      }
+    });
+    document.getElementById('mod-target').addEventListener('contextmenu', function(e) {
+      e.preventDefault();
+      document.getElementById('mod-result').textContent = 'right';
+    });
+  </script>
 </body>
 </html>
