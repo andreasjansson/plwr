@@ -33,6 +33,10 @@ pub enum Command {
     Click {
         selector: String,
         timeout: u64,
+        #[serde(default)]
+        modifiers: Vec<String>,
+        #[serde(default)]
+        button: Option<String>,
     },
     Fill {
         selector: String,
