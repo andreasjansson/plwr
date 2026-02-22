@@ -608,6 +608,8 @@ async fn main() -> ExitCode {
                 },
                 Cmd::Dblclick {
                     selector,
+                    right,
+                    middle,
                     alt,
                     control,
                     meta,
@@ -626,10 +628,18 @@ async fn main() -> ExitCode {
                     if shift {
                         modifiers.push("Shift".to_string());
                     }
+                    let button = if right {
+                        Some("right".to_string())
+                    } else if middle {
+                        Some("middle".to_string())
+                    } else {
+                        None
+                    };
                     Command::Dblclick {
                         selector,
                         timeout: cli.timeout,
                         modifiers,
+                        button,
                     }
                 }
                 Cmd::Focus { selector } => Command::Focus {
