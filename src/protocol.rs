@@ -115,6 +115,8 @@ pub enum Command {
     Dblclick {
         selector: String,
         timeout: u64,
+        #[serde(default)]
+        modifiers: Vec<String>,
     },
     Focus {
         selector: String,
