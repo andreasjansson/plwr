@@ -314,6 +314,12 @@ enum Cmd {
     /// Double-click an element matching a CSS selector
     Dblclick {
         selector: String,
+        /// Right double-click instead of left
+        #[arg(long)]
+        right: bool,
+        /// Middle double-click instead of left
+        #[arg(long)]
+        middle: bool,
         /// Hold Alt during double-click
         #[arg(long)]
         alt: bool,
