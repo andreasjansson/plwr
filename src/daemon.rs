@@ -845,6 +845,32 @@ async fn wait_for_visible(loc: &Locator, selector: &str, timeout: u64) -> Result
     }
 }
 
+fn parse_modifiers(modifiers: &[String]) -> Option<Vec<KeyboardModifier>> {
+    if modifiers.is_empty() {
+        return None;
+    }
+    Some(
+        modifiers
+            .iter()
+            .map(|m| match m.as_str() {
+                "Alt" => KeyboardModifier::Alt,
+                "Control" => KeyboardModifier::Control,
+                "Meta" => KeyboardModifier::Meta,
+                "Shift" => KeyboardModifier::Shift,
+                other => panic!("Unknown modifier: {}", other),
+            })
+            .collect(),
+    )
+}
+
+fn parse_button(button: Option<&str>) -> Option<MouseButton> {
+    button.map(|b| match b {
+        "right" => MouseButton::Right,
+        "middle" => MouseButton::Middle,
+        other => panic!("Unknown button: {}", other),
+    })
+}
+
 fn clean_error(e: anyhow::Error) -> String {
     let msg = e.to_string();
 
