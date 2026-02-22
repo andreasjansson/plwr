@@ -117,6 +117,8 @@ pub enum Command {
         timeout: u64,
         #[serde(default)]
         modifiers: Vec<String>,
+        #[serde(default)]
+        button: Option<String>,
     },
     Focus {
         selector: String,
