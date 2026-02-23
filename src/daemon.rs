@@ -874,7 +874,9 @@ async fn handle_command(state: &mut State, command: Command) -> Result<Response>
         | Command::Cookie { .. }
         | Command::CookieList
         | Command::CookieClear
-        | Command::Viewport { .. } => unreachable!(),
+        | Command::Viewport { .. }
+        | Command::ClipboardCopy { .. }
+        | Command::ClipboardPaste => unreachable!(),
     }
 }
 
