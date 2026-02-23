@@ -51,6 +51,7 @@ struct State {
     console_initialized: bool,
     dialog_action: Arc<Mutex<Option<DialogAction>>>,
     dialog_installed: bool,
+    clipboard_granted: bool,
 }
 
 struct VideoState {
