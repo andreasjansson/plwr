@@ -147,6 +147,11 @@ pub enum Command {
     },
     Console,
     ConsoleClear,
+    ClipboardCopy {
+        selector: String,
+        timeout: u64,
+    },
+    ClipboardPaste,
     DialogAccept {
         prompt_text: Option<String>,
     },
