@@ -118,12 +118,36 @@ plwr blur '#email'               # unfocus an element
 plwr scroll '.footer'            # scroll element into view
 ```
 
+`click` and `dblclick` support modifier keys and mouse button flags:
+
+```bash
+plwr click '#item' --shift           # shift-click (e.g. range select)
+plwr click '#item' --alt             # alt-click
+plwr click '#item' --meta            # meta-click (Cmd on macOS)
+plwr click '#item' --control         # control-click (--ctrl also works)
+plwr click '#item' --alt --shift     # multiple modifiers
+plwr click '#item' --right           # right-click (context menu)
+plwr click '#item' --middle          # middle-click
+plwr dblclick '#item' --shift        # shift-double-click
+```
+
 Supported keys for `press`: `a`–`z`, `A`–`Z`, `0`–`9`, `Backspace`, `Tab`,
 `Enter`, `Escape`, `Space`, `Delete`, `Insert`, `ArrowUp`, `ArrowDown`,
 `ArrowLeft`, `ArrowRight`, `Home`, `End`, `PageUp`, `PageDown`, `F1`–`F12`,
 `Control`, `Shift`, `Alt`, `Meta`, and any US keyboard character
 (`` !@#$%^&*()_+-=[]{}\\|;:'",./<>?`~ ``). Chords use `+`: `Control+c`,
 `Shift+Enter`, `Meta+a`.
+
+### Clipboard
+
+Copy content from an element to the browser clipboard and paste it at the
+currently focused element. Works with text and images (`<img>`, `<canvas>`).
+
+```bash
+plwr clipboard-copy '#source'        # copy text or image to clipboard
+plwr focus '#target'
+plwr clipboard-paste                 # paste at focused element
+```
 
 ### Checkboxes and radios
 
