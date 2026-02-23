@@ -170,6 +170,7 @@ pub async fn run(socket_path: &Path, headed: bool) -> Result<()> {
         console_initialized: false,
         dialog_action: Arc::new(Mutex::new(None)),
         dialog_installed: false,
+        clipboard_granted: false,
     };
 
     loop {
