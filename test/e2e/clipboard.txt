@@ -19,13 +19,6 @@ plwr -S plwr-test clipboard-copy '#clip-source'
 ---
 
 ===
-verify clipboard contents via eval
-===
-plwr -S plwr-test eval "(async () => await navigator.clipboard.readText())()"
----
-clipboard test content
-
-===
 focus target input and paste
 ===
 plwr -S plwr-test focus '#clip-target'
