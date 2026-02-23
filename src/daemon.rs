@@ -883,6 +883,16 @@ async fn handle_command(state: &mut State, command: Command) -> Result<Response>
     }
 }
 
+async fn ensure_clipboard_permissions(state: &mut State) -> Result<()> {
+    if state.clipboard_granted {
+        return Ok(());
+    }
+    let ctx = state.page.context()?;
+    pw_ext::grant_permissions(&ctx, &["clipboard-read", "clipboard-write"]).await?;
+    state.clipboard_granted = true;
+    Ok(())
+}
+
 async fn install_dialog_handler(state: &mut State) -> Result<()> {
     if state.dialog_installed {
         return Ok(());
