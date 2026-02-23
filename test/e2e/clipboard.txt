@@ -1,0 +1,47 @@
+===
+open form page
+%require
+===
+plwr -S plwr-test open "http://localhost:8599/form.html"
+---
+
+===
+wait for clipboard elements
+%require
+===
+plwr -S plwr-test wait '#clip-source'
+---
+
+===
+copy text from element
+===
+plwr -S plwr-test clipboard-copy '#clip-source'
+---
+
+===
+verify clipboard contents via eval
+===
+plwr -S plwr-test eval "navigator.clipboard.readText()"
+---
+clipboard test content
+
+===
+focus target input and paste
+===
+plwr -S plwr-test focus '#clip-target'
+plwr -S plwr-test clipboard-paste
+---
+
+===
+paste event fired with correct data
+===
+plwr -S plwr-test text '#clip-paste-result'
+---
+pasted:clipboard test content
+
+===
+pasted text appears in input
+===
+plwr -S plwr-test input-value '#clip-target'
+---
+clipboard test content
