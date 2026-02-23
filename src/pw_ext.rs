@@ -69,6 +69,22 @@ pub async fn add_cookie(
         .await
 }
 
+pub async fn grant_permissions(
+    ctx: &BrowserContext,
+    permissions: &[&str],
+) -> playwright_rs::Result<()> {
+    let perms: Vec<serde_json::Value> = permissions
+        .iter()
+        .map(|p| serde_json::Value::String(p.to_string()))
+        .collect();
+    ctx.channel()
+        .send_no_result(
+            "grantPermissions",
+            serde_json::json!({ "permissions": perms }),
+        )
+        .await
+}
+
 // -- Page extensions --
 // page.evaluate_value exists but the stock signatures take &str where we need
 // String-based wrappers. These are thin helpers.
