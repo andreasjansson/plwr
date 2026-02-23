@@ -681,6 +681,11 @@ async fn main() -> ExitCode {
                 },
                 Cmd::Console { clear: true } => Command::ConsoleClear,
                 Cmd::Console { clear: false } => Command::Console,
+                Cmd::ClipboardCopy { selector } => Command::ClipboardCopy {
+                    selector,
+                    timeout: cli.timeout,
+                },
+                Cmd::ClipboardPaste => Command::ClipboardPaste,
                 Cmd::ComputedStyle {
                     selector,
                     properties,
