@@ -289,6 +289,72 @@ async fn handle_command(state: &mut State, command: Command) -> Result<Response>
                 .await?;
             return Ok(Response::ok_empty());
         }
+        Command::ClipboardCopy { selector, timeout } => {
+            ensure_clipboard_permissions(state).await?;
+            let loc = state.page.locator(&selector).await;
+            wait_for_visible(&loc, &selector, timeout).await?;
+
+            // For <img> and <canvas> elements, copies as image/png.
+            // For everything else, copies textContent.
+            let escaped = selector.replace('\\', "\\\\").replace('\'', "\\'");
+            let js = format!(
+                r#"async () => {{
+                    const el = document.querySelector('{}');
+                    if (!el) throw new Error('No element found');
+                    const tag = el.tagName.toLowerCase();
+                    if (tag === 'img') {{
+                        const resp = await fetch(el.src);
+                        const blob = await resp.blob();
+                        const pngBlob = await createImageBitmap(blob).then(bmp => {{
+                            const c = document.createElement('canvas');
+                            c.width = bmp.width;
+                            c.height = bmp.height;
+                            c.getContext('2d').drawImage(bmp, 0, 0);
+                            return new Promise(r => c.toBlob(r, 'image/png'));
+                        }});
+                        await navigator.clipboard.write([new ClipboardItem({{'image/png': pngBlob}})]);
+                        return 'image';
+                    }} else if (tag === 'canvas') {{
+                        const blob = await new Promise(r => el.toBlob(r, 'image/png'));
+                        await navigator.clipboard.write([new ClipboardItem({{'image/png': blob}})]);
+                        return 'image';
+                    }} else {{
+                        const text = el.textContent || '';
+                        await navigator.clipboard.writeText(text);
+                        return 'text';
+                    }}
+                }}"#,
+                escaped
+            );
+            pw_ext::page_evaluate_value(&state.page, &js).await?;
+            return Ok(Response::ok_empty());
+        }
+        Command::ClipboardPaste => {
+            ensure_clipboard_permissions(state).await?;
+            let js = r#"async () => {
+                const items = await navigator.clipboard.read();
+                const active = document.activeElement;
+                if (!active) throw new Error('No focused element');
+                for (const item of items) {
+                    if (item.types.includes('image/png')) {
+                        const blob = await item.getType('image/png');
+                        const dt = new DataTransfer();
+                        dt.items.add(new File([blob], 'paste.png', { type: 'image/png' }));
+                        active.dispatchEvent(new ClipboardEvent('paste', { clipboardData: dt, bubbles: true }));
+                        return;
+                    }
+                }
+                const text = await navigator.clipboard.readText();
+                const dt = new DataTransfer();
+                dt.setData('text/plain', text);
+                active.dispatchEvent(new ClipboardEvent('paste', { clipboardData: dt, bubbles: true }));
+                if (active.matches('input,textarea,[contenteditable]')) {
+                    document.execCommand('insertText', false, text);
+                }
+            }"#;
+            pw_ext::page_evaluate_value(&state.page, js).await?;
+            return Ok(Response::ok_empty());
+        }
         _ => {}
     }
 
