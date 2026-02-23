@@ -87,6 +87,16 @@
   <!-- innerHTML -->
   <div id="rich-content"><strong>bold</strong> and <em>italic</em></div>
 
+  <!-- Clipboard -->
+  <div id="clip-source">clipboard test content</div>
+  <input id="clip-target" type="text">
+  <div id="clip-paste-result"></div>
+  <script>
+    document.getElementById('clip-target').addEventListener('paste', function(e) {
+      document.getElementById('clip-paste-result').textContent = 'pasted:' + (e.clipboardData.getData('text/plain') || '');
+    });
+  </script>
+
   <!-- Modifier clicks -->
   <div id="mod-target">Click me</div>
   <div id="mod-result"></div>
