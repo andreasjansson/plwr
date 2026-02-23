@@ -348,6 +348,12 @@ enum Cmd {
     /// Scroll an element into view
     Scroll { selector: String },
 
+    /// Copy content from an element to the browser clipboard (text or images)
+    ClipboardCopy { selector: String },
+
+    /// Paste from the browser clipboard at the currently focused element
+    ClipboardPaste,
+
     /// Print computed CSS styles for an element (all styles if no properties given)
     ComputedStyle {
         /// CSS selector for the element
