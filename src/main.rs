@@ -409,6 +409,19 @@ enum Cmd {
     Daemon,
 }
 
+fn find_subcommand_in_args() -> Option<String> {
+    let cmd = Cli::command();
+    let names: HashSet<String> = cmd
+        .get_subcommands()
+        .flat_map(|s| {
+            let mut names = vec![s.get_name().to_string()];
+            names.extend(s.get_all_aliases().map(String::from));
+            names
+        })
+        .collect();
+    std::env::args().skip(1).find(|a| names.contains(a))
+}
+
 fn socket_path(session: &str) -> PathBuf {
     let dir = dirs::cache_dir()
         .unwrap_or_else(|| PathBuf::from("/tmp"))
