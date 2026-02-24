@@ -456,8 +456,10 @@ async fn main() -> ExitCode {
                     if let Some(name) = find_subcommand_in_args() {
                         let mut cmd = Cli::command();
                         if let Some(sub) = cmd.find_subcommand_mut(&name) {
-                            let mut sub =
-                                sub.clone().bin_name(format!("plwr {}", name));
+                            let mut sub = sub
+                                .clone()
+                                .bin_name(format!("plwr {}", name))
+                                .help_template("{usage-heading} {usage}\n\n{all-args}");
                             sub.print_help().ok();
                         }
                     }
