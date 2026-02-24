@@ -442,11 +442,16 @@ async fn main() -> ExitCode {
                     // Print clap's error line, then the full subcommand help
                     // so the user can see all available options.
                     let rendered = e.render().ansi().to_string();
-                    let msg = rendered
-                        .split("\nUsage:")
-                        .next()
-                        .unwrap_or(&rendered)
-                        .trim_end();
+                    // The "Usage:" heading has ANSI bold+underline codes around it,
+                    // so find the raw escape sequence that starts the Usage block.
+                    let msg = if let Some(idx) = rendered.find("Usage:") {
+                        // Back up to the newline before the ANSI codes preceding "Usage:"
+                        let before = &rendered[..idx];
+                        let cut = before.rfind('\n').map(|i| i).unwrap_or(idx);
+                        rendered[..cut].trim_end()
+                    } else {
+                        rendered.trim_end()
+                    };
                     eprintln!("{}\n", msg);
                     if let Some(name) = find_subcommand_in_args() {
                         let mut cmd = Cli::command();
