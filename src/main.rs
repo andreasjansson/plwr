@@ -436,8 +436,9 @@ async fn main() -> ExitCode {
         Ok(cli) => cli,
         Err(e) => {
             match e.kind() {
-                clap::error::ErrorKind::DisplayHelp
-                | clap::error::ErrorKind::DisplayVersion => e.exit(),
+                clap::error::ErrorKind::DisplayHelp | clap::error::ErrorKind::DisplayVersion => {
+                    e.exit()
+                }
                 _ => {
                     // Print clap's error line, then the full subcommand help
                     // so the user can see all available options.
@@ -447,7 +448,7 @@ async fn main() -> ExitCode {
                     let msg = if let Some(idx) = rendered.find("Usage:") {
                         // Back up to the newline before the ANSI codes preceding "Usage:"
                         let before = &rendered[..idx];
-                        let cut = before.rfind('\n').map(|i| i).unwrap_or(idx);
+                        let cut = before.rfind('\n').unwrap_or(idx);
                         rendered[..cut].trim_end()
                     } else {
                         rendered.trim_end()
