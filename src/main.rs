@@ -419,7 +419,33 @@ fn socket_path(session: &str) -> PathBuf {
 
 #[tokio::main]
 async fn main() -> ExitCode {
-    let cli = Cli::parse();
+    let cli = match Cli::try_parse() {
+        Ok(cli) => cli,
+        Err(e) => {
+            match e.kind() {
+                clap::error::ErrorKind::DisplayHelp
+                | clap::error::ErrorKind::DisplayVersion => e.exit(),
+                _ => {
+                    // Print clap's error line, then the full subcommand help
+                    // so the user can see all available options.
+                    let rendered = e.render().ansi().to_string();
+                    let msg = rendered
+                        .split("\nUsage:")
+                        .next()
+                        .unwrap_or(&rendered)
+                        .trim_end();
+                    eprintln!("{}\n", msg);
+                    if let Some(name) = find_subcommand_in_args() {
+                        let mut cmd = Cli::command();
+                        if let Some(sub) = cmd.find_subcommand_mut(&name) {
+                            sub.print_long_help().ok();
+                        }
+                    }
+                    return ExitCode::FAILURE;
+                }
+            }
+        }
+    };
     let sock = socket_path(&cli.session);
 
     match cli.command {
