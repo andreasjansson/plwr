@@ -4,7 +4,8 @@ mod protocol;
 mod pw_ext;
 
 use crate::protocol::Command;
-use clap::{Parser, Subcommand};
+use clap::{CommandFactory, Parser, Subcommand};
+use std::collections::HashSet;
 use std::path::PathBuf;
 use std::process::ExitCode;
 
