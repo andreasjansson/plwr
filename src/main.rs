@@ -456,7 +456,7 @@ async fn main() -> ExitCode {
                     if let Some(name) = find_subcommand_in_args() {
                         let mut cmd = Cli::command();
                         if let Some(sub) = cmd.find_subcommand_mut(&name) {
-                            let sub = sub.display_name("plwr");
+                            let mut sub = sub.clone().display_name("plwr");
                             sub.print_help().ok();
                         }
                     }
