@@ -37,7 +37,8 @@ plwr -S plwr-test text '#mod-result'
 shift
 
 ===
-control-click (on macOS, ctrl+click triggers contextmenu → shows as right)
+control-click (macOS only: ctrl+click triggers contextmenu → shows as right)
+%skip(ctrl+click is contextmenu only on macOS) if: test "$(uname)" != "Darwin"
 ===
 plwr -S plwr-test click '#mod-target' --control
 plwr -S plwr-test text '#mod-result'
@@ -45,12 +46,31 @@ plwr -S plwr-test text '#mod-result'
 right
 
 ===
-ctrl alias (on macOS, ctrl+click triggers contextmenu → shows as right)
+ctrl alias (macOS only: ctrl+click triggers contextmenu → shows as right)
+%skip(ctrl+click is contextmenu only on macOS) if: test "$(uname)" != "Darwin"
 ===
 plwr -S plwr-test click '#mod-target' --ctrl
 plwr -S plwr-test text '#mod-result'
 ---
 right
+
+===
+control-click (Linux only: ctrl+click fires click with ctrlKey)
+%skip(ctrl+click fires ctrlKey only on Linux) if: test "$(uname)" = "Darwin"
+===
+plwr -S plwr-test click '#mod-target' --control
+plwr -S plwr-test text '#mod-result'
+---
+ctrl
+
+===
+ctrl alias (Linux only: ctrl+click fires click with ctrlKey)
+%skip(ctrl+click fires ctrlKey only on Linux) if: test "$(uname)" = "Darwin"
+===
+plwr -S plwr-test click '#mod-target' --ctrl
+plwr -S plwr-test text '#mod-result'
+---
+ctrl
 
 ===
 multiple modifiers
