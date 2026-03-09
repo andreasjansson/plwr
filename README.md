@@ -83,6 +83,7 @@ Use `--headed` (or the `PLAYWRIGHT_HEADED` env var) to show the browser window.
 plwr start                             # headless
 plwr start --headed                     # visible browser window
 plwr start --video recording.mp4       # record video of session
+plwr start --ignore-cert-errors        # ignore TLS certificate errors
 plwr stop                              # shut down (saves video if recording)
 ```
 
