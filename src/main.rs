@@ -182,6 +182,9 @@ enum Cmd {
         /// Record video of the session, saved to this path on stop (.webm, .mp4, etc.)
         #[arg(long)]
         video: Option<String>,
+        /// Ignore TLS/SSL certificate errors (useful behind corporate proxies)
+        #[arg(long)]
+        ignore_cert_errors: bool,
     },
     /// Stop the browser
     Stop,
