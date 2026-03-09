@@ -60,8 +60,8 @@ jobs:
           tool: cctr
       - name: Build
         run: cargo build --release
-      - name: Install Playwright browsers
-        run: npx playwright@1.56.1 install --with-deps chromium
+      - name: Install Playwright
+        run: npm install -g playwright@1.56.1 && npx playwright install --with-deps chromium
       - name: Add to PATH
         run: echo "$PWD/target/release" >> $GITHUB_PATH
       - name: Run e2e tests
