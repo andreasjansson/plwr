@@ -59,7 +59,7 @@ struct VideoState {
     temp_dir: std::path::PathBuf,
 }
 
-pub async fn run(socket_path: &Path, headed: bool) -> Result<()> {
+pub async fn run(socket_path: &Path, headed: bool, ignore_cert_errors: bool) -> Result<()> {
     // Ignore SIGPIPE — stdout is a pipe from the parent process that
     // closes after reading the ready signal. Any later stdout write
     // (e.g. from Playwright internals) must not kill us.
