@@ -477,7 +477,9 @@ async fn main() -> ExitCode {
     match cli.command {
         Cmd::Daemon => {
             let headed = std::env::var("PLAYWRIGHT_HEADED").is_ok_and(|v| !v.is_empty());
-            match daemon::run(&sock, headed).await {
+            let ignore_cert_errors =
+                std::env::var("PLWR_IGNORE_CERT_ERRORS").is_ok_and(|v| !v.is_empty());
+            match daemon::run(&sock, headed, ignore_cert_errors).await {
                 Ok(()) => ExitCode::SUCCESS,
                 Err(e) => {
                     std::fs::remove_file(&sock).ok();
