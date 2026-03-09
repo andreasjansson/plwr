@@ -55,7 +55,12 @@ async fn send_on_stream(stream: UnixStream, command: Command) -> Result<Response
     Ok(resp)
 }
 
-fn start_daemon(socket_path: &Path, headed: bool, video: Option<&str>) -> Result<()> {
+fn start_daemon(
+    socket_path: &Path,
+    headed: bool,
+    video: Option<&str>,
+    ignore_cert_errors: bool,
+) -> Result<()> {
     if socket_path.exists() {
         std::fs::remove_file(socket_path).ok();
     }
