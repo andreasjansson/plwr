@@ -34,6 +34,23 @@ npm install -g playwright && npx playwright install chromium
 
 For video conversion to non-webm formats, install [ffmpeg](https://ffmpeg.org/).
 
+## AI Agent Skill
+
+plwr includes a skill file that teaches AI coding agents (like Claude Code) how to automate browsers with plwr. The skill covers the full command set, selector syntax, and common patterns.
+
+Copy the skill to your skills directory:
+
+```bash
+# Claude Code - personal (available across all your projects):
+cp -r skills/plwr ~/.claude/skills/
+
+# Claude Code - project-specific (commit to version control):
+cp -r skills/plwr .claude/skills/
+
+# OpenCode:
+cp -r skills/plwr ~/.config/opencode/skills/
+```
+
 ## Usage
 
 Start a browser session, navigate, interact, and stop:
