@@ -44,6 +44,7 @@ plwr stop
 plwr start                         # headless
 plwr start --headed                # visible browser window
 plwr start --video recording.mp4   # record video
+plwr start --ignore-cert-errors    # ignore TLS certificate errors
 plwr stop                          # shut down (saves video if recording)
 ```
 
