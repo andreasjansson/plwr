@@ -69,6 +69,7 @@ plwr stop                       # shut down browser
 | `PLAYWRIGHT_HEADED` | Set to any value to run the browser with a visible window |
 | `PLWR_SESSION` | Default session name (default: `default`) |
 | `PLWR_TIMEOUT` | Default timeout in ms (default: `5000`) |
+| `PLWR_IGNORE_CERT_ERRORS` | Set to any value to ignore TLS/SSL certificate errors |
 
 All commands take `-S`/`--session` and `-T`/`--timeout` as global options,
 which override the environment variables.
