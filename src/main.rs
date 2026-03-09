@@ -168,9 +168,10 @@ const EXAMPLES: &str = "\x1b[1;4mExamples:\x1b[0m
 
 \x1b[1;4mEnvironment variables:\x1b[0m
 
-  PLAYWRIGHT_HEADED    Show browser window (set to any value)
-  PLWR_SESSION         Default session name (default: \"default\")
-  PLWR_TIMEOUT         Default timeout in ms (default: 5000)";
+  PLAYWRIGHT_HEADED        Show browser window (set to any value)
+  PLWR_SESSION             Default session name (default: \"default\")
+  PLWR_TIMEOUT             Default timeout in ms (default: 5000)
+  PLWR_IGNORE_CERT_ERRORS  Ignore TLS/SSL certificate errors";
 
 #[derive(Subcommand)]
 enum Cmd {
