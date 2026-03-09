@@ -487,9 +487,16 @@ async fn main() -> ExitCode {
             }
         }
 
-        Cmd::Start { headed, video } => {
+        Cmd::Start {
+            headed,
+            video,
+            ignore_cert_errors,
+        } => {
             let headed = headed || std::env::var("PLAYWRIGHT_HEADED").is_ok_and(|v| !v.is_empty());
-            match client::ensure_started(&sock, headed, video.as_deref()).await {
+            let ignore_cert_errors = ignore_cert_errors
+                || std::env::var("PLWR_IGNORE_CERT_ERRORS").is_ok_and(|v| !v.is_empty());
+            match client::ensure_started(&sock, headed, video.as_deref(), ignore_cert_errors).await
+            {
                 Ok(()) => {
                     println!("Started session '{}'", cli.session);
                     ExitCode::SUCCESS
