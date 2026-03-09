@@ -88,10 +88,17 @@ pub async fn run(socket_path: &Path, headed: bool, ignore_cert_errors: bool) -> 
     };
     let video_output = std::env::var("PLWR_VIDEO").ok();
 
+    let args = if ignore_cert_errors {
+        Some(vec!["--ignore-certificate-errors".to_string()])
+    } else {
+        None
+    };
+
     let browser = match playwright
         .chromium()
         .launch_with_options(LaunchOptions {
             headless: Some(!headed),
+            args,
             ..Default::default()
         })
         .await
