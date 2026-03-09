@@ -92,6 +92,9 @@ fn start_daemon(
     if let Some(path) = video {
         cmd.env("PLWR_VIDEO", path);
     }
+    if ignore_cert_errors {
+        cmd.env("PLWR_IGNORE_CERT_ERRORS", "1");
+    }
 
     let mut child = cmd
         .spawn()
