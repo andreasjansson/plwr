@@ -283,6 +283,8 @@ resource types.
 plwr network                     # print all captured requests as JSON
 plwr network --type fetch        # filter by type
 plwr network --type css,js,img   # multiple types, comma-separated
+plwr network --url '\.json$'     # filter by URL (regex)
+plwr network --type fetch --url '/api/'  # combine type and URL filters
 plwr network --clear             # clear the buffer
 ```
 
