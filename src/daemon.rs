@@ -79,16 +79,12 @@ if (!window.__plwr_network) {
             (typeof url === 'string') ? url
             : (url instanceof URL) ? url.href : String(url)
         );
-        this.__plwr_start = performance.now();
         return origXHROpen.apply(this, arguments);
     };
     const origXHRSend = XMLHttpRequest.prototype.send;
     XMLHttpRequest.prototype.send = function() {
         if (this.__plwr_url) {
-            window.__plwr_network_xhr_map.set(
-                this.__plwr_url + '|' + Math.round(this.__plwr_start),
-                this.__plwr_method
-            );
+            (window.__plwr_network_xhr_queue[this.__plwr_url] = window.__plwr_network_xhr_queue[this.__plwr_url] || []).push(this.__plwr_method);
         }
         return origXHRSend.apply(this, arguments);
     };
