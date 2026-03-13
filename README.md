@@ -272,6 +272,27 @@ plwr console --clear             # clear the log buffer
 Each entry includes `level`, `ts` (timestamp in ms), and `args` (array of
 stringified arguments).
 
+### Network requests
+
+Capture all network requests made by the page. Requests are automatically
+captured from page load onward, including document, CSS, JS, images, fonts,
+fetch, XHR, and WebSocket connections. Status codes are available for all
+resource types.
+
+```bash
+plwr network                     # print all captured requests as JSON
+plwr network --type fetch        # filter by type
+plwr network --type css,js,img   # multiple types, comma-separated
+plwr network --clear             # clear the buffer
+```
+
+Available types: `doc`, `css`, `js`, `img`, `font`, `media`, `fetch`, `xhr`,
+`ws`, `wasm`, `manifest`, `other`.
+
+Each entry includes `type`, `url`, `status` (HTTP status code), `method`
+(for fetch/XHR/doc), `size` (transfer size in bytes), `duration` (ms), and
+`ts` (timestamp in ms).
+
 ### Computed styles
 
 ```bash
