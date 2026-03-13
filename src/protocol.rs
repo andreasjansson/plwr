@@ -152,6 +152,8 @@ pub enum Command {
         types: Vec<String>,
         #[serde(default)]
         url_pattern: Option<String>,
+        #[serde(default)]
+        content: bool,
     },
     NetworkClear,
     ClipboardCopy {
