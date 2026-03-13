@@ -19,8 +19,8 @@ const CHANNEL_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(30);
 const NETWORK_INTERCEPTOR_JS: &str = r#"
 if (!window.__plwr_network) {
     window.__plwr_network = [];
-    window.__plwr_network_fetch_map = new Map();
-    window.__plwr_network_xhr_map = new Map();
+    window.__plwr_network_fetch_queue = {};
+    window.__plwr_network_xhr_queue = {};
 
     // Classify by initiatorType + URL extension
     function classifyType(entry) {
