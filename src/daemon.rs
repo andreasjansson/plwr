@@ -979,7 +979,7 @@ async fn handle_command(state: &mut State, command: Command) -> Result<Response>
         Command::Network {
             types,
             url_pattern,
-            content,
+            include_ws_data,
         } => {
             let val = pw_ext::page_evaluate_value(
                 page,
@@ -995,32 +995,47 @@ async fn handle_command(state: &mut State, command: Command) -> Result<Response>
                 .transpose()
                 .map_err(|e| anyhow::anyhow!("Invalid URL regex: {}", e))?;
 
-            let needs_filter = !types.is_empty() || url_regex.is_some();
-            if !needs_filter {
-                Ok(Response::ok_value(entries))
-            } else {
-                let filtered = entries
-                    .as_array()
-                    .map(|arr| {
-                        arr.iter()
-                            .filter(|e| {
-                                let type_ok = types.is_empty()
-                                    || e.get("type")
-                                        .and_then(|t| t.as_str())
-                                        .is_some_and(|t| types.iter().any(|f| f == t));
-                                let url_ok = url_regex.as_ref().is_none_or(|re| {
-                                    e.get("url")
-                                        .and_then(|u| u.as_str())
-                                        .is_some_and(|u| re.is_match(u))
-                                });
-                                type_ok && url_ok
-                            })
-                            .cloned()
-                            .collect::<Vec<_>>()
-                    })
-                    .unwrap_or_default();
-                Ok(Response::ok_value(serde_json::Value::Array(filtered)))
-            }
+            let process_entry = |e: &serde_json::Value| -> serde_json::Value {
+                let mut e = e.clone();
+                if let Some(obj) = e.as_object_mut() {
+                    let is_ws = obj.get("type").and_then(|t| t.as_str()) == Some("ws");
+                    if is_ws && !include_ws_data {
+                        if let Some(serde_json::Value::Array(msgs)) = obj.get_mut("messages") {
+                            for msg in msgs.iter_mut() {
+                                if let Some(obj) = msg.as_object_mut() {
+                                    obj.remove("data");
+                                }
+                            }
+                        }
+                    }
+                    if !is_ws {
+                        obj.remove("messages");
+                    }
+                }
+                e
+            };
+
+            let filtered = entries
+                .as_array()
+                .map(|arr| {
+                    arr.iter()
+                        .filter(|e| {
+                            let type_ok = types.is_empty()
+                                || e.get("type")
+                                    .and_then(|t| t.as_str())
+                                    .is_some_and(|t| types.iter().any(|f| f == t));
+                            let url_ok = url_regex.as_ref().is_none_or(|re| {
+                                e.get("url")
+                                    .and_then(|u| u.as_str())
+                                    .is_some_and(|u| re.is_match(u))
+                            });
+                            type_ok && url_ok
+                        })
+                        .map(process_entry)
+                        .collect::<Vec<_>>()
+                })
+                .unwrap_or_default();
+            Ok(Response::ok_value(serde_json::Value::Array(filtered)))
         }
 
         Command::NetworkClear => {
