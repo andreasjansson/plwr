@@ -13,56 +13,56 @@ plwr -S plwr-test network
 ---
 [
   {
-    "duration": {{ d1: int }},
+    "duration": {{ doc_redirect_dur: int }},
     "method": "GET",
-    "size": {{ s1: int }},
+    "size": {{ doc_redirect_size: int }},
     "status": 200,
-    "ts": {{ t1: int }},
+    "ts": {{ doc_redirect_ts: int }},
     "type": "doc",
     "url": "http://localhost:8599/network"
   },
   {
-    "duration": {{ d2: int }},
+    "duration": {{ css_dur: int }},
     "method": null,
-    "size": {{ s2: int }},
+    "size": {{ css_size: int }},
     "status": 200,
-    "ts": {{ t2: int }},
+    "ts": {{ css_ts: int }},
     "type": "css",
     "url": "http://localhost:8599/network.css"
   },
   {
-    "duration": {{ d3: int }},
+    "duration": {{ js_dur: int }},
     "method": null,
-    "size": {{ s3: int }},
+    "size": {{ js_size: int }},
     "status": 200,
-    "ts": {{ t3: int }},
+    "ts": {{ js_ts: int }},
     "type": "js",
     "url": "http://localhost:8599/network.js"
   },
   {
-    "duration": {{ d4: int }},
+    "duration": {{ img_dur: int }},
     "method": null,
-    "size": {{ s4: int }},
+    "size": {{ img_size: int }},
     "status": 200,
-    "ts": {{ t4: int }},
+    "ts": {{ img_ts: int }},
     "type": "img",
     "url": "http://localhost:8599/pixel.png"
   },
   {
-    "duration": {{ d5: int }},
+    "duration": {{ doc_dur: int }},
     "method": "GET",
-    "size": {{ s5: int }},
+    "size": {{ doc_size: int }},
     "status": 200,
-    "ts": {{ t5: int }},
+    "ts": {{ doc_ts: int }},
     "type": "doc",
     "url": "http://localhost:8599/network"
   },
   {
-    "duration": {{ d6: int }},
+    "duration": {{ font_dur: int }},
     "method": null,
-    "size": {{ s6: int }},
+    "size": {{ font_size: int }},
     "status": 200,
-    "ts": {{ t6: int }},
+    "ts": {{ font_ts: int }},
     "type": "font",
     "url": "http://localhost:8599/test-font.woff2"
   }
@@ -75,20 +75,20 @@ plwr -S plwr-test network --type doc
 ---
 [
   {
-    "duration": {{ _1: int }},
+    "duration": {{ doc1_dur: int }},
     "method": "GET",
-    "size": {{ _2: int }},
+    "size": {{ doc1_size: int }},
     "status": 200,
-    "ts": {{ _3: int }},
+    "ts": {{ doc1_ts: int }},
     "type": "doc",
     "url": "http://localhost:8599/network"
   },
   {
-    "duration": {{ _4: int }},
+    "duration": {{ doc2_dur: int }},
     "method": "GET",
-    "size": {{ _5: int }},
+    "size": {{ doc2_size: int }},
     "status": 200,
-    "ts": {{ _6: int }},
+    "ts": {{ doc2_ts: int }},
     "type": "doc",
     "url": "http://localhost:8599/network"
   }
@@ -101,11 +101,11 @@ plwr -S plwr-test network --type css
 ---
 [
   {
-    "duration": {{ _7: int }},
+    "duration": {{ css_filt_dur: int }},
     "method": null,
-    "size": {{ _8: int }},
+    "size": {{ css_filt_size: int }},
     "status": 200,
-    "ts": {{ _9: int }},
+    "ts": {{ css_filt_ts: int }},
     "type": "css",
     "url": "http://localhost:8599/network.css"
   }
@@ -118,11 +118,11 @@ plwr -S plwr-test network --type js
 ---
 [
   {
-    "duration": {{ _10: int }},
+    "duration": {{ js_filt_dur: int }},
     "method": null,
-    "size": {{ _11: int }},
+    "size": {{ js_filt_size: int }},
     "status": 200,
-    "ts": {{ _12: int }},
+    "ts": {{ js_filt_ts: int }},
     "type": "js",
     "url": "http://localhost:8599/network.js"
   }
@@ -135,11 +135,11 @@ plwr -S plwr-test network --type img
 ---
 [
   {
-    "duration": {{ _13: int }},
+    "duration": {{ img_filt_dur: int }},
     "method": null,
-    "size": {{ _14: int }},
+    "size": {{ img_filt_size: int }},
     "status": 200,
-    "ts": {{ _15: int }},
+    "ts": {{ img_filt_ts: int }},
     "type": "img",
     "url": "http://localhost:8599/pixel.png"
   }
@@ -152,11 +152,11 @@ plwr -S plwr-test network --type font
 ---
 [
   {
-    "duration": {{ _16: int }},
+    "duration": {{ font_filt_dur: int }},
     "method": null,
-    "size": {{ _17: int }},
+    "size": {{ font_filt_size: int }},
     "status": 200,
-    "ts": {{ _18: int }},
+    "ts": {{ font_filt_ts: int }},
     "type": "font",
     "url": "http://localhost:8599/test-font.woff2"
   }
@@ -179,11 +179,11 @@ plwr -S plwr-test network --type fetch
 ---
 [
   {
-    "duration": {{ _19: int }},
+    "duration": {{ fetch_dur: int }},
     "method": "POST",
-    "size": {{ _20: int }},
+    "size": {{ fetch_size: int }},
     "status": 200,
-    "ts": {{ _21: int }},
+    "ts": {{ fetch_ts: int }},
     "type": "fetch",
     "url": "http://localhost:8599/network.json"
   }
@@ -199,11 +199,11 @@ plwr -S plwr-test network --type xhr
 ---
 [
   {
-    "duration": {{ _22: int }},
+    "duration": {{ xhr_dur: int }},
     "method": "PUT",
-    "size": {{ _23: int }},
+    "size": {{ xhr_size: int }},
     "status": 200,
-    "ts": {{ _24: int }},
+    "ts": {{ xhr_ts: int }},
     "type": "xhr",
     "url": "http://localhost:8599/network.json"
   }
@@ -219,11 +219,11 @@ plwr -S plwr-test network --type ws
 ---
 [
   {
-    "duration": {{ _25: int }},
+    "duration": {{ ws_dur: int }},
     "method": null,
     "size": 0,
     "status": 101,
-    "ts": {{ _26: int }},
+    "ts": {{ ws_ts: int }},
     "type": "ws",
     "url": "ws://localhost:8597"
   }
@@ -239,20 +239,20 @@ plwr -S plwr-test network --type css,js
 ---
 [
   {
-    "duration": {{ _27: int }},
+    "duration": {{ multi_css_dur: int }},
     "method": null,
-    "size": {{ _28: int }},
+    "size": {{ multi_css_size: int }},
     "status": 200,
-    "ts": {{ _29: int }},
+    "ts": {{ multi_css_ts: int }},
     "type": "css",
     "url": "http://localhost:8599/network.css"
   },
   {
-    "duration": {{ _30: int }},
+    "duration": {{ multi_js_dur: int }},
     "method": null,
-    "size": {{ _31: int }},
+    "size": {{ multi_js_size: int }},
     "status": 200,
-    "ts": {{ _32: int }},
+    "ts": {{ multi_js_ts: int }},
     "type": "js",
     "url": "http://localhost:8599/network.js"
   }
@@ -280,11 +280,11 @@ plwr -S plwr-test network --type fetch
 ---
 [
   {
-    "duration": {{ _33: int }},
+    "duration": {{ notfound_dur: int }},
     "method": "GET",
-    "size": {{ _34: int }},
+    "size": {{ notfound_size: int }},
     "status": 404,
-    "ts": {{ _35: int }},
+    "ts": {{ notfound_ts: int }},
     "type": "fetch",
     "url": "http://localhost:8599/does-not-exist"
   }
@@ -302,20 +302,20 @@ plwr -S plwr-test network
 ---
 [
   {
-    "duration": {{ _36: int }},
+    "duration": {{ accum_fetch_dur: int }},
     "method": "POST",
-    "size": {{ _37: int }},
+    "size": {{ accum_fetch_size: int }},
     "status": 200,
-    "ts": {{ _38: int }},
+    "ts": {{ accum_fetch_ts: int }},
     "type": "fetch",
     "url": "http://localhost:8599/network.json"
   },
   {
-    "duration": {{ _39: int }},
+    "duration": {{ accum_xhr_dur: int }},
     "method": "PUT",
-    "size": {{ _40: int }},
+    "size": {{ accum_xhr_size: int }},
     "status": 200,
-    "ts": {{ _41: int }},
+    "ts": {{ accum_xhr_ts: int }},
     "type": "xhr",
     "url": "http://localhost:8599/network.json"
   }
@@ -331,11 +331,11 @@ plwr -S plwr-test network --url '\.css$'
 ---
 [
   {
-    "duration": {{ _42: int }},
+    "duration": {{ url_css_dur: int }},
     "method": null,
-    "size": {{ _43: int }},
+    "size": {{ url_css_size: int }},
     "status": 200,
-    "ts": {{ _44: int }},
+    "ts": {{ url_css_ts: int }},
     "type": "css",
     "url": "http://localhost:8599/network.css"
   }
@@ -348,11 +348,11 @@ plwr -S plwr-test network --url 'pixel'
 ---
 [
   {
-    "duration": {{ _45: int }},
+    "duration": {{ url_img_dur: int }},
     "method": null,
-    "size": {{ _46: int }},
+    "size": {{ url_img_size: int }},
     "status": 200,
-    "ts": {{ _47: int }},
+    "ts": {{ url_img_ts: int }},
     "type": "img",
     "url": "http://localhost:8599/pixel.png"
   }
@@ -365,20 +365,20 @@ plwr -S plwr-test network --type doc --url 'network'
 ---
 [
   {
-    "duration": {{ _48: int }},
+    "duration": {{ combo_doc1_dur: int }},
     "method": "GET",
-    "size": {{ _49: int }},
+    "size": {{ combo_doc1_size: int }},
     "status": 200,
-    "ts": {{ _50: int }},
+    "ts": {{ combo_doc1_ts: int }},
     "type": "doc",
     "url": "http://localhost:8599/network"
   },
   {
-    "duration": {{ _51: int }},
+    "duration": {{ combo_doc2_dur: int }},
     "method": "GET",
-    "size": {{ _52: int }},
+    "size": {{ combo_doc2_size: int }},
     "status": 200,
-    "ts": {{ _53: int }},
+    "ts": {{ combo_doc2_ts: int }},
     "type": "doc",
     "url": "http://localhost:8599/network"
   }
