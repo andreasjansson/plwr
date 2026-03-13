@@ -765,9 +765,11 @@ async fn main() -> ExitCode {
                     clear: false,
                     r#type,
                     url,
+                    content,
                 } => Command::Network {
                     types: r#type,
                     url_pattern: url,
+                    content,
                 },
                 Cmd::ClipboardCopy { selector } => Command::ClipboardCopy {
                     selector,
