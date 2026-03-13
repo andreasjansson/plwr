@@ -104,8 +104,6 @@ if (!window.__plwr_network) {
             type: 'ws',
             url: (typeof url === 'string') ? url : url.href,
             status: null,
-            method: null,
-            size: 0,
             duration: 0,
             ts: Date.now(),
             messages: []
