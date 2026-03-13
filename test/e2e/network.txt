@@ -205,6 +205,50 @@ where
 * len(entries) == 2
 
 ===
+network: --url filters by regex
+===
+plwr -S plwr-test network --clear
+plwr -S plwr-test open "http://localhost:8599/network.html"
+sleep 1
+plwr -S plwr-test network --url '\.css$'
+---
+{{ entries: json array }}
+---
+where
+* len(entries) == 1
+* entries[0].url endswith "/network.css"
+
+===
+network: --url with partial match
+===
+plwr -S plwr-test network --url 'pixel'
+---
+{{ entries: json array }}
+---
+where
+* len(entries) == 1
+* entries[0].url endswith "/pixel.png"
+
+===
+network: --url combined with --type
+===
+plwr -S plwr-test network --type doc --url 'network'
+---
+{{ entries: json array }}
+---
+where
+* len(entries) >= 1
+* e.type == "doc" forall e in entries
+* e.url contains "network" forall e in entries
+
+===
+network: --url with no matches returns empty
+===
+plwr -S plwr-test network --url 'this-will-never-match-anything'
+---
+[]
+
+===
 network: persists across navigations
 ===
 plwr -S plwr-test network --clear
