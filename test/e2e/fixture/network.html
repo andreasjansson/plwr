@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>network test</title>
+  <link rel="stylesheet" href="/network.css">
+
+  <script src="/network.js"></script>
+</head>
+<body>
+  <h1 class="network-test">Network Test</h1>
+  <img id="pixel" src="/pixel.png" width="1" height="1">
+
+  <p>This page loads CSS, JS, an image, a font, and a manifest on initial load.
+     Buttons below trigger fetch, XHR, and WebSocket requests.</p>
+
+  <div id="fetch-result"></div>
+  <div id="xhr-result"></div>
+  <div id="ws-result">ws:pending</div>
+
+  <button id="do-fetch" onclick="doFetch()">Fetch</button>
+  <button id="do-xhr" onclick="doXHR()">XHR</button>
+  <button id="do-ws" onclick="doWS()">WS</button>
+
+  <script>
+    function doFetch() {
+      fetch('/network.json', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: '{"action":"test"}' })
+        .then(function(r) { return r.json(); })
+        .then(function(d) { document.getElementById('fetch-result').textContent = 'fetch:' + d.ok; });
+    }
+    function doXHR() {
+      var x = new XMLHttpRequest();
+      x.open('PUT', '/network.json');
+      x.onload = function() {
+        var d = JSON.parse(x.responseText);
+        document.getElementById('xhr-result').textContent = 'xhr:' + d.ok;
+      };
+      x.send();
+    }
+    function doWS() {
+      var ws = new WebSocket('ws://localhost:8597');
+      ws.onopen = function() { ws.send('hello'); };
+      ws.onmessage = function(e) {
+        document.getElementById('ws-result').textContent = 'ws:' + e.data;
+        ws.close();
+      };
+      ws.onerror = function() {
+        document.getElementById('ws-result').textContent = 'ws:error';
+      };
+    }
+  </script>
+</body>
+</html>

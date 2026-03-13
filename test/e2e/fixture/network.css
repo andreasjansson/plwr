@@ -1,0 +1,6 @@
+@font-face {
+  font-family: 'TestFont';
+  src: url('/test-font.woff2') format('woff2');
+}
+body { margin: 0; font-family: 'TestFont', sans-serif; }
+.network-test { color: green; }

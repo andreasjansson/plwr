@@ -391,6 +391,16 @@ enum Cmd {
         clear: bool,
     },
 
+    /// Print captured network requests as JSON (automatically captured after open)
+    Network {
+        /// Clear the network log buffer
+        #[arg(long)]
+        clear: bool,
+        /// Filter by request type (comma-separated: doc,css,js,img,font,media,manifest,ws,wasm,fetch,xhr,other)
+        #[arg(long, value_delimiter = ',')]
+        r#type: Vec<String>,
+    },
+
     /// Evaluate arbitrary JavaScript in page context, print the result
     Eval { js: String },
 
@@ -744,6 +754,11 @@ async fn main() -> ExitCode {
                 },
                 Cmd::Console { clear: true } => Command::ConsoleClear,
                 Cmd::Console { clear: false } => Command::Console,
+                Cmd::Network { clear: true, .. } => Command::NetworkClear,
+                Cmd::Network {
+                    clear: false,
+                    r#type,
+                } => Command::Network { types: r#type },
                 Cmd::ClipboardCopy { selector } => Command::ClipboardCopy {
                     selector,
                     timeout: cli.timeout,

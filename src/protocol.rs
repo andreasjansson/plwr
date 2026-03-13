@@ -147,6 +147,11 @@ pub enum Command {
     },
     Console,
     ConsoleClear,
+    Network {
+        #[serde(default)]
+        types: Vec<String>,
+    },
+    NetworkClear,
     ClipboardCopy {
         selector: String,
         timeout: u64,

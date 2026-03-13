@@ -16,6 +16,161 @@ const READY_SIGNAL: &str = "### ready";
 const ERROR_PREFIX: &str = "### error ";
 const CHANNEL_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(30);
 
+const NETWORK_INTERCEPTOR_JS: &str = r#"
+if (!window.__plwr_network) {
+    window.__plwr_network = [];
+    window.__plwr_network_fetch_map = new Map();
+    window.__plwr_network_xhr_map = new Map();
+
+    // Classify by initiatorType + URL extension
+    function classifyType(entry) {
+        const url = entry.name || '';
+        const init = entry.initiatorType || '';
+        if (entry.entryType === 'navigation') return 'doc';
+        if (init === 'fetch') return 'fetch';
+        if (init === 'xmlhttprequest') return 'xhr';
+        if (init === 'script') return 'js';
+        if (init === 'link') {
+            if (/\.css(\?|$)/i.test(url)) return 'css';
+            if (/manifest/i.test(url)) return 'manifest';
+            return 'css';
+        }
+        if (init === 'img') return 'img';
+        if (init === 'audio' || init === 'video') return 'media';
+        if (init === 'css') {
+            if (/\.(woff2?|ttf|otf|eot)(\?|$)/i.test(url)) return 'font';
+            return 'img';
+        }
+        if (/\.wasm(\?|$)/i.test(url)) return 'wasm';
+        if (/\.(js|mjs)(\?|$)/i.test(url)) return 'js';
+        if (/\.css(\?|$)/i.test(url)) return 'css';
+        if (/\.(png|jpe?g|gif|svg|webp|ico|bmp|avif)(\?|$)/i.test(url)) return 'img';
+        if (/\.(mp4|webm|ogg|mp3|wav|flac|aac)(\?|$)/i.test(url)) return 'media';
+        if (/\.(woff2?|ttf|otf|eot)(\?|$)/i.test(url)) return 'font';
+        return 'other';
+    }
+
+    function resolveURL(url) {
+        try { return new URL(url, location.href).href; }
+        catch { return url; }
+    }
+
+    // Monkey-patch fetch to capture method
+    const origFetch = window.fetch;
+    window.fetch = function(input, init) {
+        const url = resolveURL(
+            (typeof input === 'string') ? input
+            : (input instanceof URL) ? input.href
+            : (input instanceof Request) ? input.url
+            : String(input)
+        );
+        const method = (init && init.method) ? init.method.toUpperCase()
+            : (input instanceof Request) ? input.method.toUpperCase()
+            : 'GET';
+        const startTime = performance.now();
+        window.__plwr_network_fetch_map.set(url + '|' + Math.round(startTime), method);
+        return origFetch.apply(this, arguments);
+    };
+
+    // Monkey-patch XMLHttpRequest to capture method
+    const origXHROpen = XMLHttpRequest.prototype.open;
+    XMLHttpRequest.prototype.open = function(method, url) {
+        this.__plwr_method = method.toUpperCase();
+        this.__plwr_url = resolveURL(
+            (typeof url === 'string') ? url
+            : (url instanceof URL) ? url.href : String(url)
+        );
+        this.__plwr_start = performance.now();
+        return origXHROpen.apply(this, arguments);
+    };
+    const origXHRSend = XMLHttpRequest.prototype.send;
+    XMLHttpRequest.prototype.send = function() {
+        if (this.__plwr_url) {
+            window.__plwr_network_xhr_map.set(
+                this.__plwr_url + '|' + Math.round(this.__plwr_start),
+                this.__plwr_method
+            );
+        }
+        return origXHRSend.apply(this, arguments);
+    };
+
+    // Monkey-patch WebSocket
+    const OrigWS = window.WebSocket;
+    window.WebSocket = function(url, protocols) {
+        const ws = protocols !== undefined
+            ? new OrigWS(url, protocols)
+            : new OrigWS(url);
+        const entry = {
+            type: 'ws',
+            url: (typeof url === 'string') ? url : url.href,
+            status: null,
+            method: null,
+            size: 0,
+            duration: 0,
+            ts: Date.now()
+        };
+        ws.addEventListener('open', function() {
+            entry.status = 101;
+        });
+        ws.addEventListener('close', function(e) {
+            entry.duration = Date.now() - entry.ts;
+        });
+        ws.addEventListener('error', function() {
+            entry.status = 0;
+            entry.duration = Date.now() - entry.ts;
+        });
+        window.__plwr_network.push(entry);
+        return ws;
+    };
+    window.WebSocket.prototype = OrigWS.prototype;
+    window.WebSocket.CONNECTING = OrigWS.CONNECTING;
+    window.WebSocket.OPEN = OrigWS.OPEN;
+    window.WebSocket.CLOSING = OrigWS.CLOSING;
+    window.WebSocket.CLOSED = OrigWS.CLOSED;
+
+    function mapLookup(map, url, startTime) {
+        const t = Math.round(startTime);
+        for (let delta = 0; delta <= 2; delta++) {
+            for (const k of [url + '|' + (t + delta), url + '|' + (t - delta)]) {
+                if (map.has(k)) { const v = map.get(k); map.delete(k); return v; }
+            }
+        }
+        return null;
+    }
+
+    // PerformanceObserver for resource and navigation entries
+    function processEntry(entry) {
+        const type = classifyType(entry);
+        const url = entry.name;
+
+        let method = null;
+        if (type === 'fetch') {
+            method = mapLookup(window.__plwr_network_fetch_map, url, entry.startTime) || 'GET';
+        } else if (type === 'xhr') {
+            method = mapLookup(window.__plwr_network_xhr_map, url, entry.startTime) || 'GET';
+        } else if (type === 'doc') {
+            method = 'GET';
+        }
+
+        window.__plwr_network.push({
+            type: type,
+            url: url,
+            status: entry.responseStatus || null,
+            method: method,
+            size: entry.transferSize || null,
+            duration: Math.round(entry.duration),
+            ts: Math.round(performance.timeOrigin + entry.startTime)
+        });
+    }
+
+    const obs = new PerformanceObserver(function(list) {
+        list.getEntries().forEach(processEntry);
+    });
+    obs.observe({ type: 'resource', buffered: true });
+    obs.observe({ type: 'navigation', buffered: true });
+}
+"#;
+
 const CONSOLE_INTERCEPTOR_JS: &str = r#"
 if (!window.__plwr_console) {
     window.__plwr_console = [];
@@ -49,6 +204,7 @@ struct State {
     headers: HashMap<String, String>,
     video: Option<VideoState>,
     console_initialized: bool,
+    network_initialized: bool,
     dialog_action: Arc<Mutex<Option<DialogAction>>>,
     dialog_installed: bool,
     clipboard_granted: bool,
@@ -175,6 +331,7 @@ pub async fn run(socket_path: &Path, headed: bool, ignore_cert_errors: bool) -> 
         headers: HashMap::new(),
         video,
         console_initialized: false,
+        network_initialized: false,
         dialog_action: Arc::new(Mutex::new(None)),
         dialog_installed: false,
         clipboard_granted: false,
@@ -228,6 +385,10 @@ async fn handle_command(state: &mut State, command: Command) -> Result<Response>
             if !state.console_initialized {
                 state.page.add_init_script(CONSOLE_INTERCEPTOR_JS).await?;
                 state.console_initialized = true;
+            }
+            if !state.network_initialized {
+                state.page.add_init_script(NETWORK_INTERCEPTOR_JS).await?;
+                state.network_initialized = true;
             }
             state
                 .page
@@ -803,6 +964,39 @@ async fn handle_command(state: &mut State, command: Command) -> Result<Response>
 
         Command::ConsoleClear => {
             pw_ext::page_evaluate_value(page, "() => { window.__plwr_console = []; }").await?;
+            Ok(Response::ok_empty())
+        }
+
+        Command::Network { types } => {
+            let val = pw_ext::page_evaluate_value(
+                page,
+                "() => JSON.stringify(window.__plwr_network || [])",
+            )
+            .await?;
+            let json_str: String = serde_json::from_str(&val).unwrap_or(val);
+            let entries: serde_json::Value = serde_json::from_str(&json_str)?;
+            if types.is_empty() {
+                Ok(Response::ok_value(entries))
+            } else {
+                let filtered = entries
+                    .as_array()
+                    .map(|arr| {
+                        arr.iter()
+                            .filter(|e| {
+                                e.get("type")
+                                    .and_then(|t| t.as_str())
+                                    .is_some_and(|t| types.iter().any(|f| f == t))
+                            })
+                            .cloned()
+                            .collect::<Vec<_>>()
+                    })
+                    .unwrap_or_default();
+                Ok(Response::ok_value(serde_json::Value::Array(filtered)))
+            }
+        }
+
+        Command::NetworkClear => {
+            pw_ext::page_evaluate_value(page, "() => { window.__plwr_network = []; }").await?;
             Ok(Response::ok_empty())
         }
 

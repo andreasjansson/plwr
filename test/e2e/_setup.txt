@@ -19,6 +19,23 @@ exit 1
 ---
 
 ===
+start websocket echo server
+%require
+===
+npm ls -g ws &>/dev/null || npm install -g ws &>/dev/null
+NODE_PATH=$(npm root -g) node -e "
+const {WebSocketServer} = require('ws');
+const wss = new WebSocketServer({ port: 8597 });
+wss.on('connection', ws => {
+  ws.on('message', msg => ws.send(msg.toString()));
+});
+wss.on('listening', () => console.log('ready'));
+" &>/tmp/plwr-ws.log &
+echo $! > /tmp/plwr-ws.pid
+sleep 0.5
+---
+
+===
 start browser
 %require
 ===

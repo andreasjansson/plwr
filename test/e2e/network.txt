@@ -1,0 +1,218 @@
+===
+navigate to network test page
+%require
+===
+plwr -S plwr-test open "http://localhost:8599/network.html"
+sleep 1
+---
+
+===
+network: page load captures doc, css, js, img, and font
+===
+plwr -S plwr-test network
+---
+{{ entries: json array }}
+---
+where
+* len(entries) >= 5
+* e.type == "doc" or e.type == "css" or e.type == "js" or e.type == "img" or e.type == "font" forall e in entries
+
+===
+network: captures document navigation with status 200
+===
+plwr -S plwr-test network --type doc
+---
+{{ entries: json array }}
+---
+where
+* len(entries) >= 1
+* entries[-1].type == "doc"
+* entries[-1].url contains "/network"
+* entries[-1].status == 200
+* entries[-1].method == "GET"
+
+===
+network: captures stylesheet with status 200
+===
+plwr -S plwr-test network --type css
+---
+{{ entries: json array }}
+---
+where
+* len(entries) == 1
+* entries[0].url endswith "/network.css"
+* entries[0].status == 200
+
+===
+network: captures script with status 200
+===
+plwr -S plwr-test network --type js
+---
+{{ entries: json array }}
+---
+where
+* len(entries) == 1
+* entries[0].url endswith "/network.js"
+* entries[0].status == 200
+
+===
+network: captures image with status 200
+===
+plwr -S plwr-test network --type img
+---
+{{ entries: json array }}
+---
+where
+* len(entries) == 1
+* entries[0].url endswith "/pixel.png"
+* entries[0].status == 200
+
+===
+network: captures font loaded via @font-face
+===
+plwr -S plwr-test network --type font
+---
+{{ entries: json array }}
+---
+where
+* len(entries) == 1
+* entries[0].url endswith "/test-font.woff2"
+* entries[0].status == 200
+
+===
+network: all entries have ts, duration, size, and status fields
+===
+plwr -S plwr-test network
+---
+{{ entries: json array }}
+---
+where
+* len(entries) >= 5
+* e.ts > 0 forall e in entries
+* e.duration >= 0 forall e in entries
+* e.status > 0 forall e in entries
+
+===
+network: --clear empties the buffer
+===
+plwr -S plwr-test network --clear
+plwr -S plwr-test network
+---
+[]
+
+===
+network: POST fetch captures method and status
+===
+plwr -S plwr-test click '#do-fetch'
+plwr -S plwr-test wait '#fetch-result:has-text("fetch:")'
+plwr -S plwr-test network --type fetch
+---
+{{ entries: json array }}
+---
+where
+* len(entries) == 1
+* entries[0].url endswith "/network.json"
+* entries[0].method == "POST"
+* entries[0].status == 200
+* entries[0].type == "fetch"
+
+===
+network: XHR captures method and status
+===
+plwr -S plwr-test network --clear
+plwr -S plwr-test click '#do-xhr'
+plwr -S plwr-test wait '#xhr-result:has-text("xhr:")'
+plwr -S plwr-test network --type xhr
+---
+{{ entries: json array }}
+---
+where
+* len(entries) == 1
+* entries[0].url endswith "/network.json"
+* entries[0].method == "PUT"
+* entries[0].status == 200
+* entries[0].type == "xhr"
+
+===
+network: WebSocket captures connection with status 101
+===
+plwr -S plwr-test network --clear
+plwr -S plwr-test click '#do-ws'
+plwr -S plwr-test wait '#ws-result:has-text("ws:hello")' -T 5000
+plwr -S plwr-test network --type ws
+---
+{{ entries: json array }}
+---
+where
+* len(entries) == 1
+* entries[0].url contains "localhost:8597"
+* entries[0].status == 101
+* entries[0].type == "ws"
+
+===
+network: --type filter with multiple comma-separated types
+===
+plwr -S plwr-test network --clear
+plwr -S plwr-test open "http://localhost:8599/network.html"
+sleep 1
+plwr -S plwr-test network --type css,js
+---
+{{ entries: json array }}
+---
+where
+* len(entries) >= 2
+* e.type == "css" or e.type == "js" forall e in entries
+
+===
+network: --type filter excludes non-matching types
+===
+plwr -S plwr-test network --type ws
+---
+[]
+
+===
+network: trigger a 404 fetch
+===
+plwr -S plwr-test network --clear
+plwr -S plwr-test eval "void fetch('/does-not-exist')"
+sleep 0.5
+---
+
+===
+network: 404 response captured with correct status
+===
+plwr -S plwr-test network --type fetch
+---
+{{ entries: json array }}
+---
+where
+* len(entries) == 1
+* entries[0].status == 404
+
+===
+network: multiple requests accumulate in buffer
+===
+plwr -S plwr-test network --clear
+plwr -S plwr-test click '#do-fetch'
+plwr -S plwr-test wait '#fetch-result:has-text("fetch:")'
+plwr -S plwr-test click '#do-xhr'
+plwr -S plwr-test wait '#xhr-result:has-text("xhr:")'
+plwr -S plwr-test network
+---
+{{ entries: json array }}
+---
+where
+* len(entries) == 2
+
+===
+network: persists across navigations
+===
+plwr -S plwr-test network --clear
+plwr -S plwr-test open "http://localhost:8599/network.html"
+sleep 1
+plwr -S plwr-test network
+---
+{{ entries: json array }}
+---
+where
+* len(entries) >= 5
