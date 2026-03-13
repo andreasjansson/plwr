@@ -761,7 +761,11 @@ async fn main() -> ExitCode {
                 Cmd::Network {
                     clear: false,
                     r#type,
-                } => Command::Network { types: r#type },
+                    url,
+                } => Command::Network {
+                    types: r#type,
+                    url_pattern: url,
+                },
                 Cmd::ClipboardCopy { selector } => Command::ClipboardCopy {
                     selector,
                     timeout: cli.timeout,
