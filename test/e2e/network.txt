@@ -210,7 +210,7 @@ plwr -S plwr-test network --type xhr
 ]
 
 ===
-network: WebSocket shows status 101 and message directions
+network: WebSocket shows status 101
 ===
 plwr -S plwr-test network --clear
 plwr -S plwr-test click '#do-ws'
@@ -221,16 +221,6 @@ plwr -S plwr-test network --type ws
 [
   {
     "duration": {{ ws_dur: int }},
-    "messages": [
-      {
-        "dir": "send",
-        "ts": {{ ws_send_ts: int }}
-      },
-      {
-        "dir": "recv",
-        "ts": {{ ws_recv_ts: int }}
-      }
-    ],
     "status": 101,
     "ts": {{ ws_ts: int }},
     "type": "ws",
@@ -239,27 +229,27 @@ plwr -S plwr-test network --type ws
 ]
 
 ===
-network: --include-ws-data adds data field to WebSocket messages
+network: --include-ws-messages shows send/recv log with data
 ===
-plwr -S plwr-test network --type ws --include-ws-data
+plwr -S plwr-test network --type ws --include-ws-messages
 ---
 [
   {
-    "duration": {{ ws_data_dur: int }},
+    "duration": {{ ws_msg_dur: int }},
     "messages": [
       {
         "data": "hello",
         "dir": "send",
-        "ts": {{ ws_data_send_ts: int }}
+        "ts": {{ ws_send_ts: int }}
       },
       {
         "data": "hello",
         "dir": "recv",
-        "ts": {{ ws_data_recv_ts: int }}
+        "ts": {{ ws_recv_ts: int }}
       }
     ],
     "status": 101,
-    "ts": {{ ws_data_ts: int }},
+    "ts": {{ ws_msg_ts: int }},
     "type": "ws",
     "url": "ws://localhost:8597"
   }

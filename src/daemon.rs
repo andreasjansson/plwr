@@ -1017,7 +1017,13 @@ async fn handle_command(state: &mut State, command: Command) -> Result<Response>
                             });
                             type_ok && url_ok
                         })
-                        .map(|e| if include_ws_messages { e.clone() } else { strip_messages(e) })
+                        .map(|e| {
+                            if include_ws_messages {
+                                e.clone()
+                            } else {
+                                strip_messages(e)
+                            }
+                        })
                         .collect::<Vec<_>>()
                 })
                 .unwrap_or_default();
