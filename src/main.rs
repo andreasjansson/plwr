@@ -765,11 +765,11 @@ async fn main() -> ExitCode {
                     clear: false,
                     r#type,
                     url,
-                    content,
+                    include_ws_data,
                 } => Command::Network {
                     types: r#type,
                     url_pattern: url,
-                    content,
+                    include_ws_data,
                 },
                 Cmd::ClipboardCopy { selector } => Command::ClipboardCopy {
                     selector,
