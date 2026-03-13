@@ -399,6 +399,9 @@ enum Cmd {
         /// Filter by request type (comma-separated: doc,css,js,img,font,media,manifest,ws,wasm,fetch,xhr,other)
         #[arg(long, value_delimiter = ',')]
         r#type: Vec<String>,
+        /// Filter by URL (regex pattern)
+        #[arg(long)]
+        url: Option<String>,
     },
 
     /// Evaluate arbitrary JavaScript in page context, print the result
