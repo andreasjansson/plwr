@@ -167,6 +167,23 @@ plwr console                     # all captured messages as JSON
 plwr console --clear
 ```
 
+### Network Requests
+
+Capture all HTTP requests (doc, CSS, JS, images, fonts, fetch, XHR, WebSocket)
+with status codes for every resource type.
+
+```bash
+plwr network                     # all captured requests as JSON
+plwr network --type fetch        # filter by type
+plwr network --type css,js,img   # multiple types
+plwr network --clear             # clear the buffer
+```
+
+Types: `doc`, `css`, `js`, `img`, `font`, `media`, `fetch`, `xhr`, `ws`,
+`wasm`, `manifest`, `other`.
+
+Each entry: `{type, url, status, method, size, duration, ts}`.
+
 ### JavaScript
 
 ```bash
