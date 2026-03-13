@@ -995,7 +995,7 @@ async fn handle_command(state: &mut State, command: Command) -> Result<Response>
                                     || e.get("type")
                                         .and_then(|t| t.as_str())
                                         .is_some_and(|t| types.iter().any(|f| f == t));
-                                let url_ok = url_regex.as_ref().map_or(true, |re| {
+                                let url_ok = url_regex.as_ref().is_none_or(|re| {
                                     e.get("url")
                                         .and_then(|u| u.as_str())
                                         .is_some_and(|u| re.is_match(u))
