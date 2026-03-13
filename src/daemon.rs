@@ -107,18 +107,27 @@ if (!window.__plwr_network) {
             method: null,
             size: 0,
             duration: 0,
-            ts: Date.now()
+            ts: Date.now(),
+            messages: []
         };
         ws.addEventListener('open', function() {
             entry.status = 101;
         });
-        ws.addEventListener('close', function(e) {
+        ws.addEventListener('message', function(e) {
+            entry.messages.push({ dir: 'recv', data: typeof e.data === 'string' ? e.data : '<binary>', ts: Date.now() });
+        });
+        ws.addEventListener('close', function() {
             entry.duration = Date.now() - entry.ts;
         });
         ws.addEventListener('error', function() {
             entry.status = 0;
             entry.duration = Date.now() - entry.ts;
         });
+        const origSend = ws.send.bind(ws);
+        ws.send = function(data) {
+            entry.messages.push({ dir: 'send', data: typeof data === 'string' ? data : '<binary>', ts: Date.now() });
+            return origSend(data);
+        };
         window.__plwr_network.push(entry);
         return ws;
     };
