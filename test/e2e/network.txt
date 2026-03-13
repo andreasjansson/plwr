@@ -15,7 +15,7 @@ plwr -S plwr-test network
   {
     "duration": {{ doc_redirect_dur: int }},
     "method": "GET",
-    "size": {{ doc_redirect_size: int }},
+    "size": 300,
     "status": 200,
     "ts": {{ doc_redirect_ts: int }},
     "type": "doc",
@@ -24,7 +24,7 @@ plwr -S plwr-test network
   {
     "duration": {{ css_dur: int }},
     "method": null,
-    "size": {{ css_size: int }},
+    "size": 479,
     "status": 200,
     "ts": {{ css_ts: int }},
     "type": "css",
@@ -33,7 +33,7 @@ plwr -S plwr-test network
   {
     "duration": {{ js_dur: int }},
     "method": null,
-    "size": {{ js_size: int }},
+    "size": 336,
     "status": 200,
     "ts": {{ js_ts: int }},
     "type": "js",
@@ -42,7 +42,7 @@ plwr -S plwr-test network
   {
     "duration": {{ img_dur: int }},
     "method": null,
-    "size": {{ img_size: int }},
+    "size": 367,
     "status": 200,
     "ts": {{ img_ts: int }},
     "type": "img",
@@ -51,7 +51,7 @@ plwr -S plwr-test network
   {
     "duration": {{ doc_dur: int }},
     "method": "GET",
-    "size": {{ doc_size: int }},
+    "size": 973,
     "status": 200,
     "ts": {{ doc_ts: int }},
     "type": "doc",
@@ -60,13 +60,23 @@ plwr -S plwr-test network
   {
     "duration": {{ font_dur: int }},
     "method": null,
-    "size": {{ font_size: int }},
+    "size": 304,
     "status": 200,
     "ts": {{ font_ts: int }},
     "type": "font",
     "url": "http://localhost:8599/test-font.woff2"
   }
 ]
+---
+where
+* doc_redirect_ts > 1773360000000
+* doc_redirect_ts < 4102444800000
+* css_ts > 1773360000000
+* css_ts < 4102444800000
+* js_ts > 1773360000000
+* img_ts > 1773360000000
+* doc_ts > 1773360000000
+* font_ts > 1773360000000
 
 ===
 network: --type doc filters to document requests only
@@ -77,7 +87,7 @@ plwr -S plwr-test network --type doc
   {
     "duration": {{ doc1_dur: int }},
     "method": "GET",
-    "size": {{ doc1_size: int }},
+    "size": 300,
     "status": 200,
     "ts": {{ doc1_ts: int }},
     "type": "doc",
@@ -86,13 +96,19 @@ plwr -S plwr-test network --type doc
   {
     "duration": {{ doc2_dur: int }},
     "method": "GET",
-    "size": {{ doc2_size: int }},
+    "size": 973,
     "status": 200,
     "ts": {{ doc2_ts: int }},
     "type": "doc",
     "url": "http://localhost:8599/network"
   }
 ]
+---
+where
+* doc1_ts > 1773360000000
+* doc1_ts < 4102444800000
+* doc2_ts > 1773360000000
+* doc2_ts < 4102444800000
 
 ===
 network: --type css filters to stylesheet requests
@@ -103,13 +119,17 @@ plwr -S plwr-test network --type css
   {
     "duration": {{ css_filt_dur: int }},
     "method": null,
-    "size": {{ css_filt_size: int }},
+    "size": 479,
     "status": 200,
     "ts": {{ css_filt_ts: int }},
     "type": "css",
     "url": "http://localhost:8599/network.css"
   }
 ]
+---
+where
+* css_filt_ts > 1773360000000
+* css_filt_ts < 4102444800000
 
 ===
 network: --type js filters to script requests
@@ -120,13 +140,17 @@ plwr -S plwr-test network --type js
   {
     "duration": {{ js_filt_dur: int }},
     "method": null,
-    "size": {{ js_filt_size: int }},
+    "size": 336,
     "status": 200,
     "ts": {{ js_filt_ts: int }},
     "type": "js",
     "url": "http://localhost:8599/network.js"
   }
 ]
+---
+where
+* js_filt_ts > 1773360000000
+* js_filt_ts < 4102444800000
 
 ===
 network: --type img filters to image requests
@@ -137,13 +161,17 @@ plwr -S plwr-test network --type img
   {
     "duration": {{ img_filt_dur: int }},
     "method": null,
-    "size": {{ img_filt_size: int }},
+    "size": 367,
     "status": 200,
     "ts": {{ img_filt_ts: int }},
     "type": "img",
     "url": "http://localhost:8599/pixel.png"
   }
 ]
+---
+where
+* img_filt_ts > 1773360000000
+* img_filt_ts < 4102444800000
 
 ===
 network: --type font captures @font-face loads
@@ -154,13 +182,17 @@ plwr -S plwr-test network --type font
   {
     "duration": {{ font_filt_dur: int }},
     "method": null,
-    "size": {{ font_filt_size: int }},
+    "size": 304,
     "status": 200,
     "ts": {{ font_filt_ts: int }},
     "type": "font",
     "url": "http://localhost:8599/test-font.woff2"
   }
 ]
+---
+where
+* font_filt_ts > 1773360000000
+* font_filt_ts < 4102444800000
 
 ===
 network: --clear empties the buffer
@@ -181,13 +213,17 @@ plwr -S plwr-test network --type fetch
   {
     "duration": {{ fetch_dur: int }},
     "method": "POST",
-    "size": {{ fetch_size: int }},
+    "size": 313,
     "status": 200,
     "ts": {{ fetch_ts: int }},
     "type": "fetch",
     "url": "http://localhost:8599/network.json"
   }
 ]
+---
+where
+* fetch_ts > 1773360000000
+* fetch_ts < 4102444800000
 
 ===
 network: XHR captures method and status
@@ -201,13 +237,17 @@ plwr -S plwr-test network --type xhr
   {
     "duration": {{ xhr_dur: int }},
     "method": "PUT",
-    "size": {{ xhr_size: int }},
+    "size": 313,
     "status": 200,
     "ts": {{ xhr_ts: int }},
     "type": "xhr",
     "url": "http://localhost:8599/network.json"
   }
 ]
+---
+where
+* xhr_ts > 1773360000000
+* xhr_ts < 4102444800000
 
 ===
 network: WebSocket shows status 101
@@ -227,6 +267,10 @@ plwr -S plwr-test network --type ws
     "url": "ws://localhost:8597"
   }
 ]
+---
+where
+* ws_ts > 1773360000000
+* ws_ts < 4102444800000
 
 ===
 network: --include-ws-messages shows send/recv log with data
@@ -254,6 +298,12 @@ plwr -S plwr-test network --type ws --include-ws-messages
     "url": "ws://localhost:8597"
   }
 ]
+---
+where
+* ws_msg_ts > 1773360000000
+* ws_msg_ts < 4102444800000
+* ws_send_ts >= ws_msg_ts
+* ws_recv_ts >= ws_send_ts
 
 ===
 network: --type with multiple comma-separated types
@@ -267,7 +317,7 @@ plwr -S plwr-test network --type css,js
   {
     "duration": {{ multi_css_dur: int }},
     "method": null,
-    "size": {{ multi_css_size: int }},
+    "size": 300,
     "status": 200,
     "ts": {{ multi_css_ts: int }},
     "type": "css",
@@ -276,13 +326,19 @@ plwr -S plwr-test network --type css,js
   {
     "duration": {{ multi_js_dur: int }},
     "method": null,
-    "size": {{ multi_js_size: int }},
+    "size": 300,
     "status": 200,
     "ts": {{ multi_js_ts: int }},
     "type": "js",
     "url": "http://localhost:8599/network.js"
   }
 ]
+---
+where
+* multi_css_ts > 1773360000000
+* multi_css_ts < 4102444800000
+* multi_js_ts > 1773360000000
+* multi_js_ts < 4102444800000
 
 ===
 network: --type with no matches returns empty array
@@ -308,13 +364,17 @@ plwr -S plwr-test network --type fetch
   {
     "duration": {{ notfound_dur: int }},
     "method": "GET",
-    "size": {{ notfound_size: int }},
+    "size": 999,
     "status": 404,
     "ts": {{ notfound_ts: int }},
     "type": "fetch",
     "url": "http://localhost:8599/does-not-exist"
   }
 ]
+---
+where
+* notfound_ts > 1773360000000
+* notfound_ts < 4102444800000
 
 ===
 network: multiple requests accumulate in buffer
@@ -330,7 +390,7 @@ plwr -S plwr-test network
   {
     "duration": {{ accum_fetch_dur: int }},
     "method": "POST",
-    "size": {{ accum_fetch_size: int }},
+    "size": 313,
     "status": 200,
     "ts": {{ accum_fetch_ts: int }},
     "type": "fetch",
@@ -339,13 +399,18 @@ plwr -S plwr-test network
   {
     "duration": {{ accum_xhr_dur: int }},
     "method": "PUT",
-    "size": {{ accum_xhr_size: int }},
+    "size": 313,
     "status": 200,
     "ts": {{ accum_xhr_ts: int }},
     "type": "xhr",
     "url": "http://localhost:8599/network.json"
   }
 ]
+---
+where
+* accum_fetch_ts > 1773360000000
+* accum_fetch_ts < 4102444800000
+* accum_xhr_ts >= accum_fetch_ts
 
 ===
 network: --url filters by regex pattern
@@ -359,13 +424,17 @@ plwr -S plwr-test network --url '\.css$'
   {
     "duration": {{ url_css_dur: int }},
     "method": null,
-    "size": {{ url_css_size: int }},
+    "size": 300,
     "status": 200,
     "ts": {{ url_css_ts: int }},
     "type": "css",
     "url": "http://localhost:8599/network.css"
   }
 ]
+---
+where
+* url_css_ts > 1773360000000
+* url_css_ts < 4102444800000
 
 ===
 network: --url with partial match
@@ -376,13 +445,17 @@ plwr -S plwr-test network --url 'pixel'
   {
     "duration": {{ url_img_dur: int }},
     "method": null,
-    "size": {{ url_img_size: int }},
+    "size": 300,
     "status": 200,
     "ts": {{ url_img_ts: int }},
     "type": "img",
     "url": "http://localhost:8599/pixel.png"
   }
 ]
+---
+where
+* url_img_ts > 1773360000000
+* url_img_ts < 4102444800000
 
 ===
 network: --type and --url combined
@@ -393,7 +466,7 @@ plwr -S plwr-test network --type doc --url 'network'
   {
     "duration": {{ combo_doc1_dur: int }},
     "method": "GET",
-    "size": {{ combo_doc1_size: int }},
+    "size": 300,
     "status": 200,
     "ts": {{ combo_doc1_ts: int }},
     "type": "doc",
@@ -402,13 +475,18 @@ plwr -S plwr-test network --type doc --url 'network'
   {
     "duration": {{ combo_doc2_dur: int }},
     "method": "GET",
-    "size": {{ combo_doc2_size: int }},
+    "size": 300,
     "status": 200,
     "ts": {{ combo_doc2_ts: int }},
     "type": "doc",
     "url": "http://localhost:8599/network"
   }
 ]
+---
+where
+* combo_doc1_ts > 1773360000000
+* combo_doc1_ts < 4102444800000
+* combo_doc2_ts >= combo_doc1_ts
 
 ===
 network: --url with no matches returns empty array
