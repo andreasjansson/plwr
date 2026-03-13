@@ -976,7 +976,11 @@ async fn handle_command(state: &mut State, command: Command) -> Result<Response>
             Ok(Response::ok_empty())
         }
 
-        Command::Network { types, url_pattern } => {
+        Command::Network {
+            types,
+            url_pattern,
+            content,
+        } => {
             let val = pw_ext::page_evaluate_value(
                 page,
                 "() => JSON.stringify(window.__plwr_network || [])",
