@@ -153,7 +153,7 @@ pub enum Command {
         #[serde(default)]
         url_pattern: Option<String>,
         #[serde(default)]
-        content: bool,
+        include_ws_data: bool,
     },
     NetworkClear,
     ClipboardCopy {
