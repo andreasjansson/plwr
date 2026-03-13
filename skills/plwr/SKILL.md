@@ -178,6 +178,7 @@ plwr network --type fetch        # filter by type
 plwr network --type css,js,img   # multiple types
 plwr network --url '\.json$'     # filter by URL (regex)
 plwr network --type fetch --url '/api/'  # combine filters
+plwr network --type ws --include-ws-messages  # include WS send/recv log
 plwr network --clear             # clear the buffer
 ```
 
@@ -185,6 +186,8 @@ Types: `doc`, `css`, `js`, `img`, `font`, `media`, `fetch`, `xhr`, `ws`,
 `wasm`, `manifest`, `other`.
 
 Each entry: `{type, url, status, method, size, duration, ts}`.
+WebSocket entries: `{type, url, status, duration, ts}`, plus `messages`
+array with `--include-ws-messages` containing `{dir, data, ts}` per frame.
 
 ### JavaScript
 
