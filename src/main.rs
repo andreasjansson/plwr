@@ -402,9 +402,9 @@ enum Cmd {
         /// Filter by URL (regex pattern)
         #[arg(long)]
         url: Option<String>,
-        /// Include data field in WebSocket messages
+        /// Include WebSocket message log (send/recv with data and timestamps)
         #[arg(long)]
-        include_ws_data: bool,
+        include_ws_messages: bool,
     },
 
     /// Evaluate arbitrary JavaScript in page context, print the result
