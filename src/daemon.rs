@@ -977,7 +977,7 @@ async fn handle_command(state: &mut State, command: Command) -> Result<Response>
         Command::Network {
             types,
             url_pattern,
-            include_ws_data,
+            include_ws_messages,
         } => {
             let val = pw_ext::page_evaluate_value(
                 page,
@@ -993,22 +993,10 @@ async fn handle_command(state: &mut State, command: Command) -> Result<Response>
                 .transpose()
                 .map_err(|e| anyhow::anyhow!("Invalid URL regex: {}", e))?;
 
-            let process_entry = |e: &serde_json::Value| -> serde_json::Value {
+            let strip_messages = |e: &serde_json::Value| -> serde_json::Value {
                 let mut e = e.clone();
                 if let Some(obj) = e.as_object_mut() {
-                    let is_ws = obj.get("type").and_then(|t| t.as_str()) == Some("ws");
-                    if is_ws && !include_ws_data {
-                        if let Some(serde_json::Value::Array(msgs)) = obj.get_mut("messages") {
-                            for msg in msgs.iter_mut() {
-                                if let Some(obj) = msg.as_object_mut() {
-                                    obj.remove("data");
-                                }
-                            }
-                        }
-                    }
-                    if !is_ws {
-                        obj.remove("messages");
-                    }
+                    obj.remove("messages");
                 }
                 e
             };
@@ -1029,7 +1017,7 @@ async fn handle_command(state: &mut State, command: Command) -> Result<Response>
                             });
                             type_ok && url_ok
                         })
-                        .map(process_entry)
+                        .map(|e| if include_ws_messages { e.clone() } else { strip_messages(e) })
                         .collect::<Vec<_>>()
                 })
                 .unwrap_or_default();
