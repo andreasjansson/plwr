@@ -130,13 +130,8 @@ if (!window.__plwr_network) {
     window.WebSocket.CLOSING = OrigWS.CLOSING;
     window.WebSocket.CLOSED = OrigWS.CLOSED;
 
-    function mapLookup(map, url, startTime) {
-        const t = Math.round(startTime);
-        for (let delta = 0; delta <= 2; delta++) {
-            for (const k of [url + '|' + (t + delta), url + '|' + (t - delta)]) {
-                if (map.has(k)) { const v = map.get(k); map.delete(k); return v; }
-            }
-        }
+    function queueShift(queue, url) {
+        if (queue[url] && queue[url].length) return queue[url].shift();
         return null;
     }
 
@@ -147,9 +142,9 @@ if (!window.__plwr_network) {
 
         let method = null;
         if (type === 'fetch') {
-            method = mapLookup(window.__plwr_network_fetch_map, url, entry.startTime) || 'GET';
+            method = queueShift(window.__plwr_network_fetch_queue, url) || 'GET';
         } else if (type === 'xhr') {
-            method = mapLookup(window.__plwr_network_xhr_map, url, entry.startTime) || 'GET';
+            method = queueShift(window.__plwr_network_xhr_queue, url) || 'GET';
         } else if (type === 'doc') {
             method = 'GET';
         }
