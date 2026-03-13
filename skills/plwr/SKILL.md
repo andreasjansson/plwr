@@ -176,6 +176,8 @@ with status codes for every resource type.
 plwr network                     # all captured requests as JSON
 plwr network --type fetch        # filter by type
 plwr network --type css,js,img   # multiple types
+plwr network --url '\.json$'     # filter by URL (regex)
+plwr network --type fetch --url '/api/'  # combine filters
 plwr network --clear             # clear the buffer
 ```
 
