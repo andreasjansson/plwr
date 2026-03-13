@@ -7,90 +7,160 @@ sleep 1
 ---
 
 ===
-network: page load captures doc, css, js, img, and font
+network: page load captures doc, css, js, img, and font resources
 ===
 plwr -S plwr-test network
 ---
-{{ entries: json array }}
----
-where
-* len(entries) >= 5
-* e.type == "doc" or e.type == "css" or e.type == "js" or e.type == "img" or e.type == "font" forall e in entries
+[
+  {
+    "duration": {{ d1: int }},
+    "method": "GET",
+    "size": {{ s1: int }},
+    "status": 200,
+    "ts": {{ t1: int }},
+    "type": "doc",
+    "url": "http://localhost:8599/network"
+  },
+  {
+    "duration": {{ d2: int }},
+    "method": null,
+    "size": {{ s2: int }},
+    "status": 200,
+    "ts": {{ t2: int }},
+    "type": "css",
+    "url": "http://localhost:8599/network.css"
+  },
+  {
+    "duration": {{ d3: int }},
+    "method": null,
+    "size": {{ s3: int }},
+    "status": 200,
+    "ts": {{ t3: int }},
+    "type": "js",
+    "url": "http://localhost:8599/network.js"
+  },
+  {
+    "duration": {{ d4: int }},
+    "method": null,
+    "size": {{ s4: int }},
+    "status": 200,
+    "ts": {{ t4: int }},
+    "type": "img",
+    "url": "http://localhost:8599/pixel.png"
+  },
+  {
+    "duration": {{ d5: int }},
+    "method": "GET",
+    "size": {{ s5: int }},
+    "status": 200,
+    "ts": {{ t5: int }},
+    "type": "doc",
+    "url": "http://localhost:8599/network"
+  },
+  {
+    "duration": {{ d6: int }},
+    "method": null,
+    "size": {{ s6: int }},
+    "status": 200,
+    "ts": {{ t6: int }},
+    "type": "font",
+    "url": "http://localhost:8599/test-font.woff2"
+  }
+]
 
 ===
-network: captures document navigation with status 200
+network: --type doc filters to document requests only
 ===
 plwr -S plwr-test network --type doc
 ---
-{{ entries: json array }}
----
-where
-* len(entries) >= 1
-* entries[-1].type == "doc"
-* entries[-1].url contains "/network"
-* entries[-1].status == 200
-* entries[-1].method == "GET"
+[
+  {
+    "duration": {{ _1: int }},
+    "method": "GET",
+    "size": {{ _2: int }},
+    "status": 200,
+    "ts": {{ _3: int }},
+    "type": "doc",
+    "url": "http://localhost:8599/network"
+  },
+  {
+    "duration": {{ _4: int }},
+    "method": "GET",
+    "size": {{ _5: int }},
+    "status": 200,
+    "ts": {{ _6: int }},
+    "type": "doc",
+    "url": "http://localhost:8599/network"
+  }
+]
 
 ===
-network: captures stylesheet with status 200
+network: --type css filters to stylesheet requests
 ===
 plwr -S plwr-test network --type css
 ---
-{{ entries: json array }}
----
-where
-* len(entries) == 1
-* entries[0].url endswith "/network.css"
-* entries[0].status == 200
+[
+  {
+    "duration": {{ _7: int }},
+    "method": null,
+    "size": {{ _8: int }},
+    "status": 200,
+    "ts": {{ _9: int }},
+    "type": "css",
+    "url": "http://localhost:8599/network.css"
+  }
+]
 
 ===
-network: captures script with status 200
+network: --type js filters to script requests
 ===
 plwr -S plwr-test network --type js
 ---
-{{ entries: json array }}
----
-where
-* len(entries) == 1
-* entries[0].url endswith "/network.js"
-* entries[0].status == 200
+[
+  {
+    "duration": {{ _10: int }},
+    "method": null,
+    "size": {{ _11: int }},
+    "status": 200,
+    "ts": {{ _12: int }},
+    "type": "js",
+    "url": "http://localhost:8599/network.js"
+  }
+]
 
 ===
-network: captures image with status 200
+network: --type img filters to image requests
 ===
 plwr -S plwr-test network --type img
 ---
-{{ entries: json array }}
----
-where
-* len(entries) == 1
-* entries[0].url endswith "/pixel.png"
-* entries[0].status == 200
+[
+  {
+    "duration": {{ _13: int }},
+    "method": null,
+    "size": {{ _14: int }},
+    "status": 200,
+    "ts": {{ _15: int }},
+    "type": "img",
+    "url": "http://localhost:8599/pixel.png"
+  }
+]
 
 ===
-network: captures font loaded via @font-face
+network: --type font captures @font-face loads
 ===
 plwr -S plwr-test network --type font
 ---
-{{ entries: json array }}
----
-where
-* len(entries) == 1
-* entries[0].url endswith "/test-font.woff2"
-* entries[0].status == 200
-
-===
-network: all entries have ts, duration, size, and status fields
-===
-plwr -S plwr-test network
----
-{{ entries: json array }}
----
-where
-* len(entries) >= 5
-* e.ts > 0 forall e in entries
-* e.duration >= 0 forall e in entries
-* e.status > 0 forall e in entries
+[
+  {
+    "duration": {{ _16: int }},
+    "method": null,
+    "size": {{ _17: int }},
+    "status": 200,
+    "ts": {{ _18: int }},
+    "type": "font",
+    "url": "http://localhost:8599/test-font.woff2"
+  }
+]
 
 ===
 network: --clear empties the buffer
@@ -107,14 +177,17 @@ plwr -S plwr-test click '#do-fetch'
 plwr -S plwr-test wait '#fetch-result:has-text("fetch:")'
 plwr -S plwr-test network --type fetch
 ---
-{{ entries: json array }}
----
-where
-* len(entries) == 1
-* entries[0].url endswith "/network.json"
-* entries[0].method == "POST"
-* entries[0].status == 200
-* entries[0].type == "fetch"
+[
+  {
+    "duration": {{ _19: int }},
+    "method": "POST",
+    "size": {{ _20: int }},
+    "status": 200,
+    "ts": {{ _21: int }},
+    "type": "fetch",
+    "url": "http://localhost:8599/network.json"
+  }
+]
 
 ===
 network: XHR captures method and status
@@ -124,47 +197,69 @@ plwr -S plwr-test click '#do-xhr'
 plwr -S plwr-test wait '#xhr-result:has-text("xhr:")'
 plwr -S plwr-test network --type xhr
 ---
-{{ entries: json array }}
----
-where
-* len(entries) == 1
-* entries[0].url endswith "/network.json"
-* entries[0].method == "PUT"
-* entries[0].status == 200
-* entries[0].type == "xhr"
+[
+  {
+    "duration": {{ _22: int }},
+    "method": "PUT",
+    "size": {{ _23: int }},
+    "status": 200,
+    "ts": {{ _24: int }},
+    "type": "xhr",
+    "url": "http://localhost:8599/network.json"
+  }
+]
 
 ===
-network: WebSocket captures connection with status 101
+network: WebSocket shows status 101 on successful connection
 ===
 plwr -S plwr-test network --clear
 plwr -S plwr-test click '#do-ws'
 plwr -S plwr-test wait '#ws-result:has-text("ws:hello")' -T 5000
 plwr -S plwr-test network --type ws
 ---
-{{ entries: json array }}
----
-where
-* len(entries) == 1
-* entries[0].url contains "localhost:8597"
-* entries[0].status == 101
-* entries[0].type == "ws"
+[
+  {
+    "duration": {{ _25: int }},
+    "method": null,
+    "size": 0,
+    "status": 101,
+    "ts": {{ _26: int }},
+    "type": "ws",
+    "url": "ws://localhost:8597"
+  }
+]
 
 ===
-network: --type filter with multiple comma-separated types
+network: --type with multiple comma-separated types
 ===
 plwr -S plwr-test network --clear
 plwr -S plwr-test open "http://localhost:8599/network.html"
 sleep 1
 plwr -S plwr-test network --type css,js
 ---
-{{ entries: json array }}
----
-where
-* len(entries) >= 2
-* e.type == "css" or e.type == "js" forall e in entries
+[
+  {
+    "duration": {{ _27: int }},
+    "method": null,
+    "size": {{ _28: int }},
+    "status": 200,
+    "ts": {{ _29: int }},
+    "type": "css",
+    "url": "http://localhost:8599/network.css"
+  },
+  {
+    "duration": {{ _30: int }},
+    "method": null,
+    "size": {{ _31: int }},
+    "status": 200,
+    "ts": {{ _32: int }},
+    "type": "js",
+    "url": "http://localhost:8599/network.js"
+  }
+]
 
 ===
-network: --type filter excludes non-matching types
+network: --type with no matches returns empty array
 ===
 plwr -S plwr-test network --type ws
 ---
@@ -179,15 +274,21 @@ sleep 0.5
 ---
 
 ===
-network: 404 response captured with correct status
+network: 404 response shows correct status code
 ===
 plwr -S plwr-test network --type fetch
 ---
-{{ entries: json array }}
----
-where
-* len(entries) == 1
-* entries[0].status == 404
+[
+  {
+    "duration": {{ _33: int }},
+    "method": "GET",
+    "size": {{ _34: int }},
+    "status": 404,
+    "ts": {{ _35: int }},
+    "type": "fetch",
+    "url": "http://localhost:8599/does-not-exist"
+  }
+]
 
 ===
 network: multiple requests accumulate in buffer
@@ -199,52 +300,94 @@ plwr -S plwr-test click '#do-xhr'
 plwr -S plwr-test wait '#xhr-result:has-text("xhr:")'
 plwr -S plwr-test network
 ---
-{{ entries: json array }}
----
-where
-* len(entries) == 2
+[
+  {
+    "duration": {{ _36: int }},
+    "method": "POST",
+    "size": {{ _37: int }},
+    "status": 200,
+    "ts": {{ _38: int }},
+    "type": "fetch",
+    "url": "http://localhost:8599/network.json"
+  },
+  {
+    "duration": {{ _39: int }},
+    "method": "PUT",
+    "size": {{ _40: int }},
+    "status": 200,
+    "ts": {{ _41: int }},
+    "type": "xhr",
+    "url": "http://localhost:8599/network.json"
+  }
+]
 
 ===
-network: --url filters by regex
+network: --url filters by regex pattern
 ===
 plwr -S plwr-test network --clear
 plwr -S plwr-test open "http://localhost:8599/network.html"
 sleep 1
 plwr -S plwr-test network --url '\.css$'
 ---
-{{ entries: json array }}
----
-where
-* len(entries) == 1
-* entries[0].url endswith "/network.css"
+[
+  {
+    "duration": {{ _42: int }},
+    "method": null,
+    "size": {{ _43: int }},
+    "status": 200,
+    "ts": {{ _44: int }},
+    "type": "css",
+    "url": "http://localhost:8599/network.css"
+  }
+]
 
 ===
 network: --url with partial match
 ===
 plwr -S plwr-test network --url 'pixel'
 ---
-{{ entries: json array }}
----
-where
-* len(entries) == 1
-* entries[0].url endswith "/pixel.png"
+[
+  {
+    "duration": {{ _45: int }},
+    "method": null,
+    "size": {{ _46: int }},
+    "status": 200,
+    "ts": {{ _47: int }},
+    "type": "img",
+    "url": "http://localhost:8599/pixel.png"
+  }
+]
 
 ===
-network: --url combined with --type
+network: --type and --url combined
 ===
 plwr -S plwr-test network --type doc --url 'network'
 ---
-{{ entries: json array }}
----
-where
-* len(entries) >= 1
-* e.type == "doc" forall e in entries
-* e.url contains "network" forall e in entries
+[
+  {
+    "duration": {{ _48: int }},
+    "method": "GET",
+    "size": {{ _49: int }},
+    "status": 200,
+    "ts": {{ _50: int }},
+    "type": "doc",
+    "url": "http://localhost:8599/network"
+  },
+  {
+    "duration": {{ _51: int }},
+    "method": "GET",
+    "size": {{ _52: int }},
+    "status": 200,
+    "ts": {{ _53: int }},
+    "type": "doc",
+    "url": "http://localhost:8599/network"
+  }
+]
 
 ===
-network: --url with no matches returns empty
+network: --url with no matches returns empty array
 ===
-plwr -S plwr-test network --url 'this-will-never-match-anything'
+plwr -S plwr-test network --url 'zzz-no-match-zzz'
 ---
 []
 
