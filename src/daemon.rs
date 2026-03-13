@@ -967,7 +967,7 @@ async fn handle_command(state: &mut State, command: Command) -> Result<Response>
             Ok(Response::ok_empty())
         }
 
-        Command::Network { types } => {
+        Command::Network { types, url_pattern } => {
             let val = pw_ext::page_evaluate_value(
                 page,
                 "() => JSON.stringify(window.__plwr_network || [])",
@@ -975,7 +975,15 @@ async fn handle_command(state: &mut State, command: Command) -> Result<Response>
             .await?;
             let json_str: String = serde_json::from_str(&val).unwrap_or(val);
             let entries: serde_json::Value = serde_json::from_str(&json_str)?;
-            if types.is_empty() {
+
+            let url_regex = url_pattern
+                .as_deref()
+                .map(regex::Regex::new)
+                .transpose()
+                .map_err(|e| anyhow::anyhow!("Invalid URL regex: {}", e))?;
+
+            let needs_filter = !types.is_empty() || url_regex.is_some();
+            if !needs_filter {
                 Ok(Response::ok_value(entries))
             } else {
                 let filtered = entries
@@ -983,9 +991,16 @@ async fn handle_command(state: &mut State, command: Command) -> Result<Response>
                     .map(|arr| {
                         arr.iter()
                             .filter(|e| {
-                                e.get("type")
-                                    .and_then(|t| t.as_str())
-                                    .is_some_and(|t| types.iter().any(|f| f == t))
+                                let type_ok = types.is_empty()
+                                    || e.get("type")
+                                        .and_then(|t| t.as_str())
+                                        .is_some_and(|t| types.iter().any(|f| f == t));
+                                let url_ok = url_regex.as_ref().map_or(true, |re| {
+                                    e.get("url")
+                                        .and_then(|u| u.as_str())
+                                        .is_some_and(|u| re.is_match(u))
+                                });
+                                type_ok && url_ok
                             })
                             .cloned()
                             .collect::<Vec<_>>()

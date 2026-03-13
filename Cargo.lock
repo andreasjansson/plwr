@@ -1260,6 +1260,7 @@ dependencies = [
  "libc",
  "openssl",
  "playwright-rs",
+ "regex",
  "serde",
  "serde_json",
  "tempfile",
