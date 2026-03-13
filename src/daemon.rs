@@ -67,8 +67,7 @@ if (!window.__plwr_network) {
         const method = (init && init.method) ? init.method.toUpperCase()
             : (input instanceof Request) ? input.method.toUpperCase()
             : 'GET';
-        const startTime = performance.now();
-        window.__plwr_network_fetch_map.set(url + '|' + Math.round(startTime), method);
+        (window.__plwr_network_fetch_queue[url] = window.__plwr_network_fetch_queue[url] || []).push(method);
         return origFetch.apply(this, arguments);
     };
 
