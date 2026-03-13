@@ -258,8 +258,6 @@ plwr -S plwr-test network --type ws --include-ws-data
         "ts": {{ ws_data_recv_ts: int }}
       }
     ],
-    "method": null,
-    "size": 0,
     "status": 101,
     "ts": {{ ws_data_ts: int }},
     "type": "ws",
