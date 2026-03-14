@@ -38,7 +38,7 @@ fill fails on missing element
 ===
 ! plwr -S plwr-test fill .does-not-exist hello -T 500
 ---
-Timeout 500ms exceeded.
+Timeout 500ms exceeded. [selector: .does-not-exist]
 
 ===
 tree fails on missing selector
@@ -52,35 +52,35 @@ hover fails on missing element
 ===
 ! plwr -S plwr-test hover .does-not-exist -T 500
 ---
-Timeout 500ms exceeded.
+Timeout 500ms exceeded. [selector: .does-not-exist]
 
 ===
 check fails on missing element
 ===
 ! plwr -S plwr-test check .does-not-exist -T 500
 ---
-Timeout 500ms exceeded.
+Timeout 500ms exceeded. [selector: .does-not-exist]
 
 ===
 uncheck fails on missing element
 ===
 ! plwr -S plwr-test uncheck .does-not-exist -T 500
 ---
-Timeout 500ms exceeded.
+Timeout 500ms exceeded. [selector: .does-not-exist]
 
 ===
 dblclick fails on missing element
 ===
 ! plwr -S plwr-test dblclick .does-not-exist -T 500
 ---
-Timeout 500ms exceeded.
+Timeout 500ms exceeded. [selector: .does-not-exist]
 
 ===
 select fails on missing element
 ===
 ! plwr -S plwr-test select .does-not-exist val -T 500
 ---
-Timeout 500ms exceeded.
+Timeout 500ms exceeded. [selector: .does-not-exist]
 
 ===
 focus fails on missing element

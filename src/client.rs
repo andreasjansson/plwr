@@ -29,6 +29,7 @@ pub async fn ensure_started(
     headed: bool,
     video: Option<&str>,
     ignore_cert_errors: bool,
+    cdp: Option<&str>,
 ) -> Result<()> {
     if socket_path.exists() {
         if UnixStream::connect(socket_path).await.is_ok() {
@@ -36,7 +37,7 @@ pub async fn ensure_started(
         }
         std::fs::remove_file(socket_path).ok();
     }
-    start_daemon(socket_path, headed, video, ignore_cert_errors)
+    start_daemon(socket_path, headed, video, ignore_cert_errors, cdp)
 }
 
 async fn send_on_stream(stream: UnixStream, command: Command) -> Result<Response> {
@@ -60,6 +61,7 @@ fn start_daemon(
     headed: bool,
     video: Option<&str>,
     ignore_cert_errors: bool,
+    cdp: Option<&str>,
 ) -> Result<()> {
     if socket_path.exists() {
         std::fs::remove_file(socket_path).ok();
@@ -94,6 +96,9 @@ fn start_daemon(
     }
     if ignore_cert_errors {
         cmd.env("PLWR_IGNORE_CERT_ERRORS", "1");
+    }
+    if let Some(channel) = cdp {
+        cmd.env("PLWR_CDP", channel);
     }
 
     let mut child = cmd

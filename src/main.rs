@@ -171,7 +171,8 @@ const EXAMPLES: &str = "\x1b[1;4mExamples:\x1b[0m
   PLAYWRIGHT_HEADED        Show browser window (set to any value)
   PLWR_SESSION             Default session name (default: \"default\")
   PLWR_TIMEOUT             Default timeout in ms (default: 5000)
-  PLWR_IGNORE_CERT_ERRORS  Ignore TLS/SSL certificate errors";
+  PLWR_IGNORE_CERT_ERRORS  Ignore TLS/SSL certificate errors
+  PLWR_CDP                 Chrome channel for CDP connection (stable, beta, canary, dev)";
 
 #[derive(Subcommand)]
 enum Cmd {
@@ -186,6 +187,13 @@ enum Cmd {
         /// Ignore TLS/SSL certificate errors (useful behind corporate proxies)
         #[arg(long)]
         ignore_cert_errors: bool,
+        /// Connect to your running Chrome via CDP.
+        /// Value is a channel name, user-data-dir path, or ws:// URL.
+        /// Channels: stable (default), beta, canary, dev.
+        /// Path: reads DevToolsActivePort from the given directory.
+        /// Enable in Chrome: chrome://inspect/#remote-debugging
+        #[arg(long, env = "PLWR_CDP", num_args = 0..=1, default_missing_value = "stable")]
+        cdp: Option<String>,
     },
     /// Stop the browser
     Stop,
@@ -510,11 +518,29 @@ async fn main() -> ExitCode {
             headed,
             video,
             ignore_cert_errors,
+            cdp,
         } => {
             let headed = headed || std::env::var("PLAYWRIGHT_HEADED").is_ok_and(|v| !v.is_empty());
+            if cdp.is_some() && headed {
+                eprintln!(
+                    "--cdp and --headed are mutually exclusive (the browser is already visible)"
+                );
+                return ExitCode::FAILURE;
+            }
+            if cdp.is_some() && video.is_some() {
+                eprintln!("--cdp and --video are mutually exclusive (video recording requires a launched browser)");
+                return ExitCode::FAILURE;
+            }
             let ignore_cert_errors = ignore_cert_errors
                 || std::env::var("PLWR_IGNORE_CERT_ERRORS").is_ok_and(|v| !v.is_empty());
-            match client::ensure_started(&sock, headed, video.as_deref(), ignore_cert_errors).await
+            match client::ensure_started(
+                &sock,
+                headed,
+                video.as_deref(),
+                ignore_cert_errors,
+                cdp.as_deref(),
+            )
+            .await
             {
                 Ok(()) => {
                     println!("Started session '{}'", cli.session);

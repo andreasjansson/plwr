@@ -1,7 +1,69 @@
 use playwright_rs::server::channel_owner::ChannelOwner;
-use playwright_rs::{BrowserContext, Page};
+use playwright_rs::{Browser, BrowserContext, BrowserType, Page};
 use serde::Deserialize;
 use std::collections::HashMap;
+
+// -- BrowserType extensions --
+
+pub struct ConnectOverCDPResult {
+    pub browser: Browser,
+    pub default_context: Option<BrowserContext>,
+}
+
+pub async fn connect_over_cdp(
+    browser_type: &BrowserType,
+    ws_endpoint: &str,
+    timeout: f64,
+) -> playwright_rs::Result<ConnectOverCDPResult> {
+    #[derive(Deserialize)]
+    struct GuidRef {
+        guid: String,
+    }
+    #[derive(Deserialize)]
+    struct Response {
+        browser: GuidRef,
+        #[serde(rename = "defaultContext")]
+        default_context: Option<GuidRef>,
+    }
+
+    let params = serde_json::json!({
+        "endpointURL": ws_endpoint,
+        "timeout": timeout,
+    });
+
+    let response: Response = browser_type
+        .channel()
+        .send("connectOverCDP", params)
+        .await?;
+
+    let conn = browser_type.connection();
+
+    let browser_arc = conn.get_object(&response.browser.guid).await?;
+    let browser = browser_arc
+        .as_any()
+        .downcast_ref::<Browser>()
+        .ok_or_else(|| playwright_rs::Error::ProtocolError("Expected Browser object".to_string()))?
+        .clone();
+
+    let default_context = if let Some(ctx_ref) = response.default_context {
+        let ctx_arc = conn.get_object(&ctx_ref.guid).await?;
+        let ctx = ctx_arc
+            .as_any()
+            .downcast_ref::<BrowserContext>()
+            .ok_or_else(|| {
+                playwright_rs::Error::ProtocolError("Expected BrowserContext object".to_string())
+            })?
+            .clone();
+        Some(ctx)
+    } else {
+        None
+    };
+
+    Ok(ConnectOverCDPResult {
+        browser,
+        default_context,
+    })
+}
 
 // -- BrowserContext extensions --
 

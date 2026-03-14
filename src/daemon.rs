@@ -205,6 +205,7 @@ struct State {
     dialog_action: Arc<Mutex<Option<DialogAction>>>,
     dialog_installed: bool,
     clipboard_granted: bool,
+    cdp: bool,
 }
 
 struct VideoState {
@@ -239,77 +240,120 @@ pub async fn run(socket_path: &Path, headed: bool, ignore_cert_errors: bool) -> 
             return Err(e.into());
         }
     };
-    let video_output = std::env::var("PLWR_VIDEO").ok();
 
-    let args = if ignore_cert_errors {
-        Some(vec!["--ignore-certificate-errors".to_string()])
-    } else {
-        None
-    };
+    let cdp_channel = std::env::var("PLWR_CDP").ok();
+    let is_cdp = cdp_channel.is_some();
 
-    let browser = match playwright
-        .chromium()
-        .launch_with_options(LaunchOptions {
-            headless: Some(!headed),
-            args,
-            ..Default::default()
-        })
-        .await
-    {
-        Ok(b) => b,
-        Err(e) => {
-            println!("{}{}", ERROR_PREFIX, e);
-            return Err(e.into());
-        }
-    };
-
-    let video = if let Some(ref output_path) = video_output {
-        let cache = dirs::cache_dir()
-            .unwrap_or_else(|| std::path::PathBuf::from("/tmp"))
-            .join("plwr")
-            .join("video");
-        std::fs::create_dir_all(&cache)?;
-        let temp_dir = tempfile::tempdir_in(&cache)?.keep();
-        Some(VideoState {
-            output_path: output_path.clone(),
-            temp_dir,
-        })
-    } else {
-        None
-    };
-
-    let page = if let Some(ref vs) = video {
-        let ctx = match browser
-            .new_context_with_options(BrowserContextOptions {
-                record_video: Some(RecordVideo {
-                    dir: vs.temp_dir.to_string_lossy().to_string(),
-                    size: None,
-                }),
-                ..Default::default()
-            })
-            .await
-        {
-            Ok(c) => c,
+    let (page, video) = if let Some(ref channel) = cdp_channel {
+        let ws_url = match resolve_cdp_endpoint(channel) {
+            Ok(url) => url,
+            Err(e) => {
+                println!("{}{}", ERROR_PREFIX, e);
+                return Err(e);
+            }
+        };
+        let result = match pw_ext::connect_over_cdp(playwright.chromium(), &ws_url, 30000.0).await {
+            Ok(r) => r,
+            Err(e) => {
+                let msg = e.to_string();
+                if msg.contains("refused") || msg.contains("403") {
+                    println!(
+                        "{}Connection refused. Did you click \"Allow\" in Chrome's remote debugging dialog?",
+                        ERROR_PREFIX
+                    );
+                } else {
+                    println!("{}{}", ERROR_PREFIX, msg);
+                }
+                return Err(e.into());
+            }
+        };
+        let page = match &result.default_context {
+            Some(ctx) => ctx.new_page().await,
+            None => result.browser.new_page().await,
+        };
+        let page = match page {
+            Ok(p) => p,
             Err(e) => {
                 println!("{}{}", ERROR_PREFIX, e);
                 return Err(e.into());
             }
         };
-        match ctx.new_page().await {
-            Ok(p) => p,
-            Err(e) => {
-                println!("{}{}", ERROR_PREFIX, e);
-                return Err(e.into());
-            }
-        }
+        (page, None)
     } else {
-        match browser.new_page().await {
-            Ok(p) => p,
+        let video_output = std::env::var("PLWR_VIDEO").ok();
+
+        let args = if ignore_cert_errors {
+            Some(vec!["--ignore-certificate-errors".to_string()])
+        } else {
+            None
+        };
+
+        let browser = match playwright
+            .chromium()
+            .launch_with_options(LaunchOptions {
+                headless: Some(!headed),
+                args,
+                ..Default::default()
+            })
+            .await
+        {
+            Ok(b) => b,
             Err(e) => {
                 println!("{}{}", ERROR_PREFIX, e);
                 return Err(e.into());
             }
-        }
+        };
+
+        let video = if let Some(ref output_path) = video_output {
+            let cache = dirs::cache_dir()
+                .unwrap_or_else(|| std::path::PathBuf::from("/tmp"))
+                .join("plwr")
+                .join("video");
+            std::fs::create_dir_all(&cache)?;
+            let temp_dir = tempfile::tempdir_in(&cache)?.keep();
+            Some(VideoState {
+                output_path: output_path.clone(),
+                temp_dir,
+            })
+        } else {
+            None
+        };
+
+        let page = if let Some(ref vs) = video {
+            let ctx = match browser
+                .new_context_with_options(BrowserContextOptions {
+                    record_video: Some(RecordVideo {
+                        dir: vs.temp_dir.to_string_lossy().to_string(),
+                        size: None,
+                    }),
+                    ..Default::default()
+                })
+                .await
+            {
+                Ok(c) => c,
+                Err(e) => {
+                    println!("{}{}", ERROR_PREFIX, e);
+                    return Err(e.into());
+                }
+            };
+            match ctx.new_page().await {
+                Ok(p) => p,
+                Err(e) => {
+                    println!("{}{}", ERROR_PREFIX, e);
+                    return Err(e.into());
+                }
+            }
+        } else {
+            match browser.new_page().await {
+                Ok(p) => p,
+                Err(e) => {
+                    println!("{}{}", ERROR_PREFIX, e);
+                    return Err(e.into());
+                }
+            }
+        };
+
+        (page, video)
     };
     let listener = match UnixListener::bind(socket_path) {
         Ok(l) => l,
@@ -332,6 +376,7 @@ pub async fn run(socket_path: &Path, headed: bool, ignore_cert_errors: bool) -> 
         dialog_action: Arc::new(Mutex::new(None)),
         dialog_installed: false,
         clipboard_granted: false,
+        cdp: is_cdp,
     };
 
     loop {
@@ -379,11 +424,11 @@ async fn handle_command(state: &mut State, command: Command) -> Result<Response>
     // Handle commands that mutate state before borrowing the page
     match command {
         Command::Open { url, timeout } => {
-            if !state.console_initialized {
+            if !state.cdp && !state.console_initialized {
                 state.page.add_init_script(CONSOLE_INTERCEPTOR_JS).await?;
                 state.console_initialized = true;
             }
-            if !state.network_initialized {
+            if !state.cdp && !state.network_initialized {
                 state.page.add_init_script(NETWORK_INTERCEPTOR_JS).await?;
                 state.network_initialized = true;
             }
@@ -397,6 +442,10 @@ async fn handle_command(state: &mut State, command: Command) -> Result<Response>
                     }),
                 )
                 .await?;
+            if state.cdp {
+                pw_ext::page_evaluate_value(&state.page, CONSOLE_INTERCEPTOR_JS).await?;
+                pw_ext::page_evaluate_value(&state.page, NETWORK_INTERCEPTOR_JS).await?;
+            }
             state.page_opened = true;
             return Ok(Response::ok_empty());
         }
@@ -527,6 +576,10 @@ async fn handle_command(state: &mut State, command: Command) -> Result<Response>
 
     match command {
         Command::Stop => {
+            if state.cdp {
+                state.page.close().await.ok();
+                return Ok(Response::ok_empty());
+            }
             if let Some(vs) = state.video.take() {
                 let ctx = state.page.context()?;
                 state.page.close().await?;
@@ -1177,6 +1230,73 @@ fn parse_button(button: Option<&str>) -> Option<MouseButton> {
         "middle" => MouseButton::Middle,
         other => panic!("Unknown button: {}", other),
     })
+}
+
+fn resolve_cdp_endpoint(arg: &str) -> Result<String> {
+    if arg.starts_with("ws://") || arg.starts_with("wss://") {
+        return Ok(arg.to_string());
+    }
+    match arg {
+        "stable" | "beta" | "canary" | "dev" | "" => {
+            read_devtools_ws_url_from_dir(&chrome_user_data_dir(arg))
+        }
+        path => {
+            let expanded = if let Some(rest) = path.strip_prefix('~') {
+                let home = dirs::home_dir().unwrap_or_else(|| std::path::PathBuf::from("~"));
+                home.join(rest.strip_prefix('/').unwrap_or(rest))
+            } else {
+                std::path::PathBuf::from(path)
+            };
+            read_devtools_ws_url_from_dir(&expanded)
+        }
+    }
+}
+
+fn chrome_user_data_dir(channel: &str) -> std::path::PathBuf {
+    if let Ok(dir) = std::env::var("PLWR_CDP_USER_DATA_DIR") {
+        return std::path::PathBuf::from(dir);
+    }
+    let home = dirs::home_dir().unwrap_or_else(|| std::path::PathBuf::from("~"));
+    if cfg!(target_os = "macos") {
+        let suffix = match channel {
+            "stable" | "" => "Google/Chrome",
+            "beta" => "Google/Chrome Beta",
+            "canary" => "Google/Chrome Canary",
+            "dev" => "Google/Chrome Dev",
+            other => other,
+        };
+        home.join("Library/Application Support").join(suffix)
+    } else {
+        // Linux
+        let suffix = match channel {
+            "stable" | "" => "google-chrome",
+            "beta" => "google-chrome-beta",
+            "canary" | "dev" => "google-chrome-unstable",
+            other => other,
+        };
+        home.join(".config").join(suffix)
+    }
+}
+
+fn read_devtools_ws_url_from_dir(user_data_dir: &std::path::Path) -> Result<String> {
+    let port_file = user_data_dir.join("DevToolsActivePort");
+    let content = std::fs::read_to_string(&port_file).map_err(|_| {
+        anyhow::anyhow!(
+            "Could not find DevToolsActivePort in {}. Enable remote debugging: chrome://inspect/#remote-debugging",
+            port_file.display()
+        )
+    })?;
+    let mut lines = content.lines();
+    let port = lines
+        .next()
+        .ok_or_else(|| anyhow::anyhow!("DevToolsActivePort is empty: {}", port_file.display()))?;
+    let ws_path = lines.next().ok_or_else(|| {
+        anyhow::anyhow!(
+            "DevToolsActivePort missing WebSocket path: {}",
+            port_file.display()
+        )
+    })?;
+    Ok(format!("ws://127.0.0.1:{}{}", port.trim(), ws_path.trim()))
 }
 
 fn clean_error(e: anyhow::Error) -> String {

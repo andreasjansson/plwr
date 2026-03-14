@@ -1,0 +1,113 @@
+===
+find chromium binary
+%require
+===
+PW_DIR=""
+for d in ~/Library/Caches/ms-playwright ~/.cache/ms-playwright; do
+  if [ -d "$d" ]; then PW_DIR="$d"; break; fi
+done
+if [ -z "$PW_DIR" ]; then echo "SKIP: no ms-playwright dir found"; exit 1; fi
+CHROME=$(find "$PW_DIR" -name headless_shell -type f 2>/dev/null | sort | tail -1)
+if [ -z "$CHROME" ]; then
+  CHROME=$(find "$PW_DIR" -name chrome -type f 2>/dev/null | sort | tail -1)
+fi
+if [ -z "$CHROME" ]; then
+  CHROME=$(find "$PW_DIR" -name 'Google Chrome for Testing' -type f 2>/dev/null | sort | tail -1)
+fi
+if [ -z "$CHROME" ]; then echo "SKIP: no chromium binary found"; exit 1; fi
+echo "$CHROME" > /tmp/plwr-cdp-shell-path
+---
+
+===
+launch chromium with remote debugging
+%require
+===
+CHROME=$(cat /tmp/plwr-cdp-shell-path)
+export PLWR_CDP_TMPDIR=$(mktemp -d)
+echo "$PLWR_CDP_TMPDIR" > /tmp/plwr-cdp-tmpdir
+"$CHROME" --headless --no-sandbox --remote-debugging-port=0 --no-first-run --no-default-browser-check --user-data-dir="$PLWR_CDP_TMPDIR" about:blank &>/tmp/plwr-cdp-chrome.log &
+echo $! > /tmp/plwr-cdp-chrome.pid
+for i in $(seq 1 50); do [ -f "$PLWR_CDP_TMPDIR/DevToolsActivePort" ] && exit 0; sleep 0.2; done
+exit 1
+---
+
+===
+connect plwr via --cdp
+===
+export PLWR_CDP_USER_DATA_DIR=$(cat /tmp/plwr-cdp-tmpdir)
+plwr -S plwr-cdp start --cdp
+---
+Started session 'plwr-cdp'
+
+===
+navigate to test page
+%require
+===
+plwr -S plwr-cdp open "http://localhost:8599/index.html"
+---
+
+===
+read text content
+===
+plwr -S plwr-cdp text h1
+---
+Test Page
+
+===
+console capture works in CDP mode
+===
+plwr -S plwr-cdp open "http://localhost:8599/console.html"
+plwr -S plwr-cdp eval "console.log('cdp-hello')"
+plwr -S plwr-cdp console | python3 -c "import sys,json; msgs=json.load(sys.stdin); print(next(m['args'][0] for m in msgs if 'cdp-hello' in m['args']))"
+---
+undefined
+cdp-hello
+
+===
+network capture works in CDP mode
+===
+plwr -S plwr-cdp open "http://localhost:8599/network.html"
+sleep 1
+plwr -S plwr-cdp network --type doc | python3 -c "import sys,json; entries=json.load(sys.stdin); e=entries[0]; print(e['type'],e['method'],e['status'])"
+---
+doc GET 200
+
+===
+screenshot works in CDP mode
+===
+plwr -S plwr-cdp screenshot --path /tmp/plwr-cdp-test-screenshot.png
+test -f /tmp/plwr-cdp-test-screenshot.png && echo "ok"
+rm -f /tmp/plwr-cdp-test-screenshot.png
+---
+{{ _screenshot_msg: line }}
+ok
+
+===
+stop disconnects without killing browser
+===
+plwr -S plwr-cdp stop
+kill -0 $(cat /tmp/plwr-cdp-chrome.pid) 2>/dev/null && echo "browser still running"
+---
+Stopped session 'plwr-cdp'
+browser still running
+
+===
+can reconnect after stop
+===
+export PLWR_CDP_USER_DATA_DIR=$(cat /tmp/plwr-cdp-tmpdir)
+plwr -S plwr-cdp start --cdp
+plwr -S plwr-cdp open "http://localhost:8599/index.html"
+plwr -S plwr-cdp text h1
+plwr -S plwr-cdp stop
+---
+Started session 'plwr-cdp'
+Test Page
+Stopped session 'plwr-cdp'
+
+===
+cleanup: kill chrome
+===
+kill $(cat /tmp/plwr-cdp-chrome.pid) 2>/dev/null
+rm -f /tmp/plwr-cdp-chrome.pid /tmp/plwr-cdp-chrome.log /tmp/plwr-cdp-shell-path
+rm -rf $(cat /tmp/plwr-cdp-tmpdir) /tmp/plwr-cdp-tmpdir 2>/dev/null
+---
