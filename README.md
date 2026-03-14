@@ -70,6 +70,7 @@ plwr stop                       # shut down browser
 | `PLWR_SESSION` | Default session name (default: `default`) |
 | `PLWR_TIMEOUT` | Default timeout in ms (default: `5000`) |
 | `PLWR_IGNORE_CERT_ERRORS` | Set to any value to ignore TLS/SSL certificate errors |
+| `PLWR_CDP` | CDP connection target: channel name, user-data-dir path, or `ws://` URL |
 
 All commands take `-S`/`--session` and `-T`/`--timeout` as global options,
 which override the environment variables.
@@ -90,6 +91,27 @@ plwr stop                              # shut down (saves video if recording)
 Commands that interact with page content (`text`, `click`, `wait`, `eval`,
 etc.) require a page to be open first via `plwr open`. Commands that configure
 the session (`header`, `viewport`) work before any page is opened.
+
+### Remote debugging (CDP)
+
+Connect to your running Chrome instead of launching a new browser. New tabs
+share your existing cookies and login state.
+
+1. In Chrome, go to `chrome://inspect/#remote-debugging` and enable it
+2. Connect plwr:
+
+```bash
+plwr start --cdp                     # stable Chrome (default)
+plwr start --cdp beta                # Chrome Beta
+plwr start --cdp ~/my-profile        # custom --user-data-dir path
+plwr start --cdp ws://host:9222/...  # direct WebSocket URL
+plwr open https://example.com        # opens in a new tab in your Chrome
+plwr text h1
+plwr stop                            # closes the tab, Chrome keeps running
+```
+
+Chrome shows a permission dialog on each connection — click **Allow**.
+`--cdp` is mutually exclusive with `--headed` and `--video`.
 
 ### Navigation
 

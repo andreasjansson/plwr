@@ -48,6 +48,23 @@ plwr start --ignore-cert-errors    # ignore TLS certificate errors
 plwr stop                          # shut down (saves video if recording)
 ```
 
+### Remote Debugging (CDP)
+
+Connect to a running Chrome instead of launching a new browser. Shares
+the user's cookies and login state. Requires the user to enable remote
+debugging in Chrome (`chrome://inspect/#remote-debugging`) and click
+**Allow** on the permission dialog.
+
+```bash
+plwr start --cdp                     # stable Chrome (default)
+plwr start --cdp beta                # Chrome Beta / Canary / Dev
+plwr start --cdp ~/my-profile        # custom --user-data-dir path
+plwr start --cdp ws://host:9222/...  # direct WebSocket URL
+plwr stop                            # closes plwr's tab, Chrome keeps running
+```
+
+`--cdp` is mutually exclusive with `--headed` and `--video`.
+
 ### Navigation
 
 ```bash
