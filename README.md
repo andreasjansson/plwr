@@ -192,6 +192,12 @@ Supported keys for `press`: `a`–`z`, `A`–`Z`, `0`–`9`, `Backspace`, `Tab`,
 (`` !@#$%^&*()_+-=[]{}\\|;:'",./<>?`~ ``). Chords use `+`: `Control+c`,
 `Shift+Enter`, `Meta+a`.
 
+`type` sends individual key events for each character in a string — use it for
+contenteditable elements (like Twitter's compose box) where `fill` doesn't
+work. `fill` sets the value of `<input>` and `<textarea>` elements directly.
+`press` sends a single keystroke and supports special keys and chords that
+`type` cannot.
+
 ### Clipboard
 
 Copy content from an element to the browser clipboard and paste it at the
