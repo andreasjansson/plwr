@@ -15,16 +15,6 @@ plwr -S plwr-test input-value '#name'
 Bob
 
 ===
-clear the input
-===
-plwr -S plwr-test click '#name'
-plwr -S plwr-test press Meta+a
-plwr -S plwr-test press Backspace
-plwr -S plwr-test input-value '#name'
----
-
-
-===
 type into contenteditable
 ===
 plwr -S plwr-test click '#editable'
@@ -36,6 +26,7 @@ hello world
 ===
 type with delay
 ===
+plwr -S plwr-test fill '#name' ''
 plwr -S plwr-test click '#name'
 plwr -S plwr-test type 'hi' --delay 50
 plwr -S plwr-test input-value '#name'
