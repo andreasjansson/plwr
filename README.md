@@ -161,6 +161,8 @@ plwr fill '#name-input' 'Alice' -T 10000 # waits up to 10s, then fills
 ```bash
 plwr click '#submit-btn'
 plwr fill '#name-input' 'Alice'
+plwr type 'hello world'             # type text character by character
+plwr type 'slow' --delay 100        # 100ms between keystrokes
 plwr press Enter
 plwr press Control+c
 plwr dblclick '.editable-cell'   # double-click
