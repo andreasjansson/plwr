@@ -759,6 +759,12 @@ async fn handle_command(state: &mut State, command: Command) -> Result<Response>
             }
         },
 
+        Command::Type { text, delay } => {
+            let options = delay.map(|d| playwright_rs::KeyboardOptions { delay: Some(d) });
+            page.keyboard().type_text(&text, options).await?;
+            Ok(Response::ok_empty())
+        }
+
         Command::Exists { selector } => {
             let loc = page.locator(&selector).await;
             let n = tokio::time::timeout(CHANNEL_TIMEOUT, loc.count())
