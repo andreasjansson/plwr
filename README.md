@@ -113,6 +113,17 @@ plwr stop                            # closes the tab, Chrome keeps running
 Chrome shows a permission dialog on each connection — click **Allow**.
 `--cdp` is mutually exclusive with `--headed` and `--video`.
 
+**Example: post to X/Twitter** (using your logged-in session):
+
+```bash
+plwr start --cdp
+plwr open https://x.com/compose/post
+plwr click '[data-testid="tweetTextarea_0"] >> nth=0'
+plwr press h && plwr press e && plwr press l && plwr press l && plwr press o
+plwr click '[data-testid="tweetButton"]'
+plwr stop
+```
+
 ### Navigation
 
 `open` navigates the current page within the existing browser context. Headers,
