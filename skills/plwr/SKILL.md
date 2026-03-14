@@ -87,6 +87,8 @@ plwr wait-all '.header' '.sidebar' '.content'
 ```bash
 plwr click '#submit-btn'
 plwr fill '#name-input' 'Alice'
+plwr type 'hello world'             # type text character by character
+plwr type 'slow' --delay 100        # 100ms between keystrokes
 plwr press Enter
 plwr press Control+c
 plwr dblclick '.editable-cell'
@@ -95,6 +97,11 @@ plwr focus '#search'
 plwr blur '#email'
 plwr scroll '.footer'
 ```
+
+`type` sends individual key events per character — use for contenteditable
+elements (e.g. Twitter's compose box) where `fill` doesn't work. `fill` sets
+the value of `<input>`/`<textarea>` directly. `press` sends a single keystroke
+and supports special keys and chords that `type` cannot.
 
 Click/dblclick modifiers:
 
