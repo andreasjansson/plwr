@@ -760,7 +760,8 @@ async fn handle_command(state: &mut State, command: Command) -> Result<Response>
         },
 
         Command::Type { text, delay } => {
-            let options = delay.map(|d| playwright_rs::KeyboardOptions { delay: Some(d) });
+            let options =
+                delay.map(|d| playwright_rs::protocol::KeyboardOptions { delay: Some(d) });
             page.keyboard().type_text(&text, options).await?;
             Ok(Response::ok_empty())
         }
