@@ -46,6 +46,10 @@ pub enum Command {
     Press {
         key: String,
     },
+    Type {
+        text: String,
+        delay: Option<f64>,
+    },
     Exists {
         selector: String,
     },
