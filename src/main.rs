@@ -248,6 +248,14 @@ enum Cmd {
     /// Press a keyboard key or chord (e.g. Enter, Escape, Control+c)
     Press { key: String },
 
+    /// Type text by sending individual key events for each character
+    Type {
+        text: String,
+        /// Delay between keystrokes in milliseconds
+        #[arg(long)]
+        delay: Option<f64>,
+    },
+
     /// Exit 0 if selector exists, exit 1 if not (for && chaining)
     Exists { selector: String },
 
