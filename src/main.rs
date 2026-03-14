@@ -643,6 +643,7 @@ async fn main() -> ExitCode {
                     timeout: cli.timeout,
                 },
                 Cmd::Press { key } => Command::Press { key },
+                Cmd::Type { text, delay } => Command::Type { text, delay },
                 Cmd::Exists { selector } => Command::Exists { selector },
                 Cmd::Cookie { list: true, .. } => Command::CookieList,
                 Cmd::Cookie { clear: true, .. } => Command::CookieClear,
