@@ -180,6 +180,9 @@ impl Command {
                 | Command::Stop
                 | Command::Header { .. }
                 | Command::HeaderClear
+                | Command::Cookie { .. }
+                | Command::CookieList
+                | Command::CookieClear
                 | Command::Viewport { .. }
                 | Command::DialogAccept { .. }
                 | Command::DialogDismiss
