@@ -67,22 +67,6 @@ pub async fn connect_over_cdp(
 
 // -- BrowserContext extensions --
 
-pub async fn set_extra_http_headers(
-    ctx: &BrowserContext,
-    headers: HashMap<String, String>,
-) -> playwright_rs::Result<()> {
-    let header_array: Vec<serde_json::Value> = headers
-        .into_iter()
-        .map(|(name, value)| serde_json::json!({ "name": name, "value": value }))
-        .collect();
-    ctx.channel()
-        .send_no_result(
-            "setExtraHTTPHeaders",
-            serde_json::json!({ "headers": header_array }),
-        )
-        .await
-}
-
 #[derive(Deserialize)]
 pub struct Cookie {
     pub name: String,
