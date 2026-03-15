@@ -372,8 +372,6 @@ pub async fn run(socket_path: &Path, headed: bool, ignore_cert_errors: bool) -> 
         page,
         page_opened: false,
         headers: HashMap::new(),
-        header_route_headers: Arc::new(Mutex::new(HashMap::new())),
-        header_route_installed: false,
         video,
         console_initialized: false,
         network_initialized: false,
