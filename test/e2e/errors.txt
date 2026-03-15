@@ -278,11 +278,11 @@ count fails after start but before open
 No page open. Use 'plwr open <url>' first.
 
 ===
-cookie list fails after start but before open
+cookie list works after start but before open (returns empty)
 ===
-! plwr -S plwr-test-nopage cookie --list
+plwr -S plwr-test-nopage cookie --list
 ---
-No page open. Use 'plwr open <url>' first.
+[]
 
 ===
 header works after start but before open
