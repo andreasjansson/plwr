@@ -457,50 +457,14 @@ async fn handle_command(state: &mut State, command: Command) -> Result<Response>
         }
         Command::Header { name, value } => {
             state.headers.insert(name, value);
-            *state.header_route_headers.lock().unwrap() = state.headers.clone();
-            if !state.header_route_installed {
-                let shared = Arc::clone(&state.header_route_headers);
-                state
-                    .page
-                    .route("**/*", move |route| {
-                        let shared = Arc::clone(&shared);
-                        async move {
-                            let extra = shared.lock().unwrap().clone();
-                            if extra.is_empty() {
-                                return route.continue_(None).await;
-                            }
-                            let request = route.request();
-                            let init = request.initializer();
-                            let mut merged: HashMap<String, String> = HashMap::new();
-                            if let Some(arr) = init.get("headers").and_then(|v| v.as_array()) {
-                                for entry in arr {
-                                    if let (Some(n), Some(v)) = (
-                                        entry.get("name").and_then(|n| n.as_str()),
-                                        entry.get("value").and_then(|v| v.as_str()),
-                                    ) {
-                                        merged.insert(n.to_string(), v.to_string());
-                                    }
-                                }
-                            }
-                            for (k, v) in extra {
-                                merged.insert(k, v);
-                            }
-                            route
-                                .continue_(Some(ContinueOptions {
-                                    headers: Some(merged),
-                                    ..Default::default()
-                                }))
-                                .await
-                        }
-                    })
-                    .await?;
-                state.header_route_installed = true;
-            }
+            let ctx = &state.page.context()?;
+            pw_ext::set_extra_http_headers(ctx, state.headers.clone()).await?;
             return Ok(Response::ok_empty());
         }
         Command::HeaderClear => {
             state.headers.clear();
-            *state.header_route_headers.lock().unwrap() = HashMap::new();
+            let ctx = &state.page.context()?;
+            pw_ext::set_extra_http_headers(ctx, HashMap::new()).await?;
             return Ok(Response::ok_empty());
         }
         Command::Cookie { name, value, url } => {
