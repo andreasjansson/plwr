@@ -8,9 +8,8 @@ Started session 'plwr-cookie-test'
 
 ===
 cookie without --url and no page gives error
-%exit 1
 ===
-plwr -S plwr-cookie-test cookie session abc123
+! plwr -S plwr-cookie-test cookie session abc123
 ---
 No page open and no --url provided. Use --url to specify the cookie domain.
 
