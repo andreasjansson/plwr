@@ -1,6 +1,7 @@
 use playwright_rs::server::channel_owner::ChannelOwner;
 use playwright_rs::{Browser, BrowserContext, BrowserType, Page};
 use serde::Deserialize;
+use std::collections::HashMap;
 
 
 // -- BrowserType extensions --
