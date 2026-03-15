@@ -3,6 +3,8 @@ use crate::pw_ext;
 use anyhow::Result;
 use playwright_rs::{
     protocol::click::{KeyboardModifier, MouseButton},
+    protocol::ContinueOptions,
+    server::channel_owner::ChannelOwner,
     BrowserContextOptions, CheckOptions, ClickOptions, FillOptions, HoverOptions, LaunchOptions,
     Locator, Page, Playwright, RecordVideo, SelectOption, SelectOptions,
 };
