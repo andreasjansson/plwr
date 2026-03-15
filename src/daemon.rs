@@ -438,6 +438,43 @@ async fn handle_command(state: &mut State, command: Command) -> Result<Response>
                 state.page.add_init_script(NETWORK_INTERCEPTOR_JS).await?;
                 state.network_initialized = true;
             }
+            // Install transient route interception so custom headers are
+            // included on the navigation request itself (setExtraHTTPHeaders
+            // on the context doesn't reliably cover goto()).
+            let has_headers = !state.headers.is_empty();
+            if has_headers {
+                let headers = state.headers.clone();
+                state
+                    .page
+                    .route("**/*", move |route| {
+                        let headers = headers.clone();
+                        async move {
+                            let request = route.request();
+                            let init = request.initializer();
+                            let mut merged: HashMap<String, String> = HashMap::new();
+                            if let Some(arr) = init.get("headers").and_then(|v| v.as_array()) {
+                                for entry in arr {
+                                    if let (Some(n), Some(v)) = (
+                                        entry.get("name").and_then(|n| n.as_str()),
+                                        entry.get("value").and_then(|v| v.as_str()),
+                                    ) {
+                                        merged.insert(n.to_string(), v.to_string());
+                                    }
+                                }
+                            }
+                            for (k, v) in headers {
+                                merged.insert(k, v);
+                            }
+                            route
+                                .continue_(Some(ContinueOptions {
+                                    headers: Some(merged),
+                                    ..Default::default()
+                                }))
+                                .await
+                        }
+                    })
+                    .await?;
+            }
             state
                 .page
                 .goto(
@@ -448,6 +485,9 @@ async fn handle_command(state: &mut State, command: Command) -> Result<Response>
                     }),
                 )
                 .await?;
+            if has_headers {
+                pw_ext::disable_network_interception(&state.page).await?;
+            }
             if state.cdp {
                 pw_ext::page_evaluate_value(&state.page, CONSOLE_INTERCEPTOR_JS).await?;
                 pw_ext::page_evaluate_value(&state.page, NETWORK_INTERCEPTOR_JS).await?;
