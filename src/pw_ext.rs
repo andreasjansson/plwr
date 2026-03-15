@@ -3,7 +3,6 @@ use playwright_rs::{Browser, BrowserContext, BrowserType, Page};
 use serde::Deserialize;
 use std::collections::HashMap;
 
-
 // -- BrowserType extensions --
 
 pub struct ConnectOverCDPResult {
