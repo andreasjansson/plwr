@@ -201,6 +201,8 @@ struct State {
     page: Page,
     page_opened: bool,
     headers: HashMap<String, String>,
+    header_route_headers: Arc<Mutex<HashMap<String, String>>>,
+    header_route_installed: bool,
     video: Option<VideoState>,
     console_initialized: bool,
     network_initialized: bool,
