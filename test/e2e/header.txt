@@ -1,4 +1,38 @@
 ===
+start a fresh session for pre-navigation header tests
+%require
+===
+plwr -S plwr-header-test start
+---
+Started session 'plwr-header-test'
+
+===
+set headers before any page is opened
+===
+plwr -S plwr-header-test header X-Before-Nav before-value
+---
+
+===
+first navigation sends the header
+===
+plwr -S plwr-header-test open "http://localhost:8598/"
+---
+
+===
+header set before first open is present
+===
+plwr -S plwr-header-test eval "JSON.parse(document.body.innerText)['x-before-nav']"
+---
+before-value
+
+===
+stop fresh session
+===
+plwr -S plwr-header-test stop
+---
+Stopped session 'plwr-header-test'
+
+===
 navigate to test page
 %require
 ===
