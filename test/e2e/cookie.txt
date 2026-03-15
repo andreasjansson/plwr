@@ -1,4 +1,46 @@
 ===
+start a fresh session for pre-navigation cookie tests
+%require
+===
+plwr -S plwr-cookie-test start
+---
+Started session 'plwr-cookie-test'
+
+===
+cookie without --url and no page gives error
+%exit 1
+===
+plwr -S plwr-cookie-test cookie session abc123
+---
+No page open and no --url provided. Use --url to specify the cookie domain.
+
+===
+set cookie with --url before any page is opened
+===
+plwr -S plwr-cookie-test cookie pre_auth token123 --url "http://localhost:8599/"
+---
+
+===
+navigate and verify cookie is present
+===
+plwr -S plwr-cookie-test open "http://localhost:8599/index.html"
+---
+
+===
+cookie set before open is accessible from JS
+===
+plwr -S plwr-cookie-test eval "document.cookie.split('; ').find(c => c.startsWith('pre_auth=')).split('=')[1]"
+---
+token123
+
+===
+stop fresh session
+===
+plwr -S plwr-cookie-test stop
+---
+Stopped session 'plwr-cookie-test'
+
+===
 navigate to test page
 %require
 ===
