@@ -464,6 +464,11 @@ async fn handle_command(state: &mut State, command: Command) -> Result<Response>
         Command::Cookie { name, value, url } => {
             let ctx = state.page.context()?;
             let url = if url.is_empty() {
+                if !state.page_opened {
+                    return Ok(Response::err(
+                        "No page open and no --url provided. Use --url to specify the cookie domain.".to_string(),
+                    ));
+                }
                 state.page.url()
             } else {
                 url
