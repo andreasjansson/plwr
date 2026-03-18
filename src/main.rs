@@ -829,6 +829,7 @@ async fn main() -> ExitCode {
                     timeout: cli.timeout,
                 },
                 Cmd::Eval { js } => Command::Eval { js },
+                Cmd::Grep { pattern, selector } => Command::Grep { pattern, selector },
                 Cmd::Screenshot { selector, path } => Command::Screenshot {
                     selector,
                     path,
