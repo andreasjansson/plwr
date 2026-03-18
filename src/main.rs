@@ -467,10 +467,11 @@ fn format_grep_output(value: &serde_json::Value) {
         .filter_map(|entry| {
             let html = entry.get("html")?.as_str()?;
             let selector = entry.get("selector")?.as_str()?;
-            let display = if html.len() > MAX_HTML_WIDTH {
-                format!("{}…", &html[..MAX_HTML_WIDTH - 1])
+            let collapsed: String = html.split_whitespace().collect::<Vec<_>>().join(" ");
+            let display = if collapsed.len() > MAX_HTML_WIDTH {
+                format!("{}\u{2026}", &collapsed[..MAX_HTML_WIDTH - 1])
             } else {
-                html.to_string()
+                collapsed
             };
             Some((display, selector))
         })
