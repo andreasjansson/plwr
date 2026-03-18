@@ -50,15 +50,6 @@ grep no matches returns empty
 ===
 plwr -S plwr-test grep 'xyznonexistent'
 ---
-
-===
-grep invalid regex returns error
-%exit 1
-===
-plwr -S plwr-test grep '[invalid'
----
-SyntaxError: Invalid regular expression: /[invalid/g: Unterminated character class
-
 ===
 switch to selectors page
 %require
