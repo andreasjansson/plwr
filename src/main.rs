@@ -454,6 +454,35 @@ enum Cmd {
     Daemon,
 }
 
+fn format_grep_output(value: &serde_json::Value) {
+    let entries = match value.as_array() {
+        Some(arr) => arr,
+        None => return,
+    };
+
+    const MAX_HTML_WIDTH: usize = 60;
+
+    let truncated: Vec<(String, &str)> = entries
+        .iter()
+        .filter_map(|entry| {
+            let html = entry.get("html")?.as_str()?;
+            let selector = entry.get("selector")?.as_str()?;
+            let display = if html.len() > MAX_HTML_WIDTH {
+                format!("{}…", &html[..MAX_HTML_WIDTH - 1])
+            } else {
+                html.to_string()
+            };
+            Some((display, selector))
+        })
+        .collect();
+
+    let max_html_len = truncated.iter().map(|(h, _)| h.len()).max().unwrap_or(0);
+
+    for (html, selector) in &truncated {
+        println!("{:width$}  {}", html, selector, width = max_html_len);
+    }
+}
+
 fn find_subcommand_in_args() -> Option<String> {
     let cmd = Cli::command();
     let names: HashSet<String> = cmd
