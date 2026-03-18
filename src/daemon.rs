@@ -1135,63 +1135,81 @@ async fn handle_command(state: &mut State, command: Command) -> Result<Response>
         Command::Grep { pattern, selector } => {
             let root_sel = selector.as_deref().unwrap_or("html");
             let escaped_pattern = pattern.replace('\\', "\\\\").replace('\'', "\\'");
+            let escaped_root = root_sel.replace('\\', "\\\\").replace('\'', "\\'");
             let js = format!(
                 r#"() => {{
-                    const root = document.querySelector('{}');
-                    if (!root) throw new Error('Root element not found: {}');
+                    const root = document.querySelector('{ROOT}');
+                    if (!root) throw new Error('Root element not found: {ROOT}');
                     const html = root.outerHTML;
-                    const re = new RegExp('{}', 'g');
+                    const re = new RegExp('{PAT}', 'g');
                     const seen = new Set();
                     const results = [];
                     let m;
                     while ((m = re.exec(html)) !== null) {{
-                        // Walk DOM to find the element at this character offset.
-                        // We create a temporary range in a detached context by
-                        // scanning text positions in the serialized HTML. Instead,
-                        // we match each element's outerHTML span to find the
-                        // innermost element containing the match offset.
                         const offset = m.index;
                         const el = findElementAtOffset(root, html, offset);
                         if (!el || seen.has(el)) continue;
                         seen.add(el);
                         const sel = shortestSelector(el, root);
-                        // Build context: the element's outerHTML (opening tag + text)
-                        const oh = el.outerHTML;
-                        results.push({{ html: oh, selector: sel }});
+                        results.push({{ html: el.outerHTML, selector: sel }});
                     }}
 
+                    // Map every element to its [start, end) character range in
+                    // the serialized outerHTML, then pick the smallest element
+                    // whose range contains the match offset.
                     function findElementAtOffset(root, fullHtml, offset) {{
-                        // Walk all elements; for each, find its outerHTML position
-                        // in the full string and check if offset falls inside.
-                        const walker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT);
+                        const ranges = new Map();
+                        function buildRanges(node) {{
+                            const oh = node.outerHTML;
+                            // Search forward from where we'd expect this node,
+                            // starting from its parent's known start position.
+                            const parentStart = ranges.has(node.parentElement)
+                                ? ranges.get(node.parentElement)[0] : 0;
+                            const prevSib = node.previousElementSibling;
+                            const searchFrom = prevSib && ranges.has(prevSib)
+                                ? ranges.get(prevSib)[1] : parentStart;
+                            const pos = fullHtml.indexOf(oh, searchFrom);
+                            if (pos !== -1) {{
+                                ranges.set(node, [pos, pos + oh.length]);
+                            }}
+                            for (const child of node.children) buildRanges(child);
+                        }}
+                        ranges.set(root, [0, fullHtml.length]);
+                        for (const child of root.children) buildRanges(child);
+
                         let best = root;
                         let bestLen = Infinity;
-                        let node;
-                        while ((node = walker.nextNode())) {{
-                            const oh = node.outerHTML;
-                            // Find position of this element's outerHTML in fullHtml.
-                            // For nested elements, the outerHTML is a substring.
-                            // We search from a position that makes sense.
-                            const pos = fullHtml.indexOf(oh);
-                            if (pos === -1) continue;
-                            if (offset >= pos && offset < pos + oh.length) {{
-                                if (oh.length < bestLen) {{
-                                    best = node;
-                                    bestLen = oh.length;
-                                }}
+                        for (const [node, [start, end]] of ranges) {{
+                            if (offset >= start && offset < end && (end - start) < bestLen) {{
+                                best = node;
+                                bestLen = end - start;
                             }}
                         }}
                         return best;
                     }}
 
-                    function shortestSelector(el, root) {{
-                        const isRoot = root === document.querySelector('html');
+                    function shortestSelector(el, scopeRoot) {{
+                        const isDocScope = scopeRoot === document.documentElement;
 
                         function isUnique(sel) {{
                             try {{
-                                const base = isRoot ? document : root;
+                                const base = isDocScope ? document : scopeRoot;
                                 return base.querySelectorAll(sel).length === 1;
                             }} catch(e) {{ return false; }}
+                        }}
+
+                        // Helpers for quoting attribute values in selectors.
+                        // Simple values (alphanumeric, hyphens, underscores) don't
+                        // need quotes; everything else gets double-quoted with the
+                        // css= prefix so Playwright handles it.
+                        const SIMPLE_VAL = /^[a-zA-Z0-9_-]+$/;
+
+                        function attrSel(tag, attr, val) {{
+                            if (SIMPLE_VAL.test(val)) {{
+                                return tag + '[' + attr + '=' + val + ']';
+                            }}
+                            const escaped = val.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+                            return 'css=' + tag + '[' + attr + '="' + escaped + '"]';
                         }}
 
                         // 1. #id
@@ -1207,8 +1225,10 @@ async fn handle_command(state: &mut State, command: Command) -> Result<Response>
                         for (const attr of distinctAttrs) {{
                             const val = el.getAttribute(attr);
                             if (val !== null && val !== '') {{
-                                const sel = tag + '[' + attr + '=' + CSS.escape(val) + ']';
-                                if (isUnique(sel)) return sel;
+                                // For querySelectorAll testing, always use quoted form
+                                const qval = val.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+                                const testSel = tag + '[' + attr + '="' + qval + '"]';
+                                if (isUnique(testSel)) return attrSel(tag, attr, val);
                             }}
                         }}
 
@@ -1233,16 +1253,15 @@ async fn handle_command(state: &mut State, command: Command) -> Result<Response>
 
                         const parts = [singleSegment(el)];
                         let cur = el.parentElement;
-                        for (let depth = 0; depth < 3 && cur && cur !== root && cur !== document.documentElement; depth++) {{
+                        for (let depth = 0; depth < 3 && cur && cur !== scopeRoot && cur !== document.documentElement; depth++) {{
                             parts.unshift(singleSegment(cur));
                             const candidate = parts.join(' > ');
                             if (isUnique(candidate)) return candidate;
                             cur = cur.parentElement;
                         }}
 
-                        // 5. Fallback: full path from root
-                        if (cur && cur !== root && cur !== document.documentElement) {{
-                            while (cur && cur !== root && cur !== document.documentElement) {{
+                        if (cur && cur !== scopeRoot && cur !== document.documentElement) {{
+                            while (cur && cur !== scopeRoot && cur !== document.documentElement) {{
                                 parts.unshift(singleSegment(cur));
                                 cur = cur.parentElement;
                             }}
@@ -1252,9 +1271,8 @@ async fn handle_command(state: &mut State, command: Command) -> Result<Response>
 
                     return JSON.stringify(results);
                 }}"#,
-                root_sel.replace('\\', "\\\\").replace('\'', "\\'"),
-                root_sel.replace('\\', "\\\\").replace('\'', "\\'"),
-                escaped_pattern
+                ROOT = escaped_root,
+                PAT = escaped_pattern
             );
             let val = pw_ext::page_evaluate_value(page, &js).await?;
             let json_str: String = serde_json::from_str(&val).unwrap_or(val);
