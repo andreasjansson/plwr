@@ -1132,6 +1132,136 @@ async fn handle_command(state: &mut State, command: Command) -> Result<Response>
             Ok(Response::ok_empty())
         }
 
+        Command::Grep { pattern, selector } => {
+            let root_sel = selector.as_deref().unwrap_or("html");
+            let escaped_pattern = pattern.replace('\\', "\\\\").replace('\'', "\\'");
+            let js = format!(
+                r#"() => {{
+                    const root = document.querySelector('{}');
+                    if (!root) throw new Error('Root element not found: {}');
+                    const html = root.outerHTML;
+                    const re = new RegExp('{}', 'g');
+                    const seen = new Set();
+                    const results = [];
+                    let m;
+                    while ((m = re.exec(html)) !== null) {{
+                        // Walk DOM to find the element at this character offset.
+                        // We create a temporary range in a detached context by
+                        // scanning text positions in the serialized HTML. Instead,
+                        // we match each element's outerHTML span to find the
+                        // innermost element containing the match offset.
+                        const offset = m.index;
+                        const el = findElementAtOffset(root, html, offset);
+                        if (!el || seen.has(el)) continue;
+                        seen.add(el);
+                        const sel = shortestSelector(el, root);
+                        // Build context: the element's outerHTML (opening tag + text)
+                        const oh = el.outerHTML;
+                        results.push({{ html: oh, selector: sel }});
+                    }}
+
+                    function findElementAtOffset(root, fullHtml, offset) {{
+                        // Walk all elements; for each, find its outerHTML position
+                        // in the full string and check if offset falls inside.
+                        const walker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT);
+                        let best = root;
+                        let bestLen = Infinity;
+                        let node;
+                        while ((node = walker.nextNode())) {{
+                            const oh = node.outerHTML;
+                            // Find position of this element's outerHTML in fullHtml.
+                            // For nested elements, the outerHTML is a substring.
+                            // We search from a position that makes sense.
+                            const pos = fullHtml.indexOf(oh);
+                            if (pos === -1) continue;
+                            if (offset >= pos && offset < pos + oh.length) {{
+                                if (oh.length < bestLen) {{
+                                    best = node;
+                                    bestLen = oh.length;
+                                }}
+                            }}
+                        }}
+                        return best;
+                    }}
+
+                    function shortestSelector(el, root) {{
+                        const isRoot = root === document.querySelector('html');
+
+                        function isUnique(sel) {{
+                            try {{
+                                const base = isRoot ? document : root;
+                                return base.querySelectorAll(sel).length === 1;
+                            }} catch(e) {{ return false; }}
+                        }}
+
+                        // 1. #id
+                        if (el.id) {{
+                            const sel = '#' + CSS.escape(el.id);
+                            if (isUnique(sel)) return sel;
+                        }}
+
+                        // 2. tag[attr=value] for distinctive attributes
+                        const tag = el.tagName.toLowerCase();
+                        const distinctAttrs = ['name', 'type', 'data-testid', 'data-id',
+                                               'role', 'for', 'href', 'value', 'aria-label'];
+                        for (const attr of distinctAttrs) {{
+                            const val = el.getAttribute(attr);
+                            if (val !== null && val !== '') {{
+                                const sel = tag + '[' + attr + '=' + CSS.escape(val) + ']';
+                                if (isUnique(sel)) return sel;
+                            }}
+                        }}
+
+                        // 3. tag.class1.class2
+                        if (el.classList.length > 0) {{
+                            const sel = tag + Array.from(el.classList).map(c => '.' + CSS.escape(c)).join('');
+                            if (isUnique(sel)) return sel;
+                        }}
+
+                        // 4. Walk up ancestors to build parent > ... > tag:nth-child(N)
+                        function nthChild(node) {{
+                            let i = 1;
+                            let sib = node.previousElementSibling;
+                            while (sib) {{ i++; sib = sib.previousElementSibling; }}
+                            return i;
+                        }}
+
+                        function singleSegment(node) {{
+                            if (node.id) return '#' + CSS.escape(node.id);
+                            return node.tagName.toLowerCase() + ':nth-child(' + nthChild(node) + ')';
+                        }}
+
+                        const parts = [singleSegment(el)];
+                        let cur = el.parentElement;
+                        for (let depth = 0; depth < 3 && cur && cur !== root && cur !== document.documentElement; depth++) {{
+                            parts.unshift(singleSegment(cur));
+                            const candidate = parts.join(' > ');
+                            if (isUnique(candidate)) return candidate;
+                            cur = cur.parentElement;
+                        }}
+
+                        // 5. Fallback: full path from root
+                        if (cur && cur !== root && cur !== document.documentElement) {{
+                            while (cur && cur !== root && cur !== document.documentElement) {{
+                                parts.unshift(singleSegment(cur));
+                                cur = cur.parentElement;
+                            }}
+                        }}
+                        return parts.join(' > ');
+                    }}
+
+                    return JSON.stringify(results);
+                }}"#,
+                root_sel.replace('\\', "\\\\").replace('\'', "\\'"),
+                root_sel.replace('\\', "\\\\").replace('\'', "\\'"),
+                escaped_pattern
+            );
+            let val = pw_ext::page_evaluate_value(page, &js).await?;
+            let json_str: String = serde_json::from_str(&val).unwrap_or(val);
+            let results: serde_json::Value = serde_json::from_str(&json_str)?;
+            Ok(Response::ok_value(results))
+        }
+
         Command::Eval { js } => {
             let wrapper = format!(
                 "() => {{ const __r = ({}); return typeof __r === 'object' ? JSON.stringify(__r) : __r; }}",
