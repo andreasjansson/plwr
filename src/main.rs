@@ -478,10 +478,15 @@ fn format_grep_output(value: &serde_json::Value) {
         })
         .collect();
 
-    let max_html_len = truncated.iter().map(|(h, _)| h.len()).max().unwrap_or(0);
+    let max_html_chars = truncated
+        .iter()
+        .map(|(h, _)| h.chars().count())
+        .max()
+        .unwrap_or(0);
 
     for (html, selector) in &truncated {
-        println!("{:width$}  {}", html, selector, width = max_html_len);
+        let pad = max_html_chars - html.chars().count();
+        println!("{}{}  {}", html, " ".repeat(pad), selector);
     }
 }
 
