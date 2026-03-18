@@ -841,20 +841,29 @@ async fn main() -> ExitCode {
                 },
             };
 
+            let is_grep = matches!(command, Command::Grep { .. });
+
             match client::send(&sock, command).await {
                 Ok(resp) => {
                     if resp.ok {
                         if let Some(value) = resp.value {
-                            match value {
-                                serde_json::Value::String(s) => println!("{}", s),
-                                serde_json::Value::Bool(b) => {
-                                    if !b {
-                                        return ExitCode::FAILURE;
+                            if is_grep {
+                                format_grep_output(&value);
+                            } else {
+                                match value {
+                                    serde_json::Value::String(s) => println!("{}", s),
+                                    serde_json::Value::Bool(b) => {
+                                        if !b {
+                                            return ExitCode::FAILURE;
+                                        }
                                     }
-                                }
-                                serde_json::Value::Null => {}
-                                other => {
-                                    println!("{}", serde_json::to_string_pretty(&other).unwrap())
+                                    serde_json::Value::Null => {}
+                                    other => {
+                                        println!(
+                                            "{}",
+                                            serde_json::to_string_pretty(&other).unwrap()
+                                        )
+                                    }
                                 }
                             }
                         }
