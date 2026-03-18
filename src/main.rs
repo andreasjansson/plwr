@@ -468,8 +468,9 @@ fn format_grep_output(value: &serde_json::Value) {
             let html = entry.get("html")?.as_str()?;
             let selector = entry.get("selector")?.as_str()?;
             let collapsed: String = html.split_whitespace().collect::<Vec<_>>().join(" ");
-            let display = if collapsed.len() > MAX_HTML_WIDTH {
-                format!("{}\u{2026}", &collapsed[..MAX_HTML_WIDTH - 1])
+            let display = if collapsed.chars().count() > MAX_HTML_WIDTH {
+                let s: String = collapsed.chars().take(MAX_HTML_WIDTH - 1).collect();
+                format!("{}\u{2026}", s)
             } else {
                 collapsed
             };
