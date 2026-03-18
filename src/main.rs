@@ -434,6 +434,15 @@ enum Cmd {
         path: String,
     },
 
+    /// Search page HTML with a regex, print matching elements with unique selectors
+    Grep {
+        /// Regex pattern to match against page outerHTML
+        pattern: String,
+        /// Scope search to a subtree rooted at this CSS selector
+        #[arg(long)]
+        selector: Option<String>,
+    },
+
     /// Dump the DOM tree as JSON (optionally rooted at a selector)
     Tree {
         /// CSS selector to use as root
