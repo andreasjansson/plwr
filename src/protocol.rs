@@ -169,6 +169,10 @@ pub enum Command {
         prompt_text: Option<String>,
     },
     DialogDismiss,
+    Grep {
+        pattern: String,
+        selector: Option<String>,
+    },
     Stop,
 }
 

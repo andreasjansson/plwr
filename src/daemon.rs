@@ -1132,6 +1132,154 @@ async fn handle_command(state: &mut State, command: Command) -> Result<Response>
             Ok(Response::ok_empty())
         }
 
+        Command::Grep { pattern, selector } => {
+            let root_sel = selector.as_deref().unwrap_or("html");
+            let escaped_pattern = pattern.replace('\\', "\\\\").replace('\'', "\\'");
+            let escaped_root = root_sel.replace('\\', "\\\\").replace('\'', "\\'");
+            let js = format!(
+                r#"() => {{
+                    const root = document.querySelector('{ROOT}');
+                    if (!root) throw new Error('Root element not found: {ROOT}');
+                    const html = root.outerHTML;
+                    const re = new RegExp('{PAT}', 'g');
+                    const seen = new Set();
+                    const results = [];
+                    let m;
+                    while ((m = re.exec(html)) !== null) {{
+                        const offset = m.index;
+                        const el = findElementAtOffset(root, html, offset);
+                        if (!el || seen.has(el)) continue;
+                        seen.add(el);
+                        const sel = shortestSelector(el, root);
+                        results.push({{ html: el.outerHTML, selector: sel }});
+                    }}
+
+                    // Map every element to its [start, end) character range in
+                    // the serialized outerHTML, then pick the smallest element
+                    // whose range contains the match offset.
+                    function findElementAtOffset(root, fullHtml, offset) {{
+                        const ranges = new Map();
+                        function buildRanges(node) {{
+                            const oh = node.outerHTML;
+                            // Search forward from where we'd expect this node,
+                            // starting from its parent's known start position.
+                            const parentStart = ranges.has(node.parentElement)
+                                ? ranges.get(node.parentElement)[0] : 0;
+                            const prevSib = node.previousElementSibling;
+                            const searchFrom = prevSib && ranges.has(prevSib)
+                                ? ranges.get(prevSib)[1] : parentStart;
+                            const pos = fullHtml.indexOf(oh, searchFrom);
+                            if (pos !== -1) {{
+                                ranges.set(node, [pos, pos + oh.length]);
+                            }}
+                            for (const child of node.children) buildRanges(child);
+                        }}
+                        ranges.set(root, [0, fullHtml.length]);
+                        for (const child of root.children) buildRanges(child);
+
+                        let best = root;
+                        let bestLen = Infinity;
+                        for (const [node, [start, end]] of ranges) {{
+                            if (offset >= start && offset < end && (end - start) < bestLen) {{
+                                best = node;
+                                bestLen = end - start;
+                            }}
+                        }}
+                        return best;
+                    }}
+
+                    function shortestSelector(el, scopeRoot) {{
+                        const isDocScope = scopeRoot === document.documentElement;
+
+                        function isUnique(sel) {{
+                            try {{
+                                const base = isDocScope ? document : scopeRoot;
+                                return base.querySelectorAll(sel).length === 1;
+                            }} catch(e) {{ return false; }}
+                        }}
+
+                        // Helpers for quoting attribute values in selectors.
+                        // Simple values (alphanumeric, hyphens, underscores) don't
+                        // need quotes; everything else gets double-quoted with the
+                        // css= prefix so Playwright handles it.
+                        const SIMPLE_VAL = /^[a-zA-Z0-9_-]+$/;
+
+                        function attrSel(tag, attr, val) {{
+                            if (SIMPLE_VAL.test(val)) {{
+                                return tag + '[' + attr + '=' + val + ']';
+                            }}
+                            const escaped = val.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+                            return 'css=' + tag + '[' + attr + '="' + escaped + '"]';
+                        }}
+
+                        // 1. #id
+                        if (el.id) {{
+                            const sel = '#' + CSS.escape(el.id);
+                            if (isUnique(sel)) return sel;
+                        }}
+
+                        // 2. tag[attr=value] for distinctive attributes
+                        const tag = el.tagName.toLowerCase();
+                        const distinctAttrs = ['name', 'type', 'data-testid', 'data-id',
+                                               'role', 'for', 'href', 'value', 'aria-label'];
+                        for (const attr of distinctAttrs) {{
+                            const val = el.getAttribute(attr);
+                            if (val !== null && val !== '') {{
+                                // For querySelectorAll testing, always use quoted form
+                                const qval = val.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+                                const testSel = tag + '[' + attr + '="' + qval + '"]';
+                                if (isUnique(testSel)) return attrSel(tag, attr, val);
+                            }}
+                        }}
+
+                        // 3. tag.class1.class2
+                        if (el.classList.length > 0) {{
+                            const sel = tag + Array.from(el.classList).map(c => '.' + CSS.escape(c)).join('');
+                            if (isUnique(sel)) return sel;
+                        }}
+
+                        // 4. Walk up ancestors to build parent > ... > tag:nth-child(N)
+                        function nthChild(node) {{
+                            let i = 1;
+                            let sib = node.previousElementSibling;
+                            while (sib) {{ i++; sib = sib.previousElementSibling; }}
+                            return i;
+                        }}
+
+                        function singleSegment(node) {{
+                            if (node.id) return '#' + CSS.escape(node.id);
+                            return node.tagName.toLowerCase() + ':nth-child(' + nthChild(node) + ')';
+                        }}
+
+                        const parts = [singleSegment(el)];
+                        let cur = el.parentElement;
+                        for (let depth = 0; depth < 3 && cur && cur !== scopeRoot && cur !== document.documentElement; depth++) {{
+                            parts.unshift(singleSegment(cur));
+                            const candidate = parts.join(' > ');
+                            if (isUnique(candidate)) return candidate;
+                            cur = cur.parentElement;
+                        }}
+
+                        if (cur && cur !== scopeRoot && cur !== document.documentElement) {{
+                            while (cur && cur !== scopeRoot && cur !== document.documentElement) {{
+                                parts.unshift(singleSegment(cur));
+                                cur = cur.parentElement;
+                            }}
+                        }}
+                        return parts.join(' > ');
+                    }}
+
+                    return JSON.stringify(results);
+                }}"#,
+                ROOT = escaped_root,
+                PAT = escaped_pattern
+            );
+            let val = pw_ext::page_evaluate_value(page, &js).await?;
+            let json_str: String = serde_json::from_str(&val).unwrap_or(val);
+            let results: serde_json::Value = serde_json::from_str(&json_str)?;
+            Ok(Response::ok_value(results))
+        }
+
         Command::Eval { js } => {
             let wrapper = format!(
                 "() => {{ const __r = ({}); return typeof __r === 'object' ? JSON.stringify(__r) : __r; }}",

@@ -434,6 +434,15 @@ enum Cmd {
         path: String,
     },
 
+    /// Search page HTML with a regex, print matching elements with unique selectors
+    Grep {
+        /// Regex pattern to match against page outerHTML
+        pattern: String,
+        /// Scope search to a subtree rooted at this CSS selector
+        #[arg(long)]
+        selector: Option<String>,
+    },
+
     /// Dump the DOM tree as JSON (optionally rooted at a selector)
     Tree {
         /// CSS selector to use as root
@@ -443,6 +452,42 @@ enum Cmd {
     /// Internal: run the browser daemon (not for direct use)
     #[command(hide = true)]
     Daemon,
+}
+
+fn format_grep_output(value: &serde_json::Value) {
+    let entries = match value.as_array() {
+        Some(arr) => arr,
+        None => return,
+    };
+
+    const MAX_HTML_WIDTH: usize = 60;
+
+    let truncated: Vec<(String, &str)> = entries
+        .iter()
+        .filter_map(|entry| {
+            let html = entry.get("html")?.as_str()?;
+            let selector = entry.get("selector")?.as_str()?;
+            let collapsed: String = html.split_whitespace().collect::<Vec<_>>().join(" ");
+            let display = if collapsed.chars().count() > MAX_HTML_WIDTH {
+                let s: String = collapsed.chars().take(MAX_HTML_WIDTH - 1).collect();
+                format!("{}\u{2026}", s)
+            } else {
+                collapsed
+            };
+            Some((display, selector))
+        })
+        .collect();
+
+    let max_html_chars = truncated
+        .iter()
+        .map(|(h, _)| h.chars().count())
+        .max()
+        .unwrap_or(0);
+
+    for (html, selector) in &truncated {
+        let pad = max_html_chars - html.chars().count();
+        println!("{}{}  {}", html, " ".repeat(pad), selector);
+    }
 }
 
 fn find_subcommand_in_args() -> Option<String> {
@@ -820,6 +865,7 @@ async fn main() -> ExitCode {
                     timeout: cli.timeout,
                 },
                 Cmd::Eval { js } => Command::Eval { js },
+                Cmd::Grep { pattern, selector } => Command::Grep { pattern, selector },
                 Cmd::Screenshot { selector, path } => Command::Screenshot {
                     selector,
                     path,
@@ -831,20 +877,29 @@ async fn main() -> ExitCode {
                 },
             };
 
+            let is_grep = matches!(command, Command::Grep { .. });
+
             match client::send(&sock, command).await {
                 Ok(resp) => {
                     if resp.ok {
                         if let Some(value) = resp.value {
-                            match value {
-                                serde_json::Value::String(s) => println!("{}", s),
-                                serde_json::Value::Bool(b) => {
-                                    if !b {
-                                        return ExitCode::FAILURE;
+                            if is_grep {
+                                format_grep_output(&value);
+                            } else {
+                                match value {
+                                    serde_json::Value::String(s) => println!("{}", s),
+                                    serde_json::Value::Bool(b) => {
+                                        if !b {
+                                            return ExitCode::FAILURE;
+                                        }
                                     }
-                                }
-                                serde_json::Value::Null => {}
-                                other => {
-                                    println!("{}", serde_json::to_string_pretty(&other).unwrap())
+                                    serde_json::Value::Null => {}
+                                    other => {
+                                        println!(
+                                            "{}",
+                                            serde_json::to_string_pretty(&other).unwrap()
+                                        )
+                                    }
                                 }
                             }
                         }

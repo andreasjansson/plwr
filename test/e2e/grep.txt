@@ -1,0 +1,79 @@
+===
+open form page
+%require
+===
+plwr -S plwr-test open "http://localhost:8599/form.html"
+---
+
+===
+grep by attribute value
+===
+plwr -S plwr-test grep 'type="checkbox"'
+---
+<input type="checkbox" id="agree">                  #agree
+<input type="checkbox" id="newsletter" checked="">  #newsletter
+
+===
+grep with regex - id pattern
+===
+plwr -S plwr-test grep 'id="(result|file-result)"'
+---
+<div id="result"></div>       #result
+<div id="file-result"></div>  #file-result
+
+===
+grep text content
+===
+plwr -S plwr-test grep 'Double-click'
+---
+<div id="dblclick-target">Double-click me</div>  #dblclick-target
+
+===
+grep returns attribute-based selector when no id
+===
+plwr -S plwr-test grep 'I agree'
+---
+<label for="agree">I agree</label>  label[for=agree]
+
+===
+grep scoped to subtree
+===
+plwr -S plwr-test grep 'option' --selector '#color'
+---
+<option value="">--pick--</option>    option:nth-child(1)
+<option value="red">Red</option>      option[value=red]
+<option value="green">Green</option>  option[value=green]
+<option value="blue">Blue</option>    option[value=blue]
+
+===
+grep no matches returns empty
+===
+plwr -S plwr-test grep 'xyznonexistent'
+---
+===
+switch to selectors page
+%require
+===
+plwr -S plwr-test open "http://localhost:8599/selectors.html"
+---
+
+===
+grep uses css= prefix for complex attribute values
+===
+plwr -S plwr-test grep 'data-external'
+---
+<a href="https://example.com/page?q=1&amp;lang=en" data-ext…  css=a[href="https://example.com/page?q=1&lang=en"]
+
+===
+grep returns class-based selector
+===
+plwr -S plwr-test grep 'has-text-only'
+---
+<div class="has-text-only">Just some text</div>  div.has-text-only
+
+===
+grep truncates long lines
+===
+plwr -S plwr-test grep 'border-collapse'
+---
+<style> .hidden { display: none; } .invisible { visibility:…  head:nth-child(1) > style:nth-child(2)
